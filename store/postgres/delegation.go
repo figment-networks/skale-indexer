@@ -1,12 +1,12 @@
 package postgres
 
 import (
+	"../../structs"
+	"../../types"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/structs"
-	"github.com/figment-networks/skale-indexer/types"
 )
 
 var (
@@ -14,12 +14,12 @@ var (
 )
 
 const (
-	insertStatement = `INSERT INTO delegations ("holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info", "created_at", "updated_at" ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) `
-	updateStatement = `UPDATE delegations SET holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8 , updated_at = NOW() WHERE id = $9 `
-	getByStatement  = `SELECT * FROM delegations where `
+	insertStatement = `INSERT INTO delegations ("created_at", "updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
+	updateStatement = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8  WHERE id = $9 `
+	getByStatement  = `SELECT * FROM delegations WHERE `
 	ById            = "id =  $1 "
 	ByHolder        = "holder =  $1 "
-	ByAmount        = "amount =  $1 "
+	ByValidatorId   = "validator_id =  $1 "
 )
 
 // SaveOrUpdateDelegation saves or updates delegation
@@ -28,7 +28,7 @@ func (d *Driver) SaveOrUpdateDelegation(ctx context.Context, dl structs.Delegati
 	if err != nil {
 		_, err = d.db.Exec(insertStatement, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
 	} else {
-		_, err = d.db.Exec(insertStatement, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
+		_, err = d.db.Exec(updateStatement, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
 
 	}
 
@@ -51,38 +51,61 @@ func (d *Driver) GetDelegationById(ctx context.Context, id types.ID) (res struct
 	q := fmt.Sprintf("%s%s", getByStatement, ById)
 
 	row := d.db.QueryRowContext(ctx, q, id)
-	if row == nil {
-		return res, ErrNotFound
+	if row.Err() != nil {
+		return res, fmt.Errorf("query error: %w", err)
 	}
 
-	err = row.Scan(&dlg.ID, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.CreatedAt, &dlg.UpdatedAt)
-	if err == sql.ErrNoRows {
+	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
+	if err == sql.ErrNoRows || !dlg.ID.Valid() {
 		return res, ErrNotFound
 	}
-	return res, err
+	return dlg, err
 }
 
 // GetDelegationsByHolder gets delegations by holder
 func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder string) (delegations []structs.Delegation, err error) {
 	q := fmt.Sprintf("%s%s", getByStatement, ByHolder)
 	rows, err := d.db.QueryContext(ctx, q, holder)
-	switch {
-	case err == sql.ErrNoRows:
-		return nil, ErrNotFound
-	case err != nil:
+	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
-	default:
 	}
 
 	defer rows.Close()
 
 	for rows.Next() {
 		dlg := structs.Delegation{}
-		err = rows.Scan(&dlg.ID, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.CreatedAt, &dlg.UpdatedAt)
+		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
 		if err != nil {
 			return nil, err
 		}
 		delegations = append(delegations, dlg)
+	}
+	if len(delegations) == 0 {
+		return nil, ErrNotFound
+	}
+	return delegations, nil
+}
+
+// GetDelegationsByValidatorId gets delegations by validator id
+func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error) {
+	q := fmt.Sprintf("%s%s", getByStatement, ByValidatorId)
+	rows, err := d.db.QueryContext(ctx, q, validatorId)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		dlg := structs.Delegation{}
+		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
+		if err != nil {
+			return nil, err
+		}
+		delegations = append(delegations, dlg)
+	}
+	if len(delegations) == 0 {
+		return nil, ErrNotFound
 	}
 	return delegations, nil
 }
