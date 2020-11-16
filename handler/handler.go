@@ -40,7 +40,7 @@ func (c *Connector) SaveOrUpdateDelegation(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	err = validateRequiredFields(delegation)
+	err = validateDelegationRequiredFields(delegation)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -72,7 +72,7 @@ func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Req
 		return
 	}
 	for _, dlg := range delegations {
-		err = validateRequiredFields(dlg)
+		err = validateDelegationRequiredFields(dlg)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -169,6 +169,150 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 	enc.Encode(res)
 }
 
+func (c *Connector) SaveOrUpdateValidator(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	decoder := json.NewDecoder(req.Body)
+	var validator structs.Validator
+	err := decoder.Decode(&validator)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = validateValidatorRequiredFields(validator)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = c.cli.SaveOrUpdateValidator(req.Context(), validator)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Request) {
+
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	decoder := json.NewDecoder(req.Body)
+	var validators []structs.Validator
+	err := decoder.Decode(&validators)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	for _, vld := range validators {
+		err = validateValidatorRequiredFields(vld)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+	}
+
+	err = c.cli.SaveOrUpdateValidators(req.Context(), validators)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	idParam := req.URL.Query().Get("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	idType := types.ID(id)
+	res, err := c.cli.GetValidatorById(req.Context(), &idType)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetValidatorsByValidatorAddress(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	validatorAddress := req.URL.Query().Get("validator_address")
+	if validatorAddress == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(ErrMissingParameter.Error()))
+		return
+	}
+
+	res, err := c.cli.GetValidatorsByValidatorAddress(req.Context(), &validatorAddress)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	requestedAddress := req.URL.Query().Get("requested_address")
+	if requestedAddress == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(ErrMissingParameter.Error()))
+		return
+	}
+
+	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), &requestedAddress)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-delegation", c.SaveOrUpdateDelegation)
@@ -176,4 +320,9 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/get-delegation", c.GetDelegationById)
 	mux.HandleFunc("/get-delegations-by-holder", c.GetDelegationsByHolder)
 	mux.HandleFunc("/get-delegations-by-validator-id", c.GetDelegationsByValidatorId)
+	mux.HandleFunc("/save-validator", c.SaveOrUpdateValidator)
+	mux.HandleFunc("/save-validators", c.SaveOrUpdateValidators)
+	mux.HandleFunc("/get-validator", c.GetValidatorById)
+	mux.HandleFunc("/get-validators-by-validator-address", c.GetValidatorsByValidatorAddress)
+	mux.HandleFunc("/get-validators-by-requested-address", c.GetValidatorsByRequestedAddress)
 }

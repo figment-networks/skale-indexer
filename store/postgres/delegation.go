@@ -14,21 +14,21 @@ var (
 )
 
 const (
-	insertStatement = `INSERT INTO delegations ("created_at", "updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
-	updateStatement = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8  WHERE id = $9 `
-	getByStatement  = `SELECT id, created_at, updated_at, holder, validator_id, amount, delegation_period, created, started, finished, info FROM delegations WHERE `
-	ById            = "id =  $1 "
-	ByHolder        = "holder =  $1 "
-	ByValidatorId   = "validator_id =  $1 "
+	insertStatementForDelegation = `INSERT INTO delegations ("created_at", "updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
+	updateStatementForDelegation = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8  WHERE id = $9 `
+	getByStatementForDelegation  = `SELECT id, created_at, updated_at, holder, validator_id, amount, delegation_period, created, started, finished, info FROM delegations WHERE `
+	byIdForDelegation            = "id =  $1 "
+	byHolderForDelegation        = "holder =  $1 "
+	byValidatorIdForDelegation   = "validator_id =  $1 "
 )
 
 // SaveOrUpdateDelegation saves or updates delegation
 func (d *Driver) SaveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
 	_, err := d.GetDelegationById(ctx, dl.ID)
 	if err != nil {
-		_, err = d.db.Exec(insertStatement, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
+		_, err = d.db.Exec(insertStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
 	} else {
-		_, err = d.db.Exec(updateStatement, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
+		_, err = d.db.Exec(updateStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func (d *Driver) SaveOrUpdateDelegations(ctx context.Context, dls []structs.Dele
 // GetDelegationById gets delegation by id
 func (d *Driver) GetDelegationById(ctx context.Context, id *types.ID) (res structs.Delegation, err error) {
 	dlg := structs.Delegation{}
-	q := fmt.Sprintf("%s%s", getByStatement, ById)
+	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byIdForDelegation)
 
 	row := d.db.QueryRowContext(ctx, q, id)
 	if row.Err() != nil {
@@ -62,7 +62,7 @@ func (d *Driver) GetDelegationById(ctx context.Context, id *types.ID) (res struc
 
 // GetDelegationsByHolder gets delegations by holder
 func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (delegations []structs.Delegation, err error) {
-	q := fmt.Sprintf("%s%s", getByStatement, ByHolder)
+	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byHolderForDelegation)
 	rows, err := d.db.QueryContext(ctx, q, holder)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
@@ -86,7 +86,7 @@ func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (de
 
 // GetDelegationsByValidatorId gets delegations by validator id
 func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error) {
-	q := fmt.Sprintf("%s%s", getByStatement, ByValidatorId)
+	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byValidatorIdForDelegation)
 	rows, err := d.db.QueryContext(ctx, q, validatorId)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

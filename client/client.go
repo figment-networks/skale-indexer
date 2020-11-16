@@ -55,6 +55,34 @@ func (c *ClientContractor) GetDelegationsByValidatorId(ctx context.Context, vali
 	return c.storeEng.GetDelegationsByValidatorId(ctx, validatorId)
 }
 
+func (c *ClientContractor) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateValidator(ctx, validator)
+}
+
+func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateValidators(ctx, validators)
+}
+
+func (c *ClientContractor) GetValidatorById(ctx context.Context, id *types.ID) (res structs.Validator, err error) {
+	defer c.recoverPanic()
+	if !id.Valid() {
+		return res, InvalidId
+	}
+	return c.storeEng.GetValidatorById(ctx, id)
+}
+
+func (c *ClientContractor) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetValidatorsByValidatorAddress(ctx, validatorAddress)
+}
+
+func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) (validators []structs.Validator, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
+}
+
 func (c *ClientContractor) recoverPanic() {
 	if p := recover(); p != nil {
 		//c.logger.Error("[Client] Panic ", zap.Any("contents", p))

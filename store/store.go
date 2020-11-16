@@ -8,10 +8,12 @@ import (
 
 type DBDriver interface {
 	DelegationStore
+	ValidatorStore
 }
 
 type DataStore interface {
 	DelegationStore
+	ValidatorStore
 }
 
 type DelegationStore interface {
@@ -22,6 +24,13 @@ type DelegationStore interface {
 	GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error)
 }
 
+type ValidatorStore interface {
+	SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error
+	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
+	GetValidatorById(ctx context.Context, id *types.ID) (res structs.Validator, err error)
+	GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error)
+	GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) (validators []structs.Validator, err error)
+}
 type Store struct {
 	driver DBDriver
 }
@@ -57,4 +66,24 @@ func (s *Store) GetDelegationsByHolder(ctx context.Context, holder *string) (del
 
 func (s *Store) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegationsByValidatorId(ctx, validatorId)
+}
+
+func (s *Store) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
+	return s.driver.SaveOrUpdateValidator(ctx, validator)
+}
+
+func (s *Store) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
+	return s.driver.SaveOrUpdateValidators(ctx, validators)
+}
+
+func (s *Store) GetValidatorById(ctx context.Context, id *types.ID) (res structs.Validator, err error) {
+	return s.driver.GetValidatorById(ctx, id)
+}
+
+func (s *Store) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validator []structs.Validator, err error) {
+	return s.driver.GetValidatorsByValidatorAddress(ctx, validatorAddress)
+}
+
+func (s *Store) GetValidatorsByRequestedAddress(ctx context.Context, validatorId *string) (validators []structs.Validator, err error) {
+	return s.driver.GetValidatorsByRequestedAddress(ctx, validatorId)
 }
