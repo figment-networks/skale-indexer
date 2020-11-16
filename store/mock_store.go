@@ -65,7 +65,7 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegations(ctx, delegations int
 }
 
 // GetDelegationById mocks base method.
-func (m *MockDBDriver) GetDelegationById(ctx context.Context, id types.ID) (structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationById(ctx context.Context, id *types.ID) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -80,7 +80,7 @@ func (mr *MockDBDriverMockRecorder) GetDelegationById(ctx, id interface{}) *gomo
 }
 
 // GetDelegationsByHolder mocks base method.
-func (m *MockDBDriver) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -95,7 +95,7 @@ func (mr *MockDBDriverMockRecorder) GetDelegationsByHolder(ctx, holder interface
 }
 
 // GetDelegationsByValidatorId mocks base method.
-func (m *MockDBDriver) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -161,7 +161,7 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegations(ctx, delegations in
 }
 
 // GetDelegationById mocks base method.
-func (m *MockDataStore) GetDelegationById(ctx context.Context, id types.ID) (structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationById(ctx context.Context, id *types.ID) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -176,7 +176,7 @@ func (mr *MockDataStoreMockRecorder) GetDelegationById(ctx, id interface{}) *gom
 }
 
 // GetDelegationsByHolder mocks base method.
-func (m *MockDataStore) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -191,7 +191,7 @@ func (mr *MockDataStoreMockRecorder) GetDelegationsByHolder(ctx, holder interfac
 }
 
 // GetDelegationsByValidatorId mocks base method.
-func (m *MockDataStore) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -257,7 +257,7 @@ func (mr *MockDelegationStoreMockRecorder) SaveOrUpdateDelegations(ctx, delegati
 }
 
 // GetDelegationById mocks base method.
-func (m *MockDelegationStore) GetDelegationById(ctx context.Context, id types.ID) (structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationById(ctx context.Context, id *types.ID) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -272,7 +272,7 @@ func (mr *MockDelegationStoreMockRecorder) GetDelegationById(ctx, id interface{}
 }
 
 // GetDelegationsByHolder mocks base method.
-func (m *MockDelegationStore) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -287,7 +287,7 @@ func (mr *MockDelegationStoreMockRecorder) GetDelegationsByHolder(ctx, holder in
 }
 
 // GetDelegationsByValidatorId mocks base method.
-func (m *MockDelegationStore) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
