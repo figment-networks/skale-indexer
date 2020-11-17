@@ -16,7 +16,7 @@ import (
 
 var dlgsByValidatorId = make([]structs.Delegation, 1)
 
-func TestGetDelegationByValidatorId(t *testing.T) {
+func TestGetDelegationsByValidatorId(t *testing.T) {
 	holder := "holder1"
 	var validatorId uint64 = 2
 	var amount uint64 = 0
