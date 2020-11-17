@@ -5,7 +5,6 @@ import (
 	"../../handler"
 	"../../store"
 	"../../structs"
-	"../../types"
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,6 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 var dlgById structs.Delegation
@@ -22,9 +22,9 @@ func TestGetDelegationById(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	var created uint64 = 0
-	var started uint64 = 0
-	var finished uint64 = 0
+	var created time.Time = time.Now()
+	var started time.Time = time.Now()
+	var finished time.Time = time.Now()
 	info := "info1"
 	dlgById = structs.Delegation{
 		Holder:           &holder,
@@ -36,12 +36,12 @@ func TestGetDelegationById(t *testing.T) {
 		Finished:         &finished,
 		Info:             &info,
 	}
-	var id types.ID = 1
+	var id string = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
-		id         *types.ID
+		id         *string
 		delegation structs.Delegation
 		dbResponse error
 		code       int
@@ -67,33 +67,22 @@ func TestGetDelegationById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request invalid number",
+			name:   "invalid id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=test",
+					RawQuery: "id=",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 4,
-			name:   "invalid id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=-1",
-				},
-			},
-			code: http.StatusInternalServerError,
-		},
-		{
-			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=1",
+					RawQuery: "id=id_test",
 				},
 			},
 			id:         &id,
@@ -101,12 +90,12 @@ func TestGetDelegationById(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=1",
+					RawQuery: "id=id_test",
 				},
 			},
 			id:         &id,
@@ -119,7 +108,7 @@ func TestGetDelegationById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 5 || tt.number == 6 {
+			if tt.number == 4 || tt.number == 5 {
 				mockDB.EXPECT().GetDelegationById(tt.req.Context(), tt.id).Return(tt.delegation, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

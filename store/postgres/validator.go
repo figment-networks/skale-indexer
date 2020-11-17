@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"../../structs"
-	"../../types"
 	"context"
 	"database/sql"
 	"fmt"
@@ -39,7 +38,7 @@ func (d *Driver) SaveOrUpdateValidators(ctx context.Context, validators []struct
 }
 
 // GetValidatorById gets validator by id
-func (d *Driver) GetValidatorById(ctx context.Context, id *types.ID) (res structs.Validator, err error) {
+func (d *Driver) GetValidatorById(ctx context.Context, id *string) (res structs.Validator, err error) {
 	dlg := structs.Validator{}
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
 
@@ -49,7 +48,7 @@ func (d *Driver) GetValidatorById(ctx context.Context, id *types.ID) (res struct
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !dlg.ID.Valid() {
+	if err == sql.ErrNoRows || !(*dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err
@@ -66,7 +65,7 @@ func (d *Driver) GetValidatorByValidatorAddress(ctx context.Context, validatorAd
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !dlg.ID.Valid() {
+	if err == sql.ErrNoRows || !(*dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err
@@ -83,7 +82,7 @@ func (d *Driver) GetValidatorByRequestedAddress(ctx context.Context, requestAddr
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !dlg.ID.Valid() {
+	if err == sql.ErrNoRows || !(*dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err

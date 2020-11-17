@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 const (
@@ -41,9 +42,9 @@ const (
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
-        "created": 0,
-        "started": 0,
-        "finished": 0,
+        "created": "2014-11-12T11:45:26.371Z",
+        "started": "2014-11-12T11:45:26.371Z",
+        "finished": "2014-11-12T11:45:26.371Z",
         "info": "info1"
     },	
 	{
@@ -51,12 +52,14 @@ const (
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
-        "created": 0,
-        "started": 0,
-        "finished": 0,
+        "created": "2014-11-12T11:45:26.371Z",
+        "started": "2014-11-12T11:45:26.371Z",
+        "finished": "2014-11-12T11:45:26.371Z",
         "info": "info2"
     }	
 	]`
+	// same value should be used in json examples above for valid cases
+	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
 var exampleDelegations []structs.Delegation
@@ -66,9 +69,11 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	var created uint64 = 0
-	var started uint64 = 0
-	var finished uint64 = 0
+	layout := "2006-01-02T15:04:05.000Z"
+	exampleTime, _ := time.Parse(layout, dummyTime)
+	var created time.Time = exampleTime
+	var started time.Time = exampleTime
+	var finished time.Time = exampleTime
 	info := "info1"
 	exampleDelegation := structs.Delegation{
 		Holder:           &holder,
@@ -84,9 +89,9 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var validatorId2 uint64 = 2
 	var amount2 uint64 = 0
 	var delegationPeriod2 uint64 = 0
-	var created2 uint64 = 0
-	var started2 uint64 = 0
-	var finished2 uint64 = 0
+	var created2 time.Time = exampleTime
+	var started2 time.Time = exampleTime
+	var finished2 time.Time = exampleTime
 	info2 := "info2"
 	exampleDelegation2 := structs.Delegation{
 		Holder:           &holder2,

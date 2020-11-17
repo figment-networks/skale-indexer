@@ -5,7 +5,6 @@ import (
 	"../../handler"
 	"../../store"
 	"../../structs"
-	"../../types"
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -36,12 +35,12 @@ func TestGetValidatorById(t *testing.T) {
 		MinimumDelegationAmount: &minimumDelegationAmount,
 		AcceptNewRequests:       &acceptNewRequests,
 	}
-	var id types.ID = 1
+	var id string = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
-		id         *types.ID
+		id         *string
 		validator  structs.Validator
 		dbResponse error
 		code       int
@@ -67,33 +66,22 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request invalid number",
+			name:   "invalid id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=test",
+					RawQuery: "id=",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 4,
-			name:   "invalid id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=-1",
-				},
-			},
-			code: http.StatusInternalServerError,
-		},
-		{
-			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=1",
+					RawQuery: "id=id_test",
 				},
 			},
 			id:         &id,
@@ -101,12 +89,12 @@ func TestGetValidatorById(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=1",
+					RawQuery: "id=id_test",
 				},
 			},
 			id:        &id,
@@ -119,7 +107,7 @@ func TestGetValidatorById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 5 || tt.number == 6 {
+			if tt.number == 4 || tt.number == 5 {
 				mockDB.EXPECT().GetValidatorById(tt.req.Context(), tt.id).Return(tt.validator, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

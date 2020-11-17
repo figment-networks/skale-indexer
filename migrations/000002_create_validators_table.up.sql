@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS validators
 (
-    id                          BIGSERIAL                NOT NULL,
+    id                          UUID DEFAULT   uuid_generate_v4(),
     created_at                  TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL,
     name                        TEXT                     NOT NULL,

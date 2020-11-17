@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"../../structs"
-	"../../types"
 	"context"
 	"database/sql"
 	"errors"
@@ -20,6 +19,7 @@ const (
 	byIdForDelegation            = "id =  $1 "
 	byHolderForDelegation        = "holder =  $1 "
 	byValidatorIdForDelegation   = "validator_id =  $1 "
+	orderByCreated               = "order by created desc"
 )
 
 // SaveOrUpdateDelegation saves or updates delegation
@@ -44,7 +44,7 @@ func (d *Driver) SaveOrUpdateDelegations(ctx context.Context, dls []structs.Dele
 }
 
 // GetDelegationById gets delegation by id
-func (d *Driver) GetDelegationById(ctx context.Context, id *types.ID) (res structs.Delegation, err error) {
+func (d *Driver) GetDelegationById(ctx context.Context, id *string) (res structs.Delegation, err error) {
 	dlg := structs.Delegation{}
 	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byIdForDelegation)
 
@@ -54,7 +54,7 @@ func (d *Driver) GetDelegationById(ctx context.Context, id *types.ID) (res struc
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
-	if err == sql.ErrNoRows || !dlg.ID.Valid() {
+	if err == sql.ErrNoRows || !(*dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err
@@ -62,7 +62,7 @@ func (d *Driver) GetDelegationById(ctx context.Context, id *types.ID) (res struc
 
 // GetDelegationsByHolder gets delegations by holder
 func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (delegations []structs.Delegation, err error) {
-	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byHolderForDelegation)
+	q := fmt.Sprintf("%s%s%s", getByStatementForDelegation, byHolderForDelegation, orderByCreated)
 	rows, err := d.db.QueryContext(ctx, q, holder)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
@@ -86,7 +86,7 @@ func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (de
 
 // GetDelegationsByValidatorId gets delegations by validator id
 func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error) {
-	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byValidatorIdForDelegation)
+	q := fmt.Sprintf("%s%s%s", getByStatementForDelegation, byValidatorIdForDelegation, orderByCreated)
 	rows, err := d.db.QueryContext(ctx, q, validatorId)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

@@ -3,10 +3,8 @@ package client
 import (
 	"../store"
 	"../structs"
-	"../types"
 	"context"
 	"errors"
-
 	//"go.uber.org/zap"
 )
 
@@ -37,9 +35,9 @@ func (c *ClientContractor) SaveOrUpdateDelegations(ctx context.Context, delegati
 	return c.storeEng.SaveOrUpdateDelegations(ctx, delegations)
 }
 
-func (c *ClientContractor) GetDelegationById(ctx context.Context, id *types.ID) (res structs.Delegation, err error) {
+func (c *ClientContractor) GetDelegationById(ctx context.Context, id *string) (res structs.Delegation, err error) {
 	defer c.recoverPanic()
-	if !id.Valid() {
+	if !(*id != "") {
 		return res, InvalidId
 	}
 	return c.storeEng.GetDelegationById(ctx, id)
@@ -65,9 +63,9 @@ func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validator
 	return c.storeEng.SaveOrUpdateValidators(ctx, validators)
 }
 
-func (c *ClientContractor) GetValidatorById(ctx context.Context, id *types.ID) (res structs.Validator, err error) {
+func (c *ClientContractor) GetValidatorById(ctx context.Context, id *string) (res structs.Validator, err error) {
 	defer c.recoverPanic()
-	if !id.Valid() {
+	if !(*id != "") {
 		return res, InvalidId
 	}
 	return c.storeEng.GetValidatorById(ctx, id)

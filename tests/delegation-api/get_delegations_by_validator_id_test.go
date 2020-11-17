@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 var dlgsByValidatorId = make([]structs.Delegation, 1)
@@ -21,9 +22,9 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	var created uint64 = 0
-	var started uint64 = 0
-	var finished uint64 = 0
+	var created time.Time = time.Now()
+	var started time.Time = time.Now()
+	var finished time.Time = time.Now()
 	info := "info1"
 	dlg := structs.Delegation{
 		Holder:           &holder,
