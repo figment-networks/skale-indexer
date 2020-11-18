@@ -70,7 +70,7 @@ func (s *Store) GetValidatorById(ctx context.Context, id *string) (res structs.V
 	return s.driver.GetValidatorById(ctx, id)
 }
 
-func (s *Store) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validator []structs.Validator, err error) {
+func (s *Store) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error) {
 	return s.driver.GetValidatorsByValidatorAddress(ctx, validatorAddress)
 }
 

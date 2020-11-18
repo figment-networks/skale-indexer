@@ -35,7 +35,7 @@ func TestGetValidatorById(t *testing.T) {
 		MinimumDelegationAmount: &minimumDelegationAmount,
 		AcceptNewRequests:       &acceptNewRequests,
 	}
-	var id string = "id_test"
+	var id = "id_test"
 	tests := []struct {
 		number     int
 		name       string
@@ -77,6 +77,19 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "record not found error",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "id=id_test",
+				},
+			},
+			id:         &id,
+			dbResponse: errors.New("record not found"),
+			code:       http.StatusNotFound,
+		},
+		{
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -89,7 +102,7 @@ func TestGetValidatorById(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -107,7 +120,7 @@ func TestGetValidatorById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetValidatorById(tt.req.Context(), tt.id).Return(tt.validator, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

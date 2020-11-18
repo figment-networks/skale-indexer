@@ -10,21 +10,21 @@ import (
 const (
 	insertStatementForValidator    = `INSERT INTO validators ("created_at", "updated_at", "name", "validator_address", "requested_address", "description", "fee_rate", "registration_time",  "minimum_delegation_amount", "accept_new_requests" ) VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
 	updateStatementForValidator    = `UPDATE validators SET updated_at = NOW(), name = $1, validator_address = $2, requested_address = $3, description = $4, fee_rate = $5, registration_time = $6, minimum_delegation_amount = $7, accept_new_requests = $8  WHERE id = $9 `
-	getByStatementForValidator     = `SELECT id, created_at, updated_at, name, validator_address, requested_address, description, fee_rate, registration_time, minimum_delegation_amount, accept_new_requests FROM validators WHERE `
-	byIdForValidator               = "id =  $1 "
-	byValidatorAddressForValidator = "validator_address =  $1 "
-	byRequestedAddressForValidator = "requested_address =  $1 "
+	getByStatementForValidator     = `SELECT v.id, v.created_at, v.updated_at, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests FROM validators v WHERE `
+	byIdForValidator               = `v.id =  $1 `
+	byValidatorAddressForValidator = `v.validator_address =  $1 `
+	byRequestedAddressForValidator = `v.requested_address =  $1 `
 )
 
 // SaveOrUpdateValidator saves or updates validator
 func (d *Driver) SaveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
-	_, err := d.GetValidatorById(ctx, v.ID)
-	if err != nil {
+	var err error
+	if v.ID == nil {
 		_, err = d.db.Exec(insertStatementForValidator, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests)
 	} else {
 		_, err = d.db.Exec(updateStatementForValidator, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, v.ID)
 	}
-	return nil
+	return err
 }
 
 // SaveOrUpdateValidators saves or updates validators
@@ -39,51 +39,66 @@ func (d *Driver) SaveOrUpdateValidators(ctx context.Context, validators []struct
 
 // GetValidatorById gets validator by id
 func (d *Driver) GetValidatorById(ctx context.Context, id *string) (res structs.Validator, err error) {
-	dlg := structs.Validator{}
+	vld := structs.Validator{}
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
 
-	row := d.db.QueryRowContext(ctx, q, id)
+	row := d.db.QueryRowContext(ctx, q, *id)
 	if row.Err() != nil {
-		return res, fmt.Errorf("query error: %w", err)
+		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
-	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !(*dlg.ID != "") {
+	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests)
+	if err == sql.ErrNoRows || !(*vld.ID != "") {
 		return res, ErrNotFound
 	}
-	return dlg, err
+	return vld, err
 }
 
-// GetValidatorByValidatorAddress gets validator by validator address
-func (d *Driver) GetValidatorByValidatorAddress(ctx context.Context, validatorAddress *string) (res structs.Validator, err error) {
-	dlg := structs.Validator{}
+// GetValidatorsByValidatorAddress gets validator by validator address
+func (d *Driver) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error) {
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byValidatorAddressForValidator)
-
-	row := d.db.QueryRowContext(ctx, q, validatorAddress)
-	if row.Err() != nil {
-		return res, fmt.Errorf("query error: %w", err)
+	rows, err := d.db.QueryContext(ctx, q, *validatorAddress)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
 	}
 
-	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !(*dlg.ID != "") {
-		return res, ErrNotFound
+	defer rows.Close()
+
+	for rows.Next() {
+		vld := structs.Validator{}
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests)
+		if err != nil {
+			return nil, err
+		}
+		validators = append(validators, vld)
 	}
-	return dlg, err
+	if len(validators) == 0 {
+		return nil, ErrNotFound
+	}
+	return validators, nil
 }
 
-// GetValidatorByRequestedAddress gets validator by request address
-func (d *Driver) GetValidatorByRequestedAddress(ctx context.Context, requestAddress *string) (res structs.Validator, err error) {
-	dlg := structs.Validator{}
+// GetValidatorsByRequestedAddress gets validator by request address
+func (d *Driver) GetValidatorsByRequestedAddress(ctx context.Context, requestAddress *string) (validators []structs.Validator, err error) {
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byRequestedAddressForValidator)
-
-	row := d.db.QueryRowContext(ctx, q, requestAddress)
-	if row.Err() != nil {
-		return res, fmt.Errorf("query error: %w", err)
+	rows, err := d.db.QueryContext(ctx, q, *requestAddress)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
 	}
 
-	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Name, &dlg.ValidatorAddress, &dlg.RequestedAddress, &dlg.Description, &dlg.FeeRate, &dlg.RegistrationTime, &dlg.MinimumDelegationAmount, &dlg.AcceptNewRequests)
-	if err == sql.ErrNoRows || !(*dlg.ID != "") {
-		return res, ErrNotFound
+	defer rows.Close()
+
+	for rows.Next() {
+		vld := structs.Validator{}
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests)
+		if err != nil {
+			return nil, err
+		}
+		validators = append(validators, vld)
 	}
-	return dlg, err
+	if len(validators) == 0 {
+		return nil, ErrNotFound
+	}
+	return validators, nil
+
 }

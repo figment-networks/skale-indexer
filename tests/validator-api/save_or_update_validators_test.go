@@ -162,7 +162,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().SaveOrUpdateValidators(tt.req.Context(), tt.validators).Return(tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

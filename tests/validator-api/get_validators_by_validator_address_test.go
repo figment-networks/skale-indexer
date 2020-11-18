@@ -16,7 +16,7 @@ import (
 
 var vldsByValidatorAddress = make([]structs.Validator, 1)
 
-func TestGetValidatorByValidatorAddress(t *testing.T) {
+func TestGetValidatorsByValidatorAddress(t *testing.T) {
 	name := "name_test"
 	validatorAddress := "validator_address_test"
 	requestedAddress := "requested_address_test"
@@ -76,6 +76,19 @@ func TestGetValidatorByValidatorAddress(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "record not found error",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_address=validator_address_test",
+				},
+			},
+			validatorAddress: &validatorAddress,
+			dbResponse:       errors.New("record not found"),
+			code:             http.StatusNotFound,
+		},
+		{
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -88,7 +101,7 @@ func TestGetValidatorByValidatorAddress(t *testing.T) {
 			code:             http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -106,7 +119,7 @@ func TestGetValidatorByValidatorAddress(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetValidatorsByValidatorAddress(tt.req.Context(), tt.validatorAddress).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

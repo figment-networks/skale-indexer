@@ -22,9 +22,9 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	var created time.Time = time.Now()
-	var started time.Time = time.Now()
-	var finished time.Time = time.Now()
+	var created = time.Now()
+	var started = time.Now()
+	var finished = time.Now()
 	info := "info1"
 	dlg := structs.Delegation{
 		Holder:           &holder,
@@ -77,11 +77,24 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "record not found error",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=2",
+				},
+			},
+			validatorId: &validatorId,
+			dbResponse:  errors.New("record not found"),
+			code:        http.StatusNotFound,
+		},
+		{
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator-id=2",
+					RawQuery: "validator_id=2",
 				},
 			},
 			validatorId: &validatorId,
@@ -89,12 +102,12 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			code:        http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator-id=2",
+					RawQuery: "validator_id=2",
 				},
 			},
 			validatorId: &validatorId,
@@ -107,7 +120,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetDelegationsByValidatorId(tt.req.Context(), tt.validatorId).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

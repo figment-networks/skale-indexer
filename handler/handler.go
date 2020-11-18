@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrMissingParameter = errors.New("missing parameter")
+	ErrNotFound         = errors.New("record not found")
 )
 
 // Connector is main HTTP connector for manager
@@ -70,7 +71,11 @@ func (c *Connector) GetDelegationById(w http.ResponseWriter, req *http.Request) 
 
 	res, err := c.cli.GetDelegationById(req.Context(), &id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -96,7 +101,11 @@ func (c *Connector) GetDelegationsByHolder(w http.ResponseWriter, req *http.Requ
 
 	res, err := c.cli.GetDelegationsByHolder(req.Context(), &holder)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -113,7 +122,7 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 		return
 	}
 
-	validatorIdParam := req.URL.Query().Get("validator-id")
+	validatorIdParam := req.URL.Query().Get("validator_id")
 	validatorId, err := strconv.ParseUint(validatorIdParam, 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -123,7 +132,11 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 
 	res, err := c.cli.GetDelegationsByValidatorId(req.Context(), &validatorId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -180,7 +193,11 @@ func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
 	}
 	res, err := c.cli.GetValidatorById(req.Context(), &id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -206,7 +223,11 @@ func (c *Connector) GetValidatorsByValidatorAddress(w http.ResponseWriter, req *
 
 	res, err := c.cli.GetValidatorsByValidatorAddress(req.Context(), &validatorAddress)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -232,7 +253,11 @@ func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *
 
 	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), &requestedAddress)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -245,11 +270,11 @@ func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *
 
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
-	mux.HandleFunc("/save-delegations", c.SaveOrUpdateDelegations)
+	mux.HandleFunc("/save-or-update-delegations", c.SaveOrUpdateDelegations)
 	mux.HandleFunc("/get-delegation", c.GetDelegationById)
 	mux.HandleFunc("/get-delegations-by-holder", c.GetDelegationsByHolder)
 	mux.HandleFunc("/get-delegations-by-validator-id", c.GetDelegationsByValidatorId)
-	mux.HandleFunc("/save-validators", c.SaveOrUpdateValidators)
+	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/get-validator", c.GetValidatorById)
 	mux.HandleFunc("/get-validators-by-validator-address", c.GetValidatorsByValidatorAddress)
 	mux.HandleFunc("/get-validators-by-requested-address", c.GetValidatorsByRequestedAddress)

@@ -22,9 +22,9 @@ func TestGetDelegationById(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	var created time.Time = time.Now()
-	var started time.Time = time.Now()
-	var finished time.Time = time.Now()
+	var created = time.Now()
+	var started = time.Now()
+	var finished = time.Now()
 	info := "info1"
 	dlgById = structs.Delegation{
 		Holder:           &holder,
@@ -36,7 +36,7 @@ func TestGetDelegationById(t *testing.T) {
 		Finished:         &finished,
 		Info:             &info,
 	}
-	var id string = "id_test"
+	var id = "id_test"
 	tests := []struct {
 		number     int
 		name       string
@@ -78,6 +78,19 @@ func TestGetDelegationById(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "record not found error",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "id=id_test",
+				},
+			},
+			id:         &id,
+			dbResponse: errors.New("record not found"),
+			code:       http.StatusNotFound,
+		},
+		{
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -90,7 +103,7 @@ func TestGetDelegationById(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -108,7 +121,7 @@ func TestGetDelegationById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetDelegationById(tt.req.Context(), tt.id).Return(tt.delegation, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

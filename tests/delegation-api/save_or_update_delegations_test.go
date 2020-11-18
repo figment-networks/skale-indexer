@@ -71,9 +71,9 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var delegationPeriod uint64 = 0
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
-	var created time.Time = exampleTime
-	var started time.Time = exampleTime
-	var finished time.Time = exampleTime
+	var created = exampleTime
+	var started = exampleTime
+	var finished = exampleTime
 	info := "info1"
 	exampleDelegation := structs.Delegation{
 		Holder:           &holder,
@@ -89,9 +89,9 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var validatorId2 uint64 = 2
 	var amount2 uint64 = 0
 	var delegationPeriod2 uint64 = 0
-	var created2 time.Time = exampleTime
-	var started2 time.Time = exampleTime
-	var finished2 time.Time = exampleTime
+	var created2 = exampleTime
+	var started2 = exampleTime
+	var finished2 = exampleTime
 	info2 := "info2"
 	exampleDelegation2 := structs.Delegation{
 		Holder:           &holder2,
@@ -167,7 +167,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number == 4 || tt.number == 5 {
+			if tt.number > 3 {
 				mockDB.EXPECT().SaveOrUpdateDelegations(tt.req.Context(), tt.delegations).Return(tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
