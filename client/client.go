@@ -81,6 +81,32 @@ func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, 
 	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
 }
 
+func (c *ClientContractor) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateDelegationEvent(ctx, dl)
+}
+
+func (c *ClientContractor) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateDelegationEvents(ctx, delegationEvents)
+}
+
+func (c *ClientContractor) GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetDelegationEventById(ctx, id)
+}
+
+func (c *ClientContractor) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetDelegationEventsByDelegationId(ctx, delegationId)
+}
+
+func (c *ClientContractor) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetAllDelegationEvents(ctx)
+}
+
 func (c *ClientContractor) recoverPanic() {
 	if p := recover(); p != nil {
 		//c.logger.Error("[Client] Panic ", zap.Any("contents", p))

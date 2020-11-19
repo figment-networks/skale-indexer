@@ -1,0 +1,140 @@
+package tests
+
+import (
+	"../../client"
+	"../../handler"
+	"../../store"
+	"../../structs"
+	"bytes"
+	"errors"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+)
+
+const (
+	invalidSyntaxForDelegationEvents = `[{
+        "delegation_id": "delegation_id_test",
+        "event_name": "event_name_test",
+        "event_time": "2014-11-12T11:45:26.371Z",
+	`
+	invalidPropertyNameForDelegationEvents = `[{
+    	"delegation_id_invalid": "delegation_id_test",
+        "event_name": "event_name_test",
+        "event_time": "2014-11-12T11:45:26.371Z"
+	}]`
+	validJsonForDelegationEvents = `[{
+		"delegation_id": "delegation_id_test1",
+        "event_name": "event_name_test",
+        "event_time": "2014-11-12T11:45:26.371Z"
+    },	
+	{
+    "delegation_id": "delegation_id_test2",
+        "event_name": "event_name_test",
+        "event_time": "2014-11-12T11:45:26.371Z"
+    }
+	]`
+	// same value should be used in json examples above for valid cases
+	dummyTime = "2014-11-12T11:45:26.371Z"
+)
+
+var exampleDelegations []structs.DelegationEvent
+
+func TestSaveOrUpdateDelegations(t *testing.T) {
+	delegationId := "delegation_id_test1"
+	eventName := "event_name_test"
+	layout := "2006-01-02T15:04:05.000Z"
+	exampleTime, _ := time.Parse(layout, dummyTime)
+	var eventTime = exampleTime
+	example1 := structs.DelegationEvent{
+		DelegationId: &delegationId,
+		EventName:    &eventName,
+		EventTime:    &eventTime,
+	}
+	delegationId2 := "delegation_id_test2"
+	eventName2 := "event_name_test"
+	example2 := structs.DelegationEvent{
+		DelegationId: &delegationId2,
+		EventName:    &eventName2,
+		EventTime:    &eventTime,
+	}
+	exampleDelegations = append(exampleDelegations, example1)
+	exampleDelegations = append(exampleDelegations, example2)
+
+	tests := []struct {
+		number           int
+		name             string
+		req              *http.Request
+		delegationEvents []structs.DelegationEvent
+		dbResponse       error
+		code             int
+	}{
+		/*{
+			number: 1,
+			name:   "not allowed method",
+			req: &http.Request{
+				Method: http.MethodGet,
+			},
+			code: http.StatusMethodNotAllowed,
+		},
+		{
+			number: 2,
+			name:   "invalid json syntax request body",
+			req: &http.Request{
+				Method: http.MethodPost,
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidSyntaxForDelegationEvents))),
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 3,
+			name:   "bad request",
+			req: &http.Request{
+				Method: http.MethodPost,
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForDelegationEvents))),
+			},
+			code: http.StatusBadRequest,
+		},*/
+		{
+			number: 4,
+			name:   "internal server error",
+			req: &http.Request{
+				Method: http.MethodPost,
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+			},
+			delegationEvents: exampleDelegations,
+			dbResponse:       errors.New("internal error"),
+			code:             http.StatusInternalServerError,
+		},
+		/*{
+			number: 5,
+			name:   "success response",
+			req: &http.Request{
+				Method: http.MethodPost,
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+			},
+			delegationEvents: exampleDelegations,
+			code:        http.StatusOK,
+		},*/
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+			mockDB := store.NewMockDataStore(mockCtrl)
+			if tt.number > 3 {
+				mockDB.EXPECT().SaveOrUpdateDelegationEvents(tt.req.Context(), tt.delegationEvents).Return(tt.dbResponse)
+			}
+			contractor := *client.NewClientContractor(mockDB)
+			connector := handler.NewClientConnector(contractor)
+			res := http.HandlerFunc(connector.SaveOrUpdateDelegationEvents)
+			rr := httptest.NewRecorder()
+			res.ServeHTTP(rr, tt.req)
+			assert.True(t, rr.Code == tt.code)
+		})
+	}
+}

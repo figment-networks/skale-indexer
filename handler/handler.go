@@ -147,6 +147,121 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 	enc.Encode(res)
 }
 
+func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *http.Request) {
+
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	decoder := json.NewDecoder(req.Body)
+	var delegationEvents []structs.DelegationEvent
+	err := decoder.Decode(&delegationEvents)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	for _, dlg := range delegationEvents {
+		err = validateDelegationEventRequiredFields(dlg)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+	}
+
+	err = c.cli.SaveOrUpdateDelegationEvents(req.Context(), delegationEvents)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Connector) GetDelegationEventById(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := req.URL.Query().Get("id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := c.cli.GetDelegationEventById(req.Context(), &id)
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetDelegationEventsByDelegationId(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	delegationId := req.URL.Query().Get("delegation_id")
+	if delegationId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(ErrMissingParameter.Error()))
+		return
+	}
+
+	res, err := c.cli.GetDelegationEventsByDelegationId(req.Context(), &delegationId)
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetDelegationEvents(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	res, err := c.cli.GetAllDelegationEvents(req.Context())
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
 func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method != http.MethodPost {
@@ -274,6 +389,10 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/get-delegation", c.GetDelegationById)
 	mux.HandleFunc("/get-delegations-by-holder", c.GetDelegationsByHolder)
 	mux.HandleFunc("/get-delegations-by-validator-id", c.GetDelegationsByValidatorId)
+	mux.HandleFunc("/save-or-update-delegation-events", c.SaveOrUpdateDelegationEvents)
+	mux.HandleFunc("/get-delegation-event-by-id", c.GetDelegationEventById)
+	mux.HandleFunc("/get-delegation-events-by-delegation-id", c.GetDelegationEventsByDelegationId)
+	mux.HandleFunc("/get-delegation-events", c.GetDelegationEvents)
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/get-validator", c.GetValidatorById)
 	mux.HandleFunc("/get-validators-by-validator-address", c.GetValidatorsByValidatorAddress)

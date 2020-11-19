@@ -19,7 +19,7 @@ const (
 	byIdForDelegation            = `d.id =  $1 `
 	byHolderForDelegation        = `d.holder =  $1 `
 	byValidatorIdForDelegation   = `d.validator_id =  $1 `
-	orderByCreated               = `order by created desc`
+	orderByCreated               = `ORDER BY created DESC`
 )
 
 // SaveOrUpdateDelegation saves or updates delegation

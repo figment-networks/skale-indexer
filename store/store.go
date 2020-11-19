@@ -7,11 +7,13 @@ import (
 
 type DBDriver interface {
 	DelegationStore
+	DelegationEventStore
 	ValidatorStore
 }
 
 type DataStore interface {
 	DelegationStore
+	DelegationEventStore
 	ValidatorStore
 }
 
@@ -21,6 +23,14 @@ type DelegationStore interface {
 	GetDelegationById(ctx context.Context, id *string) (res structs.Delegation, err error)
 	GetDelegationsByHolder(ctx context.Context, holder *string) (delegations []structs.Delegation, err error)
 	GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error)
+}
+
+type DelegationEventStore interface {
+	SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error
+	SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error
+	GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error)
+	GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error)
+	GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error)
 }
 
 type ValidatorStore interface {
