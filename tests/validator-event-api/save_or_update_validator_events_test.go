@@ -17,23 +17,23 @@ import (
 )
 
 const (
-	invalidSyntaxForDelegationEvents = `[{
-        "delegation_id": "delegation_id_test",
+	invalidSyntaxForValidatorEvents = `[{
+        "validator_id": "validator_id_test",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z",
 	`
-	invalidPropertyNameForDelegationEvents = `[{
-    	"delegation_id_invalid": "delegation_id_test",
+	invalidPropertyNameForValidatorEvents = `[{
+    	"validator_id_invalid": "validator_id_test",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
 	}]`
-	validJsonForDelegationEvents = `[{
-		"delegation_id": "delegation_id_test1",
+	validJsonForValidatorEvents = `[{
+		"validator_id": "validator_id_test1",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     },	
 	{
-    	"delegation_id": "delegation_id_test2",
+    	"validator_id": "validator_id_test2",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     }
@@ -42,36 +42,36 @@ const (
 	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
-var exampleDelegations []structs.DelegationEvent
+var exampleValidators []structs.ValidatorEvent
 
-func TestSaveOrUpdateDelegations(t *testing.T) {
-	delegationId := "delegation_id_test1"
+func TestSaveOrUpdateValidators(t *testing.T) {
+	validatorId := "validator_id_test1"
 	eventName := "event_name_test"
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
 	var eventTime = exampleTime
-	example1 := structs.DelegationEvent{
-		DelegationId: &delegationId,
-		EventName:    &eventName,
-		EventTime:    &eventTime,
+	example1 := structs.ValidatorEvent{
+		ValidatorId: &validatorId,
+		EventName:   &eventName,
+		EventTime:   &eventTime,
 	}
-	delegationId2 := "delegation_id_test2"
+	validatorId2 := "validator_id_test2"
 	eventName2 := "event_name_test"
-	example2 := structs.DelegationEvent{
-		DelegationId: &delegationId2,
-		EventName:    &eventName2,
-		EventTime:    &eventTime,
+	example2 := structs.ValidatorEvent{
+		ValidatorId: &validatorId2,
+		EventName:   &eventName2,
+		EventTime:   &eventTime,
 	}
-	exampleDelegations = append(exampleDelegations, example1)
-	exampleDelegations = append(exampleDelegations, example2)
+	exampleValidators = append(exampleValidators, example1)
+	exampleValidators = append(exampleValidators, example2)
 
 	tests := []struct {
-		number           int
-		name             string
-		req              *http.Request
-		delegationEvents []structs.DelegationEvent
-		dbResponse       error
-		code             int
+		number          int
+		name            string
+		req             *http.Request
+		validatorEvents []structs.ValidatorEvent
+		dbResponse      error
+		code            int
 	}{
 		{
 			number: 1,
@@ -86,7 +86,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "invalid json syntax request body",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidSyntaxForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidSyntaxForValidatorEvents))),
 			},
 			code: http.StatusBadRequest,
 		},
@@ -95,7 +95,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "bad request",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForValidatorEvents))),
 			},
 			code: http.StatusBadRequest,
 		},
@@ -104,21 +104,21 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForValidatorEvents))),
 			},
-			delegationEvents: exampleDelegations,
-			dbResponse:       errors.New("internal error"),
-			code:             http.StatusInternalServerError,
+			validatorEvents: exampleValidators,
+			dbResponse:      errors.New("internal error"),
+			code:            http.StatusInternalServerError,
 		},
 		{
 			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForValidatorEvents))),
 			},
-			delegationEvents: exampleDelegations,
-			code:             http.StatusOK,
+			validatorEvents: exampleValidators,
+			code:            http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -127,11 +127,11 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().SaveOrUpdateDelegationEvents(tt.req.Context(), tt.delegationEvents).Return(tt.dbResponse)
+				mockDB.EXPECT().SaveOrUpdateValidatorEvents(tt.req.Context(), tt.validatorEvents).Return(tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.SaveOrUpdateDelegationEvents)
+			res := http.HandlerFunc(connector.SaveOrUpdateValidatorEvents)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

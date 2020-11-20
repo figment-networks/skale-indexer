@@ -30,3 +30,10 @@ func validateValidatorRequiredFields(validator structs.Validator) error {
 	}
 	return nil
 }
+
+func validateValidatorEventRequiredFields(ve structs.ValidatorEvent) error {
+	if ve.ValidatorId == nil || ve.EventName == nil || ve.EventTime == nil {
+		return ErrMissingParameter
+	}
+	return nil
+}

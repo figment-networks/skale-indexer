@@ -9,12 +9,14 @@ type DBDriver interface {
 	DelegationStore
 	DelegationEventStore
 	ValidatorStore
+	ValidatorEventStore
 }
 
 type DataStore interface {
 	DelegationStore
 	DelegationEventStore
 	ValidatorStore
+	ValidatorEventStore
 }
 
 type DelegationStore interface {
@@ -40,6 +42,15 @@ type ValidatorStore interface {
 	GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error)
 	GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) (validators []structs.Validator, err error)
 }
+
+type ValidatorEventStore interface {
+	SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error
+	SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error
+	GetValidatorEventById(ctx context.Context, id *string) (res structs.ValidatorEvent, err error)
+	GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) (validatorEvents []structs.ValidatorEvent, err error)
+	GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error)
+}
+
 type Store struct {
 	driver DBDriver
 }
@@ -68,6 +79,26 @@ func (s *Store) GetDelegationsByValidatorId(ctx context.Context, validatorId *ui
 	return s.driver.GetDelegationsByValidatorId(ctx, validatorId)
 }
 
+func (s *Store) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
+	return s.driver.SaveOrUpdateDelegationEvent(ctx, dl)
+}
+
+func (s *Store) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+	return s.driver.SaveOrUpdateDelegationEvents(ctx, delegationEvents)
+}
+
+func (s *Store) GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error) {
+	return s.driver.GetDelegationEventById(ctx, id)
+}
+
+func (s *Store) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error) {
+	return s.driver.GetDelegationEventsByDelegationId(ctx, delegationId)
+}
+
+func (s *Store) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
+	return s.driver.GetAllDelegationEvents(ctx)
+}
+
 func (s *Store) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
 	return s.driver.SaveOrUpdateValidator(ctx, validator)
 }
@@ -86,4 +117,24 @@ func (s *Store) GetValidatorsByValidatorAddress(ctx context.Context, validatorAd
 
 func (s *Store) GetValidatorsByRequestedAddress(ctx context.Context, validatorId *string) (validators []structs.Validator, err error) {
 	return s.driver.GetValidatorsByRequestedAddress(ctx, validatorId)
+}
+
+func (s *Store) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
+	return s.driver.SaveOrUpdateValidatorEvent(ctx, ve)
+}
+
+func (s *Store) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {
+	return s.driver.SaveOrUpdateValidatorEvents(ctx, validatorEvents)
+}
+
+func (s *Store) GetValidatorEventById(ctx context.Context, id *string) (res structs.ValidatorEvent, err error) {
+	return s.driver.GetValidatorEventById(ctx, id)
+}
+
+func (s *Store) GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) (delegationEvents []structs.ValidatorEvent, err error) {
+	return s.driver.GetValidatorEventsByValidatorId(ctx, validatorId)
+}
+
+func (s *Store) GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error) {
+	return s.driver.GetAllValidatorEvents(ctx)
 }

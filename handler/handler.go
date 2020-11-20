@@ -25,7 +25,6 @@ func NewClientConnector(cli client.ClientContractor) *Connector {
 }
 
 func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Request) {
-
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -148,7 +147,6 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 }
 
 func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *http.Request) {
-
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -263,7 +261,6 @@ func (c *Connector) GetDelegationEvents(w http.ResponseWriter, req *http.Request
 }
 
 func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Request) {
-
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -383,18 +380,139 @@ func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *
 	enc.Encode(res)
 }
 
+func (c *Connector) SaveOrUpdateValidatorEvents(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	decoder := json.NewDecoder(req.Body)
+	var validatorEvents []structs.ValidatorEvent
+	err := decoder.Decode(&validatorEvents)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	for _, ve := range validatorEvents {
+		err = validateValidatorEventRequiredFields(ve)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+	}
+
+	err = c.cli.SaveOrUpdateValidatorEvents(req.Context(), validatorEvents)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Connector) GetValidatorEventById(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := req.URL.Query().Get("id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := c.cli.GetValidatorEventById(req.Context(), &id)
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetValidatorEventsByValidatorId(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	validatorId := req.URL.Query().Get("validator_id")
+	if validatorId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(ErrMissingParameter.Error()))
+		return
+	}
+
+	res, err := c.cli.GetValidatorEventsByValidatorId(req.Context(), &validatorId)
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetValidatorEvents(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	res, err := c.cli.GetAllValidatorEvents(req.Context())
+	if err != nil {
+		if err.Error() == ErrNotFound.Error() {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-or-update-delegations", c.SaveOrUpdateDelegations)
 	mux.HandleFunc("/get-delegation", c.GetDelegationById)
 	mux.HandleFunc("/get-delegations-by-holder", c.GetDelegationsByHolder)
 	mux.HandleFunc("/get-delegations-by-validator-id", c.GetDelegationsByValidatorId)
+
 	mux.HandleFunc("/save-or-update-delegation-events", c.SaveOrUpdateDelegationEvents)
 	mux.HandleFunc("/get-delegation-event-by-id", c.GetDelegationEventById)
 	mux.HandleFunc("/get-delegation-events-by-delegation-id", c.GetDelegationEventsByDelegationId)
 	mux.HandleFunc("/get-delegation-events", c.GetDelegationEvents)
+
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/get-validator", c.GetValidatorById)
 	mux.HandleFunc("/get-validators-by-validator-address", c.GetValidatorsByValidatorAddress)
 	mux.HandleFunc("/get-validators-by-requested-address", c.GetValidatorsByRequestedAddress)
+
+	mux.HandleFunc("/save-or-update-validator-events", c.SaveOrUpdateValidatorEvents)
+	mux.HandleFunc("/get-validator-event-by-id", c.GetValidatorEventById)
+	mux.HandleFunc("/get-validator-events-by-validator-id", c.GetValidatorEventsByValidatorId)
+	mux.HandleFunc("/get-validator-events", c.GetValidatorEvents)
 }

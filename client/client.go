@@ -53,6 +53,32 @@ func (c *ClientContractor) GetDelegationsByValidatorId(ctx context.Context, vali
 	return c.storeEng.GetDelegationsByValidatorId(ctx, validatorId)
 }
 
+func (c *ClientContractor) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateDelegationEvent(ctx, dl)
+}
+
+func (c *ClientContractor) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+
+	defer c.recoverPanic()
+	return c.storeEng.SaveOrUpdateDelegationEvents(ctx, delegationEvents)
+}
+
+func (c *ClientContractor) GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetDelegationEventById(ctx, id)
+}
+
+func (c *ClientContractor) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetDelegationEventsByDelegationId(ctx, delegationId)
+}
+
+func (c *ClientContractor) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
+	defer c.recoverPanic()
+	return c.storeEng.GetAllDelegationEvents(ctx)
+}
+
 func (c *ClientContractor) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
 	defer c.recoverPanic()
 	return c.storeEng.SaveOrUpdateValidator(ctx, validator)
@@ -81,30 +107,29 @@ func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, 
 	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
 }
 
-func (c *ClientContractor) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
+func (c *ClientContractor) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
 	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateDelegationEvent(ctx, dl)
+	return c.storeEng.SaveOrUpdateValidatorEvent(ctx, ve)
 }
 
-func (c *ClientContractor) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
-
+func (c *ClientContractor) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {
 	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateDelegationEvents(ctx, delegationEvents)
+	return c.storeEng.SaveOrUpdateValidatorEvents(ctx, validatorEvents)
 }
 
-func (c *ClientContractor) GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error) {
+func (c *ClientContractor) GetValidatorEventById(ctx context.Context, id *string) (res structs.ValidatorEvent, err error) {
 	defer c.recoverPanic()
-	return c.storeEng.GetDelegationEventById(ctx, id)
+	return c.storeEng.GetValidatorEventById(ctx, id)
 }
 
-func (c *ClientContractor) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error) {
+func (c *ClientContractor) GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) (validatorEvents []structs.ValidatorEvent, err error) {
 	defer c.recoverPanic()
-	return c.storeEng.GetDelegationEventsByDelegationId(ctx, delegationId)
+	return c.storeEng.GetValidatorEventsByValidatorId(ctx, validatorId)
 }
 
-func (c *ClientContractor) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
+func (c *ClientContractor) GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error) {
 	defer c.recoverPanic()
-	return c.storeEng.GetAllDelegationEvents(ctx)
+	return c.storeEng.GetAllValidatorEvents(ctx)
 }
 
 func (c *ClientContractor) recoverPanic() {
