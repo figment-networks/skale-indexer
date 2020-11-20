@@ -16,8 +16,7 @@ const (
 	byRequestedAddressForValidator = `v.requested_address =  $1 `
 )
 
-// SaveOrUpdateValidator saves or updates validator
-func (d *Driver) SaveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
+func (d *Driver) saveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
 	var err error
 	if v.ID == nil {
 		_, err = d.db.Exec(insertStatementForValidator, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests)
@@ -30,7 +29,7 @@ func (d *Driver) SaveOrUpdateValidator(ctx context.Context, v structs.Validator)
 // SaveOrUpdateValidators saves or updates validators
 func (d *Driver) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
 	for _, v := range validators {
-		if err := d.SaveOrUpdateValidator(ctx, v); err != nil {
+		if err := d.saveOrUpdateValidator(ctx, v); err != nil {
 			return err
 		}
 	}

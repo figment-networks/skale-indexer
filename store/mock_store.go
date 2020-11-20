@@ -34,20 +34,6 @@ func (m *MockDBDriver) EXPECT() *MockDBDriverMockRecorder {
 	return m.recorder
 }
 
-// SaveOrUpdateDelegation mocks base method
-func (m *MockDBDriver) SaveOrUpdateDelegation(ctx context.Context, delegation structs.Delegation) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegation", ctx, delegation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegation indicates an expected call of SaveOrUpdateDelegation
-func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegation(ctx, delegation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegation", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateDelegation), ctx, delegation)
-}
-
 // SaveOrUpdateDelegations mocks base method
 func (m *MockDBDriver) SaveOrUpdateDelegations(ctx context.Context, delegations []structs.Delegation) error {
 	m.ctrl.T.Helper()
@@ -105,20 +91,6 @@ func (m *MockDBDriver) GetDelegationsByValidatorId(ctx context.Context, validato
 func (mr *MockDBDriverMockRecorder) GetDelegationsByValidatorId(ctx, validatorId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationsByValidatorId", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationsByValidatorId), ctx, validatorId)
-}
-
-// SaveOrUpdateDelegationEvent mocks base method
-func (m *MockDBDriver) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvent", ctx, dl)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegationEvent indicates an expected call of SaveOrUpdateDelegationEvent
-func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegationEvent(ctx, dl interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvent", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateDelegationEvent), ctx, dl)
 }
 
 // SaveOrUpdateDelegationEvents mocks base method
@@ -180,20 +152,6 @@ func (mr *MockDBDriverMockRecorder) GetAllDelegationEvents(ctx interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDelegationEvents", reflect.TypeOf((*MockDBDriver)(nil).GetAllDelegationEvents), ctx)
 }
 
-// SaveOrUpdateValidator mocks base method
-func (m *MockDBDriver) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidator", ctx, validator)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidator indicates an expected call of SaveOrUpdateValidator
-func (mr *MockDBDriverMockRecorder) SaveOrUpdateValidator(ctx, validator interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidator", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateValidator), ctx, validator)
-}
-
 // SaveOrUpdateValidators mocks base method
 func (m *MockDBDriver) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
 	m.ctrl.T.Helper()
@@ -251,20 +209,6 @@ func (m *MockDBDriver) GetValidatorsByRequestedAddress(ctx context.Context, requ
 func (mr *MockDBDriverMockRecorder) GetValidatorsByRequestedAddress(ctx, requestedAddress interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorsByRequestedAddress", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorsByRequestedAddress), ctx, requestedAddress)
-}
-
-// SaveOrUpdateValidatorEvent mocks base method
-func (m *MockDBDriver) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidatorEvent", ctx, ve)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidatorEvent indicates an expected call of SaveOrUpdateValidatorEvent
-func (mr *MockDBDriverMockRecorder) SaveOrUpdateValidatorEvent(ctx, ve interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidatorEvent", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateValidatorEvent), ctx, ve)
 }
 
 // SaveOrUpdateValidatorEvents mocks base method
@@ -349,20 +293,6 @@ func (m *MockDataStore) EXPECT() *MockDataStoreMockRecorder {
 	return m.recorder
 }
 
-// SaveOrUpdateDelegation mocks base method
-func (m *MockDataStore) SaveOrUpdateDelegation(ctx context.Context, delegation structs.Delegation) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegation", ctx, delegation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegation indicates an expected call of SaveOrUpdateDelegation
-func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegation(ctx, delegation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegation", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateDelegation), ctx, delegation)
-}
-
 // SaveOrUpdateDelegations mocks base method
 func (m *MockDataStore) SaveOrUpdateDelegations(ctx context.Context, delegations []structs.Delegation) error {
 	m.ctrl.T.Helper()
@@ -420,20 +350,6 @@ func (m *MockDataStore) GetDelegationsByValidatorId(ctx context.Context, validat
 func (mr *MockDataStoreMockRecorder) GetDelegationsByValidatorId(ctx, validatorId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationsByValidatorId", reflect.TypeOf((*MockDataStore)(nil).GetDelegationsByValidatorId), ctx, validatorId)
-}
-
-// SaveOrUpdateDelegationEvent mocks base method
-func (m *MockDataStore) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvent", ctx, dl)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegationEvent indicates an expected call of SaveOrUpdateDelegationEvent
-func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegationEvent(ctx, dl interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvent", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateDelegationEvent), ctx, dl)
 }
 
 // SaveOrUpdateDelegationEvents mocks base method
@@ -495,20 +411,6 @@ func (mr *MockDataStoreMockRecorder) GetAllDelegationEvents(ctx interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDelegationEvents", reflect.TypeOf((*MockDataStore)(nil).GetAllDelegationEvents), ctx)
 }
 
-// SaveOrUpdateValidator mocks base method
-func (m *MockDataStore) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidator", ctx, validator)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidator indicates an expected call of SaveOrUpdateValidator
-func (mr *MockDataStoreMockRecorder) SaveOrUpdateValidator(ctx, validator interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidator", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateValidator), ctx, validator)
-}
-
 // SaveOrUpdateValidators mocks base method
 func (m *MockDataStore) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
 	m.ctrl.T.Helper()
@@ -566,20 +468,6 @@ func (m *MockDataStore) GetValidatorsByRequestedAddress(ctx context.Context, req
 func (mr *MockDataStoreMockRecorder) GetValidatorsByRequestedAddress(ctx, requestedAddress interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorsByRequestedAddress", reflect.TypeOf((*MockDataStore)(nil).GetValidatorsByRequestedAddress), ctx, requestedAddress)
-}
-
-// SaveOrUpdateValidatorEvent mocks base method
-func (m *MockDataStore) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidatorEvent", ctx, ve)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidatorEvent indicates an expected call of SaveOrUpdateValidatorEvent
-func (mr *MockDataStoreMockRecorder) SaveOrUpdateValidatorEvent(ctx, ve interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidatorEvent", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateValidatorEvent), ctx, ve)
 }
 
 // SaveOrUpdateValidatorEvents mocks base method
@@ -664,20 +552,6 @@ func (m *MockDelegationStore) EXPECT() *MockDelegationStoreMockRecorder {
 	return m.recorder
 }
 
-// SaveOrUpdateDelegation mocks base method
-func (m *MockDelegationStore) SaveOrUpdateDelegation(ctx context.Context, delegation structs.Delegation) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegation", ctx, delegation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegation indicates an expected call of SaveOrUpdateDelegation
-func (mr *MockDelegationStoreMockRecorder) SaveOrUpdateDelegation(ctx, delegation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegation", reflect.TypeOf((*MockDelegationStore)(nil).SaveOrUpdateDelegation), ctx, delegation)
-}
-
 // SaveOrUpdateDelegations mocks base method
 func (m *MockDelegationStore) SaveOrUpdateDelegations(ctx context.Context, delegations []structs.Delegation) error {
 	m.ctrl.T.Helper()
@@ -758,20 +632,6 @@ func NewMockDelegationEventStore(ctrl *gomock.Controller) *MockDelegationEventSt
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockDelegationEventStore) EXPECT() *MockDelegationEventStoreMockRecorder {
 	return m.recorder
-}
-
-// SaveOrUpdateDelegationEvent mocks base method
-func (m *MockDelegationEventStore) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvent", ctx, dl)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateDelegationEvent indicates an expected call of SaveOrUpdateDelegationEvent
-func (mr *MockDelegationEventStoreMockRecorder) SaveOrUpdateDelegationEvent(ctx, dl interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvent", reflect.TypeOf((*MockDelegationEventStore)(nil).SaveOrUpdateDelegationEvent), ctx, dl)
 }
 
 // SaveOrUpdateDelegationEvents mocks base method
@@ -856,20 +716,6 @@ func (m *MockValidatorStore) EXPECT() *MockValidatorStoreMockRecorder {
 	return m.recorder
 }
 
-// SaveOrUpdateValidator mocks base method
-func (m *MockValidatorStore) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidator", ctx, validator)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidator indicates an expected call of SaveOrUpdateValidator
-func (mr *MockValidatorStoreMockRecorder) SaveOrUpdateValidator(ctx, validator interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidator", reflect.TypeOf((*MockValidatorStore)(nil).SaveOrUpdateValidator), ctx, validator)
-}
-
 // SaveOrUpdateValidators mocks base method
 func (m *MockValidatorStore) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
 	m.ctrl.T.Helper()
@@ -950,20 +796,6 @@ func NewMockValidatorEventStore(ctrl *gomock.Controller) *MockValidatorEventStor
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockValidatorEventStore) EXPECT() *MockValidatorEventStoreMockRecorder {
 	return m.recorder
-}
-
-// SaveOrUpdateValidatorEvent mocks base method
-func (m *MockValidatorEventStore) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateValidatorEvent", ctx, ve)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOrUpdateValidatorEvent indicates an expected call of SaveOrUpdateValidatorEvent
-func (mr *MockValidatorEventStoreMockRecorder) SaveOrUpdateValidatorEvent(ctx, ve interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidatorEvent", reflect.TypeOf((*MockValidatorEventStore)(nil).SaveOrUpdateValidatorEvent), ctx, ve)
 }
 
 // SaveOrUpdateValidatorEvents mocks base method

@@ -15,8 +15,7 @@ const (
 	byValidatorIdForValidatorEvent   = `WHERE v.validator_id =  $1 `
 )
 
-// SaveOrUpdateValidatorEvent saves or updates delegation event
-func (d *Driver) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
+func (d *Driver) saveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
 	var err error
 	if ve.ID == nil {
 		_, err = d.db.Exec(insertStatementForValidatorEvent, ve.ValidatorId, ve.EventName, ve.EventTime)
@@ -29,7 +28,7 @@ func (d *Driver) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.Vali
 // SaveOrUpdateDelegationEvents saves or updates delegation events
 func (d *Driver) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {
 	for _, ve := range validatorEvents {
-		if err := d.SaveOrUpdateValidatorEvent(ctx, ve); err != nil {
+		if err := d.saveOrUpdateValidatorEvent(ctx, ve); err != nil {
 			return err
 		}
 	}

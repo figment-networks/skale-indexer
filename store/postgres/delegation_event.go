@@ -16,8 +16,7 @@ const (
 	orderByEventTime                  = `ORDER BY event_time DESC`
 )
 
-// SaveOrUpdateDelegationEvent saves or updates delegation event
-func (d *Driver) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
+func (d *Driver) saveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
 	var err error
 	if dl.ID == nil {
 		_, err = d.db.Exec(insertStatementForDelegationEvent, dl.DelegationId, dl.EventName, dl.EventTime)
@@ -30,7 +29,7 @@ func (d *Driver) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.Del
 // SaveOrUpdateDelegationEvents saves or updates delegation events
 func (d *Driver) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
 	for _, dl := range delegationEvents {
-		if err := d.SaveOrUpdateDelegationEvent(ctx, dl); err != nil {
+		if err := d.saveOrUpdateDelegationEvent(ctx, dl); err != nil {
 			return err
 		}
 	}

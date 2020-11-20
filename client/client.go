@@ -25,11 +25,6 @@ func NewClientContractor(storeEng store.DataStore) *ClientContractor {
 	}
 }
 
-func (c *ClientContractor) SaveOrUpdateDelegation(ctx context.Context, delegation structs.Delegation) error {
-	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateDelegation(ctx, delegation)
-}
-
 func (c *ClientContractor) SaveOrUpdateDelegations(ctx context.Context, delegations []structs.Delegation) error {
 	defer c.recoverPanic()
 	return c.storeEng.SaveOrUpdateDelegations(ctx, delegations)
@@ -53,11 +48,6 @@ func (c *ClientContractor) GetDelegationsByValidatorId(ctx context.Context, vali
 	return c.storeEng.GetDelegationsByValidatorId(ctx, validatorId)
 }
 
-func (c *ClientContractor) SaveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
-	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateDelegationEvent(ctx, dl)
-}
-
 func (c *ClientContractor) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
 
 	defer c.recoverPanic()
@@ -77,11 +67,6 @@ func (c *ClientContractor) GetDelegationEventsByDelegationId(ctx context.Context
 func (c *ClientContractor) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
 	defer c.recoverPanic()
 	return c.storeEng.GetAllDelegationEvents(ctx)
-}
-
-func (c *ClientContractor) SaveOrUpdateValidator(ctx context.Context, validator structs.Validator) error {
-	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateValidator(ctx, validator)
 }
 
 func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {
@@ -105,11 +90,6 @@ func (c *ClientContractor) GetValidatorsByValidatorAddress(ctx context.Context, 
 func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) (validators []structs.Validator, err error) {
 	defer c.recoverPanic()
 	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
-}
-
-func (c *ClientContractor) SaveOrUpdateValidatorEvent(ctx context.Context, ve structs.ValidatorEvent) error {
-	defer c.recoverPanic()
-	return c.storeEng.SaveOrUpdateValidatorEvent(ctx, ve)
 }
 
 func (c *ClientContractor) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {

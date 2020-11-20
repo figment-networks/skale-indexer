@@ -22,8 +22,7 @@ const (
 	orderByCreated               = `ORDER BY created DESC`
 )
 
-// SaveOrUpdateDelegation saves or updates delegation
-func (d *Driver) SaveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
+func (d *Driver) saveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
 	var err error
 	if dl.ID == nil {
 		_, err = d.db.Exec(insertStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
@@ -36,7 +35,7 @@ func (d *Driver) SaveOrUpdateDelegation(ctx context.Context, dl structs.Delegati
 // SaveOrUpdateDelegations saves or updates delegations
 func (d *Driver) SaveOrUpdateDelegations(ctx context.Context, dls []structs.Delegation) error {
 	for _, dl := range dls {
-		if err := d.SaveOrUpdateDelegation(ctx, dl); err != nil {
+		if err := d.saveOrUpdateDelegation(ctx, dl); err != nil {
 			return err
 		}
 	}
