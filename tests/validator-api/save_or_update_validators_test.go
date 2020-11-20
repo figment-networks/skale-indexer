@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": 0,
+        "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
         "accept_new_requests": false
 	`
@@ -32,7 +33,7 @@ const (
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": 0,
+        "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
         "accept_new_requests": false
     }]`
@@ -42,7 +43,7 @@ const (
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": 0,
+        "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
         "accept_new_requests": false
     },	
@@ -52,11 +53,13 @@ const (
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": 0,
+        "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
         "accept_new_requests": false
     }	
 	]`
+	// same value should be used in json examples above for valid cases
+	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
 var exampleValidators []structs.Validator
@@ -67,36 +70,38 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	requestedAddress := "requested_address_test"
 	description := "description_test"
 	var feeRate uint64 = 1
-	var registrationTime uint64 = 0
+	layout := "2006-01-02T15:04:05.000Z"
+	exampleTime, _ := time.Parse(layout, dummyTime)
+	var registrationTime time.Time = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = false
 	exampleValidator := structs.Validator{
-		Name:                    &name,
-		ValidatorAddress:        &validatorAddress,
-		RequestedAddress:        &requestedAddress,
-		Description:             &description,
-		FeeRate:                 &feeRate,
-		RegistrationTime:        &registrationTime,
-		MinimumDelegationAmount: &minimumDelegationAmount,
-		AcceptNewRequests:       &acceptNewRequests,
+		Name:                    name,
+		ValidatorAddress:        validatorAddress,
+		RequestedAddress:        requestedAddress,
+		Description:             description,
+		FeeRate:                 feeRate,
+		RegistrationTime:        registrationTime,
+		MinimumDelegationAmount: minimumDelegationAmount,
+		AcceptNewRequests:       acceptNewRequests,
 	}
 	name2 := "name_test"
 	validatorAddress2 := "validator_address_test"
 	requestedAddress2 := "requested_address_test"
 	description2 := "description_test"
 	var feeRate2 uint64 = 1
-	var registrationTime2 uint64 = 0
+	var registrationTime2 time.Time = exampleTime
 	var minimumDelegationAmount2 uint64 = 0
 	var acceptNewRequests2 = false
 	exampleValidator2 := structs.Validator{
-		Name:                    &name2,
-		ValidatorAddress:        &validatorAddress2,
-		RequestedAddress:        &requestedAddress2,
-		Description:             &description2,
-		FeeRate:                 &feeRate2,
-		RegistrationTime:        &registrationTime2,
-		MinimumDelegationAmount: &minimumDelegationAmount2,
-		AcceptNewRequests:       &acceptNewRequests2,
+		Name:                    name2,
+		ValidatorAddress:        validatorAddress2,
+		RequestedAddress:        requestedAddress2,
+		Description:             description2,
+		FeeRate:                 feeRate2,
+		RegistrationTime:        registrationTime2,
+		MinimumDelegationAmount: minimumDelegationAmount2,
+		AcceptNewRequests:       acceptNewRequests2,
 	}
 	exampleValidators = append(exampleValidators, exampleValidator)
 	exampleValidators = append(exampleValidators, exampleValidator2)

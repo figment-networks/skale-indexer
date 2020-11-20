@@ -18,7 +18,7 @@ const (
 
 func (d *Driver) saveOrUpdateDelegationEvent(ctx context.Context, dl structs.DelegationEvent) error {
 	var err error
-	if dl.ID == nil {
+	if dl.ID == "" {
 		_, err = d.db.Exec(insertStatementForDelegationEvent, dl.DelegationId, dl.EventName, dl.EventTime)
 	} else {
 		_, err = d.db.Exec(updateStatementForDelegationEvent, dl.DelegationId, dl.EventName, dl.EventTime, dl.ID)
@@ -37,26 +37,26 @@ func (d *Driver) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEve
 }
 
 // GetDelegationEventById gets delegation event by id
-func (d *Driver) GetDelegationEventById(ctx context.Context, id *string) (res structs.DelegationEvent, err error) {
+func (d *Driver) GetDelegationEventById(ctx context.Context, id string) (res structs.DelegationEvent, err error) {
 	dlg := structs.DelegationEvent{}
 	q := fmt.Sprintf("%s%s", getByStatementForDelegationEvent, byIdForDelegationEvent)
 
-	row := d.db.QueryRowContext(ctx, q, *id)
+	row := d.db.QueryRowContext(ctx, q, id)
 	if row.Err() != nil {
 		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.DelegationId, &dlg.EventName, &dlg.EventTime)
-	if err == sql.ErrNoRows || !(*dlg.ID != "") {
+	if err == sql.ErrNoRows || !(dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err
 }
 
 // GetDelegationEventsByDelegationId gets delegation events by delegation id
-func (d *Driver) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) (delegationEvents []structs.DelegationEvent, err error) {
+func (d *Driver) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) (delegationEvents []structs.DelegationEvent, err error) {
 	q := fmt.Sprintf("%s%s%s", getByStatementForDelegationEvent, byDelegationIdForDelegationEvent, orderByEventTime)
-	rows, err := d.db.QueryContext(ctx, q, *delegationId)
+	rows, err := d.db.QueryContext(ctx, q, delegationId)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

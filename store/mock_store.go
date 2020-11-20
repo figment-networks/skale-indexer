@@ -49,7 +49,7 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegations(ctx, delegations int
 }
 
 // GetDelegationById mocks base method
-func (m *MockDBDriver) GetDelegationById(ctx context.Context, id *string) (structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationById(ctx context.Context, id string) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -64,7 +64,7 @@ func (mr *MockDBDriverMockRecorder) GetDelegationById(ctx, id interface{}) *gomo
 }
 
 // GetDelegationsByHolder mocks base method
-func (m *MockDBDriver) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -79,7 +79,7 @@ func (mr *MockDBDriverMockRecorder) GetDelegationsByHolder(ctx, holder interface
 }
 
 // GetDelegationsByValidatorId mocks base method
-func (m *MockDBDriver) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
+func (m *MockDBDriver) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -108,7 +108,7 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegationEvents(ctx, delegation
 }
 
 // GetDelegationEventById mocks base method
-func (m *MockDBDriver) GetDelegationEventById(ctx context.Context, id *string) (structs.DelegationEvent, error) {
+func (m *MockDBDriver) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
 	ret0, _ := ret[0].(structs.DelegationEvent)
@@ -123,7 +123,7 @@ func (mr *MockDBDriverMockRecorder) GetDelegationEventById(ctx, id interface{}) 
 }
 
 // GetDelegationEventsByDelegationId mocks base method
-func (m *MockDBDriver) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) ([]structs.DelegationEvent, error) {
+func (m *MockDBDriver) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
 	ret0, _ := ret[0].([]structs.DelegationEvent)
@@ -167,7 +167,7 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateValidators(ctx, validators inter
 }
 
 // GetValidatorById mocks base method
-func (m *MockDBDriver) GetValidatorById(ctx context.Context, id *string) (structs.Validator, error) {
+func (m *MockDBDriver) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
 	ret0, _ := ret[0].(structs.Validator)
@@ -182,7 +182,7 @@ func (mr *MockDBDriverMockRecorder) GetValidatorById(ctx, id interface{}) *gomoc
 }
 
 // GetValidatorsByValidatorAddress mocks base method
-func (m *MockDBDriver) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) ([]structs.Validator, error) {
+func (m *MockDBDriver) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByValidatorAddress", ctx, validatorAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -197,7 +197,7 @@ func (mr *MockDBDriverMockRecorder) GetValidatorsByValidatorAddress(ctx, validat
 }
 
 // GetValidatorsByRequestedAddress mocks base method
-func (m *MockDBDriver) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) ([]structs.Validator, error) {
+func (m *MockDBDriver) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByRequestedAddress", ctx, requestedAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -226,7 +226,7 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateValidatorEvents(ctx, validatorEv
 }
 
 // GetValidatorEventById mocks base method
-func (m *MockDBDriver) GetValidatorEventById(ctx context.Context, id *string) (structs.ValidatorEvent, error) {
+func (m *MockDBDriver) GetValidatorEventById(ctx context.Context, id string) (structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventById", ctx, id)
 	ret0, _ := ret[0].(structs.ValidatorEvent)
@@ -241,7 +241,7 @@ func (mr *MockDBDriverMockRecorder) GetValidatorEventById(ctx, id interface{}) *
 }
 
 // GetValidatorEventsByValidatorId mocks base method
-func (m *MockDBDriver) GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) ([]structs.ValidatorEvent, error) {
+func (m *MockDBDriver) GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) ([]structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.ValidatorEvent)
@@ -308,7 +308,7 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegations(ctx, delegations in
 }
 
 // GetDelegationById mocks base method
-func (m *MockDataStore) GetDelegationById(ctx context.Context, id *string) (structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationById(ctx context.Context, id string) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -323,7 +323,7 @@ func (mr *MockDataStoreMockRecorder) GetDelegationById(ctx, id interface{}) *gom
 }
 
 // GetDelegationsByHolder mocks base method
-func (m *MockDataStore) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -338,7 +338,7 @@ func (mr *MockDataStoreMockRecorder) GetDelegationsByHolder(ctx, holder interfac
 }
 
 // GetDelegationsByValidatorId mocks base method
-func (m *MockDataStore) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
+func (m *MockDataStore) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -367,7 +367,7 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegationEvents(ctx, delegatio
 }
 
 // GetDelegationEventById mocks base method
-func (m *MockDataStore) GetDelegationEventById(ctx context.Context, id *string) (structs.DelegationEvent, error) {
+func (m *MockDataStore) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
 	ret0, _ := ret[0].(structs.DelegationEvent)
@@ -382,7 +382,7 @@ func (mr *MockDataStoreMockRecorder) GetDelegationEventById(ctx, id interface{})
 }
 
 // GetDelegationEventsByDelegationId mocks base method
-func (m *MockDataStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) ([]structs.DelegationEvent, error) {
+func (m *MockDataStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
 	ret0, _ := ret[0].([]structs.DelegationEvent)
@@ -426,7 +426,7 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateValidators(ctx, validators inte
 }
 
 // GetValidatorById mocks base method
-func (m *MockDataStore) GetValidatorById(ctx context.Context, id *string) (structs.Validator, error) {
+func (m *MockDataStore) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
 	ret0, _ := ret[0].(structs.Validator)
@@ -441,7 +441,7 @@ func (mr *MockDataStoreMockRecorder) GetValidatorById(ctx, id interface{}) *gomo
 }
 
 // GetValidatorsByValidatorAddress mocks base method
-func (m *MockDataStore) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) ([]structs.Validator, error) {
+func (m *MockDataStore) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByValidatorAddress", ctx, validatorAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -456,7 +456,7 @@ func (mr *MockDataStoreMockRecorder) GetValidatorsByValidatorAddress(ctx, valida
 }
 
 // GetValidatorsByRequestedAddress mocks base method
-func (m *MockDataStore) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) ([]structs.Validator, error) {
+func (m *MockDataStore) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByRequestedAddress", ctx, requestedAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -485,7 +485,7 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateValidatorEvents(ctx, validatorE
 }
 
 // GetValidatorEventById mocks base method
-func (m *MockDataStore) GetValidatorEventById(ctx context.Context, id *string) (structs.ValidatorEvent, error) {
+func (m *MockDataStore) GetValidatorEventById(ctx context.Context, id string) (structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventById", ctx, id)
 	ret0, _ := ret[0].(structs.ValidatorEvent)
@@ -500,7 +500,7 @@ func (mr *MockDataStoreMockRecorder) GetValidatorEventById(ctx, id interface{}) 
 }
 
 // GetValidatorEventsByValidatorId mocks base method
-func (m *MockDataStore) GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) ([]structs.ValidatorEvent, error) {
+func (m *MockDataStore) GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) ([]structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.ValidatorEvent)
@@ -567,7 +567,7 @@ func (mr *MockDelegationStoreMockRecorder) SaveOrUpdateDelegations(ctx, delegati
 }
 
 // GetDelegationById mocks base method
-func (m *MockDelegationStore) GetDelegationById(ctx context.Context, id *string) (structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationById(ctx context.Context, id string) (structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationById", ctx, id)
 	ret0, _ := ret[0].(structs.Delegation)
@@ -582,7 +582,7 @@ func (mr *MockDelegationStoreMockRecorder) GetDelegationById(ctx, id interface{}
 }
 
 // GetDelegationsByHolder mocks base method
-func (m *MockDelegationStore) GetDelegationsByHolder(ctx context.Context, holder *string) ([]structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationsByHolder(ctx context.Context, holder string) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByHolder", ctx, holder)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -597,7 +597,7 @@ func (mr *MockDelegationStoreMockRecorder) GetDelegationsByHolder(ctx, holder in
 }
 
 // GetDelegationsByValidatorId mocks base method
-func (m *MockDelegationStore) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) ([]structs.Delegation, error) {
+func (m *MockDelegationStore) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) ([]structs.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.Delegation)
@@ -649,7 +649,7 @@ func (mr *MockDelegationEventStoreMockRecorder) SaveOrUpdateDelegationEvents(ctx
 }
 
 // GetDelegationEventById mocks base method
-func (m *MockDelegationEventStore) GetDelegationEventById(ctx context.Context, id *string) (structs.DelegationEvent, error) {
+func (m *MockDelegationEventStore) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
 	ret0, _ := ret[0].(structs.DelegationEvent)
@@ -664,7 +664,7 @@ func (mr *MockDelegationEventStoreMockRecorder) GetDelegationEventById(ctx, id i
 }
 
 // GetDelegationEventsByDelegationId mocks base method
-func (m *MockDelegationEventStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId *string) ([]structs.DelegationEvent, error) {
+func (m *MockDelegationEventStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
 	ret0, _ := ret[0].([]structs.DelegationEvent)
@@ -731,7 +731,7 @@ func (mr *MockValidatorStoreMockRecorder) SaveOrUpdateValidators(ctx, validators
 }
 
 // GetValidatorById mocks base method
-func (m *MockValidatorStore) GetValidatorById(ctx context.Context, id *string) (structs.Validator, error) {
+func (m *MockValidatorStore) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
 	ret0, _ := ret[0].(structs.Validator)
@@ -746,7 +746,7 @@ func (mr *MockValidatorStoreMockRecorder) GetValidatorById(ctx, id interface{}) 
 }
 
 // GetValidatorsByValidatorAddress mocks base method
-func (m *MockValidatorStore) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) ([]structs.Validator, error) {
+func (m *MockValidatorStore) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByValidatorAddress", ctx, validatorAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -761,7 +761,7 @@ func (mr *MockValidatorStoreMockRecorder) GetValidatorsByValidatorAddress(ctx, v
 }
 
 // GetValidatorsByRequestedAddress mocks base method
-func (m *MockValidatorStore) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress *string) ([]structs.Validator, error) {
+func (m *MockValidatorStore) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorsByRequestedAddress", ctx, requestedAddress)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -813,7 +813,7 @@ func (mr *MockValidatorEventStoreMockRecorder) SaveOrUpdateValidatorEvents(ctx, 
 }
 
 // GetValidatorEventById mocks base method
-func (m *MockValidatorEventStore) GetValidatorEventById(ctx context.Context, id *string) (structs.ValidatorEvent, error) {
+func (m *MockValidatorEventStore) GetValidatorEventById(ctx context.Context, id string) (structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventById", ctx, id)
 	ret0, _ := ret[0].(structs.ValidatorEvent)
@@ -828,7 +828,7 @@ func (mr *MockValidatorEventStoreMockRecorder) GetValidatorEventById(ctx, id int
 }
 
 // GetValidatorEventsByValidatorId mocks base method
-func (m *MockValidatorEventStore) GetValidatorEventsByValidatorId(ctx context.Context, validatorId *string) ([]structs.ValidatorEvent, error) {
+func (m *MockValidatorEventStore) GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) ([]structs.ValidatorEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidatorEventsByValidatorId", ctx, validatorId)
 	ret0, _ := ret[0].([]structs.ValidatorEvent)

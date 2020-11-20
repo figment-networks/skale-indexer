@@ -22,16 +22,16 @@ func TestGetAllValidatorEvents(t *testing.T) {
 	eventName := "eventName1"
 	eventTime := time.Now()
 	vld := structs.ValidatorEvent{
-		ValidatorId: &validatorId,
-		EventName:   &eventName,
-		EventTime:   &eventTime,
+		ValidatorId: validatorId,
+		EventName:   eventName,
+		EventTime:   eventTime,
 	}
 	vldEvents = append(vldEvents, vld)
 	tests := []struct {
 		number          int
 		name            string
 		req             *http.Request
-		validatorId     *string
+		validatorId     string
 		validatorEvents []structs.ValidatorEvent
 		dbResponse      error
 		code            int
@@ -51,7 +51,7 @@ func TestGetAllValidatorEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("record not found"),
 			code:        http.StatusNotFound,
 		},
@@ -61,7 +61,7 @@ func TestGetAllValidatorEvents(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("internal error"),
 			code:        http.StatusInternalServerError,
 		},
@@ -72,7 +72,7 @@ func TestGetAllValidatorEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			validatorId:     &validatorId,
+			validatorId:     validatorId,
 			validatorEvents: vldEvents,
 			code:            http.StatusOK,
 		},

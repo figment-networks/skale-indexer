@@ -51,16 +51,16 @@ func TestSaveOrUpdateValidators(t *testing.T) {
 	exampleTime, _ := time.Parse(layout, dummyTime)
 	var eventTime = exampleTime
 	example1 := structs.ValidatorEvent{
-		ValidatorId: &validatorId,
-		EventName:   &eventName,
-		EventTime:   &eventTime,
+		ValidatorId: validatorId,
+		EventName:   eventName,
+		EventTime:   eventTime,
 	}
 	validatorId2 := "validator_id_test2"
 	eventName2 := "event_name_test"
 	example2 := structs.ValidatorEvent{
-		ValidatorId: &validatorId2,
-		EventName:   &eventName2,
-		EventTime:   &eventTime,
+		ValidatorId: validatorId2,
+		EventName:   eventName2,
+		EventTime:   eventTime,
 	}
 	exampleValidators = append(exampleValidators, example1)
 	exampleValidators = append(exampleValidators, example2)

@@ -22,16 +22,16 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 	eventName := "eventName1"
 	eventTime := time.Now()
 	dlg := structs.DelegationEvent{
-		DelegationId: &delegationId,
-		EventName:    &eventName,
-		EventTime:    &eventTime,
+		DelegationId: delegationId,
+		EventName:    eventName,
+		EventTime:    eventTime,
 	}
 	dlgEventsByDelegationId = append(dlgEventsByDelegationId, dlg)
 	tests := []struct {
 		number           int
 		name             string
 		req              *http.Request
-		delegationId     *string
+		delegationId     string
 		delegationEvents []structs.DelegationEvent
 		dbResponse       error
 		code             int
@@ -74,7 +74,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 					RawQuery: "delegation_id=delegationId1",
 				},
 			},
-			delegationId: &delegationId,
+			delegationId: delegationId,
 			dbResponse:   errors.New("record not found"),
 			code:         http.StatusNotFound,
 		},
@@ -87,7 +87,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 					RawQuery: "delegation_id=delegationId1",
 				},
 			},
-			delegationId: &delegationId,
+			delegationId: delegationId,
 			dbResponse:   errors.New("internal error"),
 			code:         http.StatusInternalServerError,
 		},
@@ -100,7 +100,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 					RawQuery: "delegation_id=delegationId1",
 				},
 			},
-			delegationId:     &delegationId,
+			delegationId:     delegationId,
 			delegationEvents: dlgEventsByDelegationId,
 			code:             http.StatusOK,
 		},

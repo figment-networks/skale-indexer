@@ -24,7 +24,7 @@ const (
 
 func (d *Driver) saveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
 	var err error
-	if dl.ID == nil {
+	if dl.ID == "" {
 		_, err = d.db.Exec(insertStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
 	} else {
 		_, err = d.db.Exec(updateStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
@@ -43,26 +43,26 @@ func (d *Driver) SaveOrUpdateDelegations(ctx context.Context, dls []structs.Dele
 }
 
 // GetDelegationById gets delegation by id
-func (d *Driver) GetDelegationById(ctx context.Context, id *string) (res structs.Delegation, err error) {
+func (d *Driver) GetDelegationById(ctx context.Context, id string) (res structs.Delegation, err error) {
 	dlg := structs.Delegation{}
 	q := fmt.Sprintf("%s%s", getByStatementForDelegation, byIdForDelegation)
 
-	row := d.db.QueryRowContext(ctx, q, *id)
+	row := d.db.QueryRowContext(ctx, q, id)
 	if row.Err() != nil {
 		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
-	if err == sql.ErrNoRows || !(*dlg.ID != "") {
+	if err == sql.ErrNoRows || !(dlg.ID != "") {
 		return res, ErrNotFound
 	}
 	return dlg, err
 }
 
 // GetDelegationsByHolder gets delegations by holder
-func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (delegations []structs.Delegation, err error) {
+func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder string) (delegations []structs.Delegation, err error) {
 	q := fmt.Sprintf("%s%s%s", getByStatementForDelegation, byHolderForDelegation, orderByCreated)
-	rows, err := d.db.QueryContext(ctx, q, *holder)
+	rows, err := d.db.QueryContext(ctx, q, holder)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
@@ -84,9 +84,9 @@ func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder *string) (de
 }
 
 // GetDelegationsByValidatorId gets delegations by validator id
-func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId *uint64) (delegations []structs.Delegation, err error) {
+func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error) {
 	q := fmt.Sprintf("%s%s%s", getByStatementForDelegation, byValidatorIdForDelegation, orderByCreated)
-	rows, err := d.db.QueryContext(ctx, q, *validatorId)
+	rows, err := d.db.QueryContext(ctx, q, validatorId)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

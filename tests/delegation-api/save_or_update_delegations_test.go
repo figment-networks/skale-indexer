@@ -76,14 +76,14 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var finished = exampleTime
 	info := "info1"
 	exampleDelegation := structs.Delegation{
-		Holder:           &holder,
-		ValidatorId:      &validatorId,
-		Amount:           &amount,
-		DelegationPeriod: &delegationPeriod,
-		Created:          &created,
-		Started:          &started,
-		Finished:         &finished,
-		Info:             &info,
+		Holder:           holder,
+		ValidatorId:      validatorId,
+		Amount:           amount,
+		DelegationPeriod: delegationPeriod,
+		Created:          created,
+		Started:          started,
+		Finished:         finished,
+		Info:             info,
 	}
 	holder2 := "holder2"
 	var validatorId2 uint64 = 2
@@ -94,14 +94,14 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var finished2 = exampleTime
 	info2 := "info2"
 	exampleDelegation2 := structs.Delegation{
-		Holder:           &holder2,
-		ValidatorId:      &validatorId2,
-		Amount:           &amount2,
-		DelegationPeriod: &delegationPeriod2,
-		Created:          &created2,
-		Started:          &started2,
-		Finished:         &finished2,
-		Info:             &info2,
+		Holder:           holder2,
+		ValidatorId:      validatorId2,
+		Amount:           amount2,
+		DelegationPeriod: delegationPeriod2,
+		Created:          created2,
+		Started:          started2,
+		Finished:         finished2,
+		Info:             info2,
 	}
 	exampleDelegations = append(exampleDelegations, exampleDelegation)
 	exampleDelegations = append(exampleDelegations, exampleDelegation2)

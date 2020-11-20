@@ -22,16 +22,16 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 	eventName := "eventName1"
 	eventTime := time.Now()
 	ve := structs.ValidatorEvent{
-		ValidatorId: &validatorId,
-		EventName:   &eventName,
-		EventTime:   &eventTime,
+		ValidatorId: validatorId,
+		EventName:   eventName,
+		EventTime:   eventTime,
 	}
 	vldEventsByValidatorId = append(vldEventsByValidatorId, ve)
 	tests := []struct {
 		number          int
 		name            string
 		req             *http.Request
-		validatorId     *string
+		validatorId     string
 		validatorEvents []structs.ValidatorEvent
 		dbResponse      error
 		code            int
@@ -74,7 +74,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=validatorId1",
 				},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("record not found"),
 			code:        http.StatusNotFound,
 		},
@@ -87,7 +87,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=validatorId1",
 				},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("internal error"),
 			code:        http.StatusInternalServerError,
 		},
@@ -100,7 +100,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=validatorId1",
 				},
 			},
-			validatorId:     &validatorId,
+			validatorId:     validatorId,
 			validatorEvents: vldEventsByValidatorId,
 			code:            http.StatusOK,
 		},

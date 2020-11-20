@@ -51,16 +51,16 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	exampleTime, _ := time.Parse(layout, dummyTime)
 	var eventTime = exampleTime
 	example1 := structs.DelegationEvent{
-		DelegationId: &delegationId,
-		EventName:    &eventName,
-		EventTime:    &eventTime,
+		DelegationId: delegationId,
+		EventName:    eventName,
+		EventTime:    eventTime,
 	}
 	delegationId2 := "delegation_id_test2"
 	eventName2 := "event_name_test"
 	example2 := structs.DelegationEvent{
-		DelegationId: &delegationId2,
-		EventName:    &eventName2,
-		EventTime:    &eventTime,
+		DelegationId: delegationId2,
+		EventName:    eventName2,
+		EventTime:    eventTime,
 	}
 	exampleDelegations = append(exampleDelegations, example1)
 	exampleDelegations = append(exampleDelegations, example2)

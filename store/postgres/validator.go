@@ -18,7 +18,7 @@ const (
 
 func (d *Driver) saveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
 	var err error
-	if v.ID == nil {
+	if v.ID == "" {
 		_, err = d.db.Exec(insertStatementForValidator, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests)
 	} else {
 		_, err = d.db.Exec(updateStatementForValidator, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, v.ID)
@@ -37,26 +37,26 @@ func (d *Driver) SaveOrUpdateValidators(ctx context.Context, validators []struct
 }
 
 // GetValidatorById gets validator by id
-func (d *Driver) GetValidatorById(ctx context.Context, id *string) (res structs.Validator, err error) {
+func (d *Driver) GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error) {
 	vld := structs.Validator{}
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
 
-	row := d.db.QueryRowContext(ctx, q, *id)
+	row := d.db.QueryRowContext(ctx, q, id)
 	if row.Err() != nil {
 		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
 	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests)
-	if err == sql.ErrNoRows || !(*vld.ID != "") {
+	if err == sql.ErrNoRows || !(vld.ID != "") {
 		return res, ErrNotFound
 	}
 	return vld, err
 }
 
-// GetValidatorsByValidatorAddress gets validator by validator address
-func (d *Driver) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress *string) (validators []structs.Validator, err error) {
+// GetValidatorsByValidatorAddress gets validators by validator address
+func (d *Driver) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byValidatorAddressForValidator)
-	rows, err := d.db.QueryContext(ctx, q, *validatorAddress)
+	rows, err := d.db.QueryContext(ctx, q, validatorAddress)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
@@ -77,10 +77,10 @@ func (d *Driver) GetValidatorsByValidatorAddress(ctx context.Context, validatorA
 	return validators, nil
 }
 
-// GetValidatorsByRequestedAddress gets validator by request address
-func (d *Driver) GetValidatorsByRequestedAddress(ctx context.Context, requestAddress *string) (validators []structs.Validator, err error) {
+// GetValidatorsByRequestedAddress gets validators by request address
+func (d *Driver) GetValidatorsByRequestedAddress(ctx context.Context, requestAddress string) (validators []structs.Validator, err error) {
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byRequestedAddressForValidator)
-	rows, err := d.db.QueryContext(ctx, q, *requestAddress)
+	rows, err := d.db.QueryContext(ctx, q, requestAddress)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

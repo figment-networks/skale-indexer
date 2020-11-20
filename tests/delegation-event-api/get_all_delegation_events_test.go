@@ -22,16 +22,16 @@ func TestGetAllDelegationEvents(t *testing.T) {
 	eventName := "eventName1"
 	eventTime := time.Now()
 	dlg := structs.DelegationEvent{
-		DelegationId: &delegationId,
-		EventName:    &eventName,
-		EventTime:    &eventTime,
+		DelegationId: delegationId,
+		EventName:    eventName,
+		EventTime:    eventTime,
 	}
 	dlgEvents = append(dlgEvents, dlg)
 	tests := []struct {
 		number           int
 		name             string
 		req              *http.Request
-		delegationId     *string
+		delegationId     string
 		delegationEvents []structs.DelegationEvent
 		dbResponse       error
 		code             int
@@ -51,7 +51,7 @@ func TestGetAllDelegationEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			delegationId: &delegationId,
+			delegationId: delegationId,
 			dbResponse:   errors.New("record not found"),
 			code:         http.StatusNotFound,
 		},
@@ -61,7 +61,7 @@ func TestGetAllDelegationEvents(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 			},
-			delegationId: &delegationId,
+			delegationId: delegationId,
 			dbResponse:   errors.New("internal error"),
 			code:         http.StatusInternalServerError,
 		},
@@ -72,7 +72,7 @@ func TestGetAllDelegationEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			delegationId:     &delegationId,
+			delegationId:     delegationId,
 			delegationEvents: dlgEvents,
 			code:             http.StatusOK,
 		},

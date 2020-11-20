@@ -27,21 +27,21 @@ func TestGetDelegationById(t *testing.T) {
 	var finished = time.Now()
 	info := "info1"
 	dlgById = structs.Delegation{
-		Holder:           &holder,
-		ValidatorId:      &validatorId,
-		Amount:           &amount,
-		DelegationPeriod: &delegationPeriod,
-		Created:          &created,
-		Started:          &started,
-		Finished:         &finished,
-		Info:             &info,
+		Holder:           holder,
+		ValidatorId:      validatorId,
+		Amount:           amount,
+		DelegationPeriod: delegationPeriod,
+		Created:          created,
+		Started:          started,
+		Finished:         finished,
+		Info:             info,
 	}
 	var id = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
-		id         *string
+		id         string
 		delegation structs.Delegation
 		dbResponse error
 		code       int
@@ -52,7 +52,7 @@ func TestGetDelegationById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			id:   &id,
+			id:   id,
 			code: http.StatusMethodNotAllowed,
 		},
 		{
@@ -85,7 +85,7 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("record not found"),
 			code:       http.StatusNotFound,
 		},
@@ -98,7 +98,7 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -111,7 +111,7 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			delegation: dlgById,
 			code:       http.StatusOK,
 		},

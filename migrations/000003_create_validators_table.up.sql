@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS validators
     requested_address           TEXT                     NOT NULL,
     description                 TEXT                     NOT NULL,
     fee_rate                    DECIMAL(65, 0)           NOT NULL,
-    registration_time           DECIMAL(65, 0)           NOT NULL,
+    registration_time           TIMESTAMP WITH TIME ZONE NOT NULL,
     minimum_delegation_amount   DECIMAL(65, 0)           NOT NULL,
     accept_new_requests         BOOLEAN                  NOT NULL,
     PRIMARY KEY (id)

@@ -27,21 +27,21 @@ func TestGetDelegationsByHolder(t *testing.T) {
 	var finished = time.Now()
 	info := "info1"
 	dlg := structs.Delegation{
-		Holder:           &holder,
-		ValidatorId:      &validatorId,
-		Amount:           &amount,
-		DelegationPeriod: &delegationPeriod,
-		Created:          &created,
-		Started:          &started,
-		Finished:         &finished,
-		Info:             &info,
+		Holder:           holder,
+		ValidatorId:      validatorId,
+		Amount:           amount,
+		DelegationPeriod: delegationPeriod,
+		Created:          created,
+		Started:          started,
+		Finished:         finished,
+		Info:             info,
 	}
 	dlgsByHolder = append(dlgsByHolder, dlg)
 	tests := []struct {
 		number      int
 		name        string
 		req         *http.Request
-		holder      *string
+		holder      string
 		delegations []structs.Delegation
 		dbResponse  error
 		code        int
@@ -84,7 +84,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:     &holder,
+			holder:     holder,
 			dbResponse: errors.New("record not found"),
 			code:       http.StatusNotFound,
 		},
@@ -97,7 +97,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:     &holder,
+			holder:     holder,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -110,7 +110,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:      &holder,
+			holder:      holder,
 			delegations: dlgsByHolder,
 			code:        http.StatusOK,
 		},

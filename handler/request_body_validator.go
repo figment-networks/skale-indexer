@@ -5,34 +5,33 @@ import (
 )
 
 func validateDelegationRequiredFields(delegation structs.Delegation) error {
-	if delegation.Holder == nil || delegation.ValidatorId == nil || delegation.Amount == nil ||
-		delegation.DelegationPeriod == nil || delegation.Created == nil ||
-		delegation.Started == nil || delegation.Finished == nil ||
-		delegation.Info == nil {
+	if delegation.Holder == "" || delegation.ValidatorId == 0 ||
+		delegation.Created.IsZero() ||
+		delegation.Started.IsZero() || delegation.Finished.IsZero() ||
+		delegation.Info == "" {
 		return ErrMissingParameter
 	}
 	return nil
 }
 
 func validateDelegationEventRequiredFields(dlg structs.DelegationEvent) error {
-	if dlg.DelegationId == nil || dlg.EventName == nil || dlg.EventTime == nil {
+	if dlg.DelegationId == "" || dlg.EventName == "" || dlg.EventTime.IsZero() {
 		return ErrMissingParameter
 	}
 	return nil
 }
 
 func validateValidatorRequiredFields(validator structs.Validator) error {
-	if validator.Name == nil || validator.ValidatorAddress == nil || validator.RequestedAddress == nil ||
-		validator.Description == nil || validator.FeeRate == nil ||
-		validator.RegistrationTime == nil || validator.MinimumDelegationAmount == nil ||
-		validator.AcceptNewRequests == nil {
+	if validator.Name == "" || validator.ValidatorAddress == "" || validator.RequestedAddress == "" ||
+		validator.Description == "" || validator.FeeRate == 0 ||
+		validator.RegistrationTime.IsZero() {
 		return ErrMissingParameter
 	}
 	return nil
 }
 
 func validateValidatorEventRequiredFields(ve structs.ValidatorEvent) error {
-	if ve.ValidatorId == nil || ve.EventName == nil || ve.EventTime == nil {
+	if ve.ValidatorId == "" || ve.EventName == "" || ve.EventTime.IsZero() {
 		return ErrMissingParameter
 	}
 	return nil

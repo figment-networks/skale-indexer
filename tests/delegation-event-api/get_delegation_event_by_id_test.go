@@ -23,16 +23,16 @@ func TestGetDelegationEventById(t *testing.T) {
 	eventTime := time.Now()
 
 	dlgById = structs.DelegationEvent{
-		DelegationId: &delegationId,
-		EventName:    &eventName,
-		EventTime:    &eventTime,
+		DelegationId: delegationId,
+		EventName:    eventName,
+		EventTime:    eventTime,
 	}
 	var id = "id_test"
 	tests := []struct {
 		number          int
 		name            string
 		req             *http.Request
-		id              *string
+		id              string
 		delegationEvent structs.DelegationEvent
 		dbResponse      error
 		code            int
@@ -43,7 +43,7 @@ func TestGetDelegationEventById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			id:   &id,
+			id:   id,
 			code: http.StatusMethodNotAllowed,
 		},
 		{
@@ -76,7 +76,7 @@ func TestGetDelegationEventById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("record not found"),
 			code:       http.StatusNotFound,
 		},
@@ -89,7 +89,7 @@ func TestGetDelegationEventById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -102,7 +102,7 @@ func TestGetDelegationEventById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:              &id,
+			id:              id,
 			delegationEvent: dlgById,
 			code:            http.StatusOK,
 		},

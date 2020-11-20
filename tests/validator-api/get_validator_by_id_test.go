@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 var vldById structs.Validator
@@ -22,25 +23,27 @@ func TestGetValidatorById(t *testing.T) {
 	requestedAddress := "requested_address_test"
 	description := "description"
 	var feeRate uint64 = 1
-	var registrationTime uint64 = 0
+	layout := "2006-01-02T15:04:05.000Z"
+	exampleTime, _ := time.Parse(layout, dummyTime)
+	var registrationTime time.Time = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = true
 	vldById = structs.Validator{
-		Name:                    &name,
-		ValidatorAddress:        &validatorAddress,
-		RequestedAddress:        &requestedAddress,
-		Description:             &description,
-		FeeRate:                 &feeRate,
-		RegistrationTime:        &registrationTime,
-		MinimumDelegationAmount: &minimumDelegationAmount,
-		AcceptNewRequests:       &acceptNewRequests,
+		Name:                    name,
+		ValidatorAddress:        validatorAddress,
+		RequestedAddress:        requestedAddress,
+		Description:             description,
+		FeeRate:                 feeRate,
+		RegistrationTime:        registrationTime,
+		MinimumDelegationAmount: minimumDelegationAmount,
+		AcceptNewRequests:       acceptNewRequests,
 	}
 	var id = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
-		id         *string
+		id         string
 		validator  structs.Validator
 		dbResponse error
 		code       int
@@ -51,7 +54,7 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			id:   &id,
+			id:   id,
 			code: http.StatusMethodNotAllowed,
 		},
 		{
@@ -84,7 +87,7 @@ func TestGetValidatorById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("record not found"),
 			code:       http.StatusNotFound,
 		},
@@ -97,7 +100,7 @@ func TestGetValidatorById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         &id,
+			id:         id,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -110,7 +113,7 @@ func TestGetValidatorById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:        &id,
+			id:        id,
 			validator: vldById,
 			code:      http.StatusOK,
 		},

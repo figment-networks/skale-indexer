@@ -27,21 +27,21 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 	var finished = time.Now()
 	info := "info1"
 	dlg := structs.Delegation{
-		Holder:           &holder,
-		ValidatorId:      &validatorId,
-		Amount:           &amount,
-		DelegationPeriod: &delegationPeriod,
-		Created:          &created,
-		Started:          &started,
-		Finished:         &finished,
-		Info:             &info,
+		Holder:           holder,
+		ValidatorId:      validatorId,
+		Amount:           amount,
+		DelegationPeriod: delegationPeriod,
+		Created:          created,
+		Started:          started,
+		Finished:         finished,
+		Info:             info,
 	}
 	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
 	tests := []struct {
 		number      int
 		name        string
 		req         *http.Request
-		validatorId *uint64
+		validatorId uint64
 		delegations []structs.Delegation
 		dbResponse  error
 		code        int
@@ -84,7 +84,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("record not found"),
 			code:        http.StatusNotFound,
 		},
@@ -97,7 +97,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			dbResponse:  errors.New("internal error"),
 			code:        http.StatusInternalServerError,
 		},
@@ -110,7 +110,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: &validatorId,
+			validatorId: validatorId,
 			delegations: dlgsByValidatorId,
 			code:        http.StatusOK,
 		},

@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 var vldsByValidatorAddress = make([]structs.Validator, 1)
@@ -22,25 +23,27 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 	requestedAddress := "requested_address_test"
 	description := "description"
 	var feeRate uint64 = 1
-	var registrationTime uint64 = 0
+	layout := "2006-01-02T15:04:05.000Z"
+	exampleTime, _ := time.Parse(layout, dummyTime)
+	var registrationTime time.Time = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = true
 	vld := structs.Validator{
-		Name:                    &name,
-		ValidatorAddress:        &validatorAddress,
-		RequestedAddress:        &requestedAddress,
-		Description:             &description,
-		FeeRate:                 &feeRate,
-		RegistrationTime:        &registrationTime,
-		MinimumDelegationAmount: &minimumDelegationAmount,
-		AcceptNewRequests:       &acceptNewRequests,
+		Name:                    name,
+		ValidatorAddress:        validatorAddress,
+		RequestedAddress:        requestedAddress,
+		Description:             description,
+		FeeRate:                 feeRate,
+		RegistrationTime:        registrationTime,
+		MinimumDelegationAmount: minimumDelegationAmount,
+		AcceptNewRequests:       acceptNewRequests,
 	}
 	vldsByValidatorAddress = append(vldsByValidatorAddress, vld)
 	tests := []struct {
 		number           int
 		name             string
 		req              *http.Request
-		validatorAddress *string
+		validatorAddress string
 		validators       []structs.Validator
 		dbResponse       error
 		code             int
@@ -83,7 +86,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 					RawQuery: "validator_address=validator_address_test",
 				},
 			},
-			validatorAddress: &validatorAddress,
+			validatorAddress: validatorAddress,
 			dbResponse:       errors.New("record not found"),
 			code:             http.StatusNotFound,
 		},
@@ -96,7 +99,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 					RawQuery: "validator_address=validator_address_test",
 				},
 			},
-			validatorAddress: &validatorAddress,
+			validatorAddress: validatorAddress,
 			dbResponse:       errors.New("internal error"),
 			code:             http.StatusInternalServerError,
 		},
@@ -109,7 +112,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 					RawQuery: "validator_address=validator_address_test",
 				},
 			},
-			validatorAddress: &validatorAddress,
+			validatorAddress: validatorAddress,
 			validators:       vldsByValidatorAddress,
 			code:             http.StatusOK,
 		},

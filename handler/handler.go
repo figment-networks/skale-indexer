@@ -4,14 +4,8 @@ import (
 	"../client"
 	"../structs"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
-)
-
-var (
-	ErrMissingParameter = errors.New("missing parameter")
-	ErrNotFound         = errors.New("record not found")
 )
 
 // Connector is main HTTP connector for manager
@@ -25,8 +19,10 @@ func NewClientConnector(cli client.ClientContractor) *Connector {
 }
 
 func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -35,14 +31,14 @@ func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Req
 	err := decoder.Decode(&delegations)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 	for _, dlg := range delegations {
 		err = validateDelegationRequiredFields(dlg)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 	}
@@ -50,74 +46,81 @@ func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Req
 	err = c.cli.SaveOrUpdateDelegations(req.Context(), delegations)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Connector) GetDelegationById(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetDelegationById(req.Context(), &id)
+	res, err := c.cli.GetDelegationById(req.Context(), id)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetDelegationsByHolder(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	holder := req.URL.Query().Get("holder")
 	if holder == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(ErrMissingParameter.Error()))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetDelegationsByHolder(req.Context(), &holder)
+	res, err := c.cli.GetDelegationsByHolder(req.Context(), holder)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -125,30 +128,32 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 	validatorId, err := strconv.ParseUint(validatorIdParam, 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetDelegationsByValidatorId(req.Context(), &validatorId)
+	res, err := c.cli.GetDelegationsByValidatorId(req.Context(), validatorId)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -157,14 +162,14 @@ func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *htt
 	err := decoder.Decode(&delegationEvents)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 	for _, dlg := range delegationEvents {
 		err = validateDelegationEventRequiredFields(dlg)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 	}
@@ -172,74 +177,81 @@ func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *htt
 	err = c.cli.SaveOrUpdateDelegationEvents(req.Context(), delegationEvents)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Connector) GetDelegationEventById(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetDelegationEventById(req.Context(), &id)
+	res, err := c.cli.GetDelegationEventById(req.Context(), id)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusNotFound))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetDelegationEventsByDelegationId(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	delegationId := req.URL.Query().Get("delegation_id")
 	if delegationId == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(ErrMissingParameter.Error()))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetDelegationEventsByDelegationId(req.Context(), &delegationId)
+	res, err := c.cli.GetDelegationEventsByDelegationId(req.Context(), delegationId)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetDelegationEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -247,22 +259,24 @@ func (c *Connector) GetDelegationEvents(w http.ResponseWriter, req *http.Request
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -271,14 +285,14 @@ func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Requ
 	err := decoder.Decode(&validators)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 	for _, vld := range validators {
 		err = validateValidatorRequiredFields(vld)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 	}
@@ -286,103 +300,112 @@ func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Requ
 	err = c.cli.SaveOrUpdateValidators(req.Context(), validators)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusInternalServerError))
 		return
 	}
-	res, err := c.cli.GetValidatorById(req.Context(), &id)
+	res, err := c.cli.GetValidatorById(req.Context(), id)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetValidatorsByValidatorAddress(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	validatorAddress := req.URL.Query().Get("validator_address")
 	if validatorAddress == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(ErrMissingParameter.Error()))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorsByValidatorAddress(req.Context(), &validatorAddress)
+	res, err := c.cli.GetValidatorsByValidatorAddress(req.Context(), validatorAddress)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	requestedAddress := req.URL.Query().Get("requested_address")
 	if requestedAddress == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(ErrMissingParameter.Error()))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), &requestedAddress)
+	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), requestedAddress)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusBadRequest))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) SaveOrUpdateValidatorEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -391,14 +414,14 @@ func (c *Connector) SaveOrUpdateValidatorEvents(w http.ResponseWriter, req *http
 	err := decoder.Decode(&validatorEvents)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
 	for _, ve := range validatorEvents {
 		err = validateValidatorEventRequiredFields(ve)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 	}
@@ -406,74 +429,81 @@ func (c *Connector) SaveOrUpdateValidatorEvents(w http.ResponseWriter, req *http
 	err = c.cli.SaveOrUpdateValidatorEvents(req.Context(), validatorEvents)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Connector) GetValidatorEventById(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorEventById(req.Context(), &id)
+	res, err := c.cli.GetValidatorEventById(req.Context(), id)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetValidatorEventsByValidatorId(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
 	validatorId := req.URL.Query().Get("validator_id")
 	if validatorId == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(ErrMissingParameter.Error()))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorEventsByValidatorId(req.Context(), &validatorId)
+	res, err := c.cli.GetValidatorEventsByValidatorId(req.Context(), validatorId)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
 
 func (c *Connector) GetValidatorEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -481,15 +511,15 @@ func (c *Connector) GetValidatorEvents(w http.ResponseWriter, req *http.Request)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	enc := json.NewEncoder(w)
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(res)
 }
