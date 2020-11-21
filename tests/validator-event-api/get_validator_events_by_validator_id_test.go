@@ -18,11 +18,12 @@ import (
 var vldEventsByValidatorId = make([]structs.ValidatorEvent, 1)
 
 func TestGetValidatorEventsByValidatorId(t *testing.T) {
-	validatorId := "validatorId1"
+	invalidId := "validatorId1"
+	id := "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	eventName := "eventName1"
 	eventTime := time.Now()
 	ve := structs.ValidatorEvent{
-		ValidatorId: validatorId,
+		ValidatorId: id,
 		EventName:   eventName,
 		EventTime:   eventTime,
 	}
@@ -46,7 +47,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -56,7 +57,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "empty id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -71,10 +72,10 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=validatorId1",
+					RawQuery: "validator_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			validatorId: validatorId,
+			validatorId: id,
 			dbResponse:  errors.New("record not found"),
 			code:        http.StatusNotFound,
 		},
@@ -87,7 +88,7 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=validatorId1",
 				},
 			},
-			validatorId: validatorId,
+			validatorId: invalidId,
 			dbResponse:  errors.New("internal error"),
 			code:        http.StatusInternalServerError,
 		},
@@ -97,10 +98,10 @@ func TestGetValidatorEventsByValidatorId(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=validatorId1",
+					RawQuery: "validator_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			validatorId:     validatorId,
+			validatorId:     id,
 			validatorEvents: vldEventsByValidatorId,
 			code:            http.StatusOK,
 		},

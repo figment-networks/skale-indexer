@@ -38,7 +38,8 @@ func TestGetValidatorById(t *testing.T) {
 		MinimumDelegationAmount: minimumDelegationAmount,
 		AcceptNewRequests:       acceptNewRequests,
 	}
-	var id = "id_test"
+	var id = "41754feb-1278-46da-981e-87a0876eed53"
+	var invalidId = "id_test"
 	tests := []struct {
 		number     int
 		name       string
@@ -59,7 +60,7 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -69,7 +70,7 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "invalid id",
+			name:   "empty id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -84,7 +85,7 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
 				},
 			},
 			id:         id,
@@ -100,7 +101,7 @@ func TestGetValidatorById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         id,
+			id:         invalidId,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -110,7 +111,7 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
 				},
 			},
 			id:        id,

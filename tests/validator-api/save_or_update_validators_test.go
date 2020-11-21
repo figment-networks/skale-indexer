@@ -133,7 +133,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodPost,
 				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForValidators))),

@@ -18,11 +18,12 @@ import (
 var dlgEventsByDelegationId = make([]structs.DelegationEvent, 1)
 
 func TestGetDelegationEventsByHolder(t *testing.T) {
-	delegationId := "delegationId1"
+	invalidId := "delegationId1"
+	id := "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	eventName := "eventName1"
 	eventTime := time.Now()
 	dlg := structs.DelegationEvent{
-		DelegationId: delegationId,
+		DelegationId: id,
 		EventName:    eventName,
 		EventTime:    eventTime,
 	}
@@ -46,7 +47,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -56,7 +57,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "empty id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -71,10 +72,10 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=delegationId1",
+					RawQuery: "delegation_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			delegationId: delegationId,
+			delegationId: id,
 			dbResponse:   errors.New("record not found"),
 			code:         http.StatusNotFound,
 		},
@@ -87,7 +88,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 					RawQuery: "delegation_id=delegationId1",
 				},
 			},
-			delegationId: delegationId,
+			delegationId: invalidId,
 			dbResponse:   errors.New("internal error"),
 			code:         http.StatusInternalServerError,
 		},
@@ -97,10 +98,10 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=delegationId1",
+					RawQuery: "delegation_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			delegationId:     delegationId,
+			delegationId:     id,
 			delegationEvents: dlgEventsByDelegationId,
 			code:             http.StatusOK,
 		},

@@ -58,7 +58,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -68,7 +68,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "empty parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{

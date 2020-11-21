@@ -27,7 +27,8 @@ func TestGetValidatorEventById(t *testing.T) {
 		EventName:   eventName,
 		EventTime:   eventTime,
 	}
-	var id = "id_test"
+	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	var invalidId = "id_test"
 	tests := []struct {
 		number         int
 		name           string
@@ -48,7 +49,7 @@ func TestGetValidatorEventById(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -58,7 +59,7 @@ func TestGetValidatorEventById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "invalid id",
+			name:   "empty id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -73,7 +74,7 @@ func TestGetValidatorEventById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
 			id:         id,
@@ -89,7 +90,7 @@ func TestGetValidatorEventById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         id,
+			id:         invalidId,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -99,7 +100,7 @@ func TestGetValidatorEventById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
 			id:             id,

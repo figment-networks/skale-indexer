@@ -177,7 +177,7 @@ func (c *Connector) SaveOrUpdateDelegationEvents(w http.ResponseWriter, req *htt
 	err = c.cli.SaveOrUpdateDelegationEvents(req.Context(), delegationEvents)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(err, http.StatusBadRequest))
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -205,7 +205,7 @@ func (c *Connector) GetDelegationEventById(w http.ResponseWriter, req *http.Requ
 			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusNotFound))
+			w.Write(newApiError(err, http.StatusInternalServerError))
 		}
 		return
 	}
@@ -317,7 +317,7 @@ func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusInternalServerError))
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 	res, err := c.cli.GetValidatorById(req.Context(), id)
@@ -388,7 +388,7 @@ func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusBadRequest))
+			w.Write(newApiError(err, http.StatusNotFound))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(newApiError(err, http.StatusInternalServerError))

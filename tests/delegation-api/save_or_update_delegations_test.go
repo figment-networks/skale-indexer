@@ -22,9 +22,9 @@ const (
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
-        "created": 0
-        "started": 0,
-        "finished": 0,
+        "created": "2014-11-12T11:45:26.371Z",
+        "started": "2014-11-12T11:45:26.371Z",
+        "finished": "2014-11-12T11:45:26.371Z",
         "info": "info1"
 	`
 	invalidPropertyNameForDelegations = `[{
@@ -32,9 +32,9 @@ const (
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
-        "created": 0,
-        "started": 0,
-        "finished": 0,
+        "created": "2014-11-12T11:45:26.371Z",
+        "started": "2014-11-12T11:45:26.371Z",
+        "finished": "2014-11-12T11:45:26.371Z",
         "info": "info1"
     }]`
 	validJsonForDelegations = `[{
@@ -59,7 +59,7 @@ const (
     }	
 	]`
 	// same value should be used in json examples above for valid cases
-	dummyTime = "2014-11-12T11:45:26.371Z"
+	DummyTime = "2014-11-12T11:45:26.371Z"
 )
 
 var exampleDelegations []structs.Delegation
@@ -70,7 +70,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
 	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, dummyTime)
+	exampleTime, _ := time.Parse(layout, DummyTime)
 	var created = exampleTime
 	var started = exampleTime
 	var finished = exampleTime
@@ -133,7 +133,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodPost,
 				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForDelegations))),

@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	insertStatementForDelegationEvent = `INSERT INTO delegation_events ("created_at", "updated_at", "delegation_id", "event_name", "event_date") VALUES ( NOW(), NOW(), $1, $2, $3) `
-	updateStatementForDelegationEvent = `UPDATE delegation_events SET updated_at = NOW(), delegation_id = $1, event_name = $2, event_date = $3 WHERE id = $4 `
-	getByStatementForDelegationEvent  = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.event_name, d.event_date FROM delegation_events d `
+	insertStatementForDelegationEvent = `INSERT INTO delegation_events ("created_at", "updated_at", "delegation_id", "event_name", "event_time") VALUES ( NOW(), NOW(), $1, $2, $3) `
+	updateStatementForDelegationEvent = `UPDATE delegation_events SET updated_at = NOW(), delegation_id = $1, event_name = $2, event_time = $3 WHERE id = $4 `
+	getByStatementForDelegationEvent  = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.event_name, d.event_time FROM delegation_events d `
 	byIdForDelegationEvent            = `WHERE d.id =  $1 `
 	byDelegationIdForDelegationEvent  = `WHERE d.delegation_id =  $1 `
 	orderByEventTime                  = `ORDER BY event_time DESC`

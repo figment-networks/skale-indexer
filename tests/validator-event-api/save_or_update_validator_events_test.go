@@ -28,12 +28,12 @@ const (
         "event_time": "2014-11-12T11:45:26.371Z"
 	}]`
 	validJsonForValidatorEvents = `[{
-		"validator_id": "validator_id_test1",
+		"validator_id": "122bcb7c-b283-4f59-a945-75d6cf37e978",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     },	
 	{
-    	"validator_id": "validator_id_test2",
+    	"validator_id": "11053aa6-4bbb-4094-b588-8368cd621f2c",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     }
@@ -45,7 +45,7 @@ const (
 var exampleValidators []structs.ValidatorEvent
 
 func TestSaveOrUpdateValidators(t *testing.T) {
-	validatorId := "validator_id_test1"
+	validatorId := "122bcb7c-b283-4f59-a945-75d6cf37e978"
 	eventName := "event_name_test"
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
@@ -55,7 +55,7 @@ func TestSaveOrUpdateValidators(t *testing.T) {
 		EventName:   eventName,
 		EventTime:   eventTime,
 	}
-	validatorId2 := "validator_id_test2"
+	validatorId2 := "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	eventName2 := "event_name_test"
 	example2 := structs.ValidatorEvent{
 		ValidatorId: validatorId2,
@@ -92,7 +92,7 @@ func TestSaveOrUpdateValidators(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodPost,
 				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForValidatorEvents))),

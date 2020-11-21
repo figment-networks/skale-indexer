@@ -56,7 +56,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -66,11 +66,11 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "bad request",
+			name:   "invalid id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator-id=test",
+					RawQuery: "validator_id=test",
 				},
 			},
 			code: http.StatusBadRequest,

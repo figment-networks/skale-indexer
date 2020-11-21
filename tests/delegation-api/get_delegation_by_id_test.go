@@ -36,7 +36,8 @@ func TestGetDelegationById(t *testing.T) {
 		Finished:         finished,
 		Info:             info,
 	}
-	var id = "id_test"
+	var id = "93f14795-86dc-4db6-b20f-dda12e626406"
+	var invalidId = "id_not_uuid"
 	tests := []struct {
 		number     int
 		name       string
@@ -57,7 +58,7 @@ func TestGetDelegationById(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "bad request",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -67,7 +68,7 @@ func TestGetDelegationById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "invalid id",
+			name:   "empty id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -82,7 +83,7 @@ func TestGetDelegationById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
 				},
 			},
 			id:         id,
@@ -95,10 +96,10 @@ func TestGetDelegationById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=id_not_uuid",
 				},
 			},
-			id:         id,
+			id:         invalidId,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -108,7 +109,7 @@ func TestGetDelegationById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
 				},
 			},
 			id:         id,

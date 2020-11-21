@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	insertStatementForValidatorEvent = `INSERT INTO validator_events ("created_at", "updated_at", "validator_id", "event_name", "event_date") VALUES ( NOW(), NOW(), $1, $2, $3) `
-	updateStatementForValidatorEvent = `UPDATE validator_events SET updated_at = NOW(), validator_id = $1, event_name = $2, event_date = $3 WHERE id = $4 `
-	getByStatementForValidatorEvent  = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.event_name, v.event_date FROM validator_events v `
+	insertStatementForValidatorEvent = `INSERT INTO validator_events ("created_at", "updated_at", "validator_id", "event_name", "event_time") VALUES ( NOW(), NOW(), $1, $2, $3) `
+	updateStatementForValidatorEvent = `UPDATE validator_events SET updated_at = NOW(), validator_id = $1, event_name = $2, event_time = $3 WHERE id = $4 `
+	getByStatementForValidatorEvent  = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.event_name, v.event_time FROM validator_events v `
 	byIdForValidatorEvent            = `WHERE v.id =  $1 `
 	byValidatorIdForValidatorEvent   = `WHERE v.validator_id =  $1 `
 )
