@@ -14,14 +14,11 @@ var (
 
 type ClientContractor struct {
 	storeEng store.DataStore
-	//logger   *zap.Logger
 }
 
-//func NewClient(storeEng store.DataStore, logger *zap.Logger) *Client {
 func NewClientContractor(storeEng store.DataStore) *ClientContractor {
 	return &ClientContractor{
 		storeEng: storeEng,
-		//logger:   logger,
 	}
 }
 
