@@ -19,7 +19,7 @@ import (
 const (
 	invalidSyntaxForValidators = `[{
         "name": "name_test",
-        "validator_address": "validator_address_test",
+        "address": "validator_address_test",
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
@@ -29,7 +29,7 @@ const (
 	`
 	invalidPropertyNameForValidators = `[{
         "name_invalid": "name_test",
-        "validator_address": "validator_address_test",
+        "address": "validator_address_test",
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
@@ -39,7 +39,7 @@ const (
     }]`
 	validJsonForValidators = `[{
        "name": "name_test",
-        "validator_address": "validator_address_test",
+        "address": "validator_address_test",
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
@@ -49,7 +49,7 @@ const (
     },	
 	{
      	"name": "name_test",
-        "validator_address": "validator_address_test",
+        "address": "validator_address_test",
         "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
@@ -72,12 +72,12 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var feeRate uint64 = 1
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime time.Time = exampleTime
+	var registrationTime = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = false
 	exampleValidator := structs.Validator{
 		Name:                    name,
-		ValidatorAddress:        validatorAddress,
+		Address:                 validatorAddress,
 		RequestedAddress:        requestedAddress,
 		Description:             description,
 		FeeRate:                 feeRate,
@@ -90,12 +90,12 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	requestedAddress2 := "requested_address_test"
 	description2 := "description_test"
 	var feeRate2 uint64 = 1
-	var registrationTime2 time.Time = exampleTime
+	var registrationTime2 = exampleTime
 	var minimumDelegationAmount2 uint64 = 0
 	var acceptNewRequests2 = false
 	exampleValidator2 := structs.Validator{
 		Name:                    name2,
-		ValidatorAddress:        validatorAddress2,
+		Address:                 validatorAddress2,
 		RequestedAddress:        requestedAddress2,
 		Description:             description2,
 		FeeRate:                 feeRate2,

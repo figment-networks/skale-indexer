@@ -9,7 +9,7 @@ type Validator struct {
 	CreatedAt               time.Time `json:"created_at"`
 	UpdatedAt               time.Time `json:"updated_at"`
 	Name                    string    `json:"name"`
-	ValidatorAddress        string    `json:"validator_address"`
+	Address                 string    `json:"address"`
 	RequestedAddress        string    `json:"requested_address"`
 	Description             string    `json:"description"`
 	FeeRate                 uint64    `json:"fee_rate"`

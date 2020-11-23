@@ -22,7 +22,7 @@ func validateDelegationEventRequiredFields(dlg structs.DelegationEvent) error {
 }
 
 func validateValidatorRequiredFields(validator structs.Validator) error {
-	if validator.Name == "" || validator.ValidatorAddress == "" || validator.RequestedAddress == "" ||
+	if validator.Name == "" || validator.Address == "" || validator.RequestedAddress == "" ||
 		validator.Description == "" || validator.FeeRate == 0 ||
 		validator.RegistrationTime.IsZero() {
 		return ErrMissingParameter

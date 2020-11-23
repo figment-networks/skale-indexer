@@ -337,7 +337,7 @@ func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(res)
 }
 
-func (c *Connector) GetValidatorsByValidatorAddress(w http.ResponseWriter, req *http.Request) {
+func (c *Connector) GetValidatorsByAddress(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -345,14 +345,14 @@ func (c *Connector) GetValidatorsByValidatorAddress(w http.ResponseWriter, req *
 		return
 	}
 
-	validatorAddress := req.URL.Query().Get("validator_address")
+	validatorAddress := req.URL.Query().Get("address")
 	if validatorAddress == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorsByValidatorAddress(req.Context(), validatorAddress)
+	res, err := c.cli.GetValidatorsByAddress(req.Context(), validatorAddress)
 	if err != nil {
 		if err.Error() == ErrNotFound.Error() {
 			w.WriteHeader(http.StatusNotFound)
@@ -538,7 +538,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/get-validator", c.GetValidatorById)
-	mux.HandleFunc("/get-validators-by-validator-address", c.GetValidatorsByValidatorAddress)
+	mux.HandleFunc("/get-validators-by-address", c.GetValidatorsByAddress)
 	mux.HandleFunc("/get-validators-by-requested-address", c.GetValidatorsByRequestedAddress)
 
 	mux.HandleFunc("/save-or-update-validator-events", c.SaveOrUpdateValidatorEvents)

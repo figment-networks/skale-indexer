@@ -36,7 +36,7 @@ type DelegationEventStore interface {
 type ValidatorStore interface {
 	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
 	GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error)
-	GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
+	GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
 	GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) (validators []structs.Validator, err error)
 }
 
@@ -95,8 +95,8 @@ func (s *Store) GetValidatorById(ctx context.Context, id string) (res structs.Va
 	return s.driver.GetValidatorById(ctx, id)
 }
 
-func (s *Store) GetValidatorsByValidatorAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
-	return s.driver.GetValidatorsByValidatorAddress(ctx, validatorAddress)
+func (s *Store) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
+	return s.driver.GetValidatorsByAddress(ctx, validatorAddress)
 }
 
 func (s *Store) GetValidatorsByRequestedAddress(ctx context.Context, validatorId string) (validators []structs.Validator, err error) {

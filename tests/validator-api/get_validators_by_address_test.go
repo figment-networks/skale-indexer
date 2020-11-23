@@ -17,7 +17,7 @@ import (
 
 var vldsByValidatorAddress = make([]structs.Validator, 1)
 
-func TestGetValidatorsByValidatorAddress(t *testing.T) {
+func TestGetValidatorsByAddress(t *testing.T) {
 	name := "name_test"
 	validatorAddress := "validator_address_test"
 	requestedAddress := "requested_address_test"
@@ -25,12 +25,12 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 	var feeRate uint64 = 1
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime time.Time = exampleTime
+	var registrationTime = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = true
 	vld := structs.Validator{
 		Name:                    name,
-		ValidatorAddress:        validatorAddress,
+		Address:                 validatorAddress,
 		RequestedAddress:        requestedAddress,
 		Description:             description,
 		FeeRate:                 feeRate,
@@ -72,7 +72,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_address=",
+					RawQuery: "address=",
 				},
 			},
 			code: http.StatusBadRequest,
@@ -83,7 +83,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_address=validator_address_test",
+					RawQuery: "address=validator_address_test",
 				},
 			},
 			validatorAddress: validatorAddress,
@@ -96,7 +96,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_address=validator_address_test",
+					RawQuery: "address=validator_address_test",
 				},
 			},
 			validatorAddress: validatorAddress,
@@ -109,7 +109,7 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_address=validator_address_test",
+					RawQuery: "address=validator_address_test",
 				},
 			},
 			validatorAddress: validatorAddress,
@@ -123,11 +123,11 @@ func TestGetValidatorsByValidatorAddress(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetValidatorsByValidatorAddress(tt.req.Context(), tt.validatorAddress).Return(tt.validators, tt.dbResponse)
+				mockDB.EXPECT().GetValidatorsByAddress(tt.req.Context(), tt.validatorAddress).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidatorsByValidatorAddress)
+			res := http.HandlerFunc(connector.GetValidatorsByAddress)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

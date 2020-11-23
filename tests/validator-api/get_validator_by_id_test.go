@@ -25,12 +25,12 @@ func TestGetValidatorById(t *testing.T) {
 	var feeRate uint64 = 1
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime time.Time = exampleTime
+	var registrationTime = exampleTime
 	var minimumDelegationAmount uint64 = 0
 	var acceptNewRequests = true
 	vldById = structs.Validator{
 		Name:                    name,
-		ValidatorAddress:        validatorAddress,
+		Address:                 validatorAddress,
 		RequestedAddress:        requestedAddress,
 		Description:             description,
 		FeeRate:                 feeRate,
