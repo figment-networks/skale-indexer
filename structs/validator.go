@@ -16,4 +16,5 @@ type Validator struct {
 	RegistrationTime        time.Time `json:"registration_time"`
 	MinimumDelegationAmount uint64    `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool      `json:"accept_new_requests"`
+	Trusted                 bool      `json:"trusted"`
 }

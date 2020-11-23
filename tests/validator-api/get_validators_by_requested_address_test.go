@@ -37,6 +37,7 @@ func TestGetValidatorsByRequestedAddress(t *testing.T) {
 		RegistrationTime:        registrationTime,
 		MinimumDelegationAmount: minimumDelegationAmount,
 		AcceptNewRequests:       acceptNewRequests,
+		Trusted:                 true,
 	}
 	vldsByRequestedAddress = append(vldsByRequestedAddress, vld)
 	tests := []struct {

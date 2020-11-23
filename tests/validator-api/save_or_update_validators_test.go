@@ -25,7 +25,8 @@ const (
         "fee_rate": 1,
         "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
-        "accept_new_requests": false
+        "accept_new_requests": false,
+        "trusted": true,
 	`
 	invalidPropertyNameForValidators = `[{
         "name_invalid": "name_test",
@@ -35,7 +36,8 @@ const (
         "fee_rate": 1,
         "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
-        "accept_new_requests": false
+        "accept_new_requests": false,
+        "trusted": true
     }]`
 	validJsonForValidators = `[{
        "name": "name_test",
@@ -45,7 +47,8 @@ const (
         "fee_rate": 1,
         "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
-        "accept_new_requests": false
+        "accept_new_requests": false,
+        "trusted": true
     },	
 	{
      	"name": "name_test",
@@ -55,7 +58,8 @@ const (
         "fee_rate": 1,
         "registration_time": "2014-11-12T11:45:26.371Z",
         "minimum_delegation_amount": 0,
-        "accept_new_requests": false
+        "accept_new_requests": false,
+        "trusted": true
     }	
 	]`
 	// same value should be used in json examples above for valid cases
@@ -84,6 +88,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		RegistrationTime:        registrationTime,
 		MinimumDelegationAmount: minimumDelegationAmount,
 		AcceptNewRequests:       acceptNewRequests,
+		Trusted:                 true,
 	}
 	name2 := "name_test"
 	validatorAddress2 := "validator_address_test"
@@ -102,6 +107,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		RegistrationTime:        registrationTime2,
 		MinimumDelegationAmount: minimumDelegationAmount2,
 		AcceptNewRequests:       acceptNewRequests2,
+		Trusted:                 true,
 	}
 	exampleValidators = append(exampleValidators, exampleValidator)
 	exampleValidators = append(exampleValidators, exampleValidator2)

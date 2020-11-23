@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS validators
     registration_time           TIMESTAMP WITH TIME ZONE NOT NULL,
     minimum_delegation_amount   DECIMAL(65, 0)           NOT NULL,
     accept_new_requests         BOOLEAN                  NOT NULL,
+    trusted                     BOOLEAN                  NOT NULL,
     PRIMARY KEY (id)
 );
 -- Indexes

@@ -37,6 +37,7 @@ func TestGetValidatorById(t *testing.T) {
 		RegistrationTime:        registrationTime,
 		MinimumDelegationAmount: minimumDelegationAmount,
 		AcceptNewRequests:       acceptNewRequests,
+		Trusted:                 true,
 	}
 	var id = "41754feb-1278-46da-981e-87a0876eed53"
 	var invalidId = "id_test"
