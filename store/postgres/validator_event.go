@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"../../structs"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 )
 
 const (

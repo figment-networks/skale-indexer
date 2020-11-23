@@ -1,11 +1,11 @@
 package postgres
 
 import (
-	"../../structs"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 )
 
 var (

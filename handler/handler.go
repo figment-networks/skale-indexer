@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"../client"
-	"../structs"
 	"encoding/json"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/structs"
 	"net/http"
 	"strconv"
 )

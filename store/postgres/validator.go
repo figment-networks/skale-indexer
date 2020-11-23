@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"../../structs"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	updateStatementForValidator    = `UPDATE validators SET updated_at = NOW(), name = $1, address = $2, requested_address = $3, description = $4, fee_rate = $5, registration_time = $6, minimum_delegation_amount = $7, accept_new_requests = $8 , trusted = $9  WHERE id = $10 `
 	getByStatementForValidator     = `SELECT v.id, v.created_at, v.updated_at, v.name, v.address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.trusted FROM validators v WHERE `
 	byIdForValidator               = `v.id =  $1 `
-	byAddressForValidator = `v.address =  $1 `
+	byAddressForValidator          = `v.address =  $1 `
 	byRequestedAddressForValidator = `v.requested_address =  $1 `
 )
 

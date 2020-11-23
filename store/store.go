@@ -1,8 +1,8 @@
 package store
 
 import (
-	"../structs"
 	"context"
+	"github.com/figment-networks/skale-indexer/structs"
 )
 
 type DBDriver interface {

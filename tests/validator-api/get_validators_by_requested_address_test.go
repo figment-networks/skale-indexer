@@ -1,11 +1,11 @@
 package tests
 
 import (
-	"../../client"
-	"../../handler"
-	"../../store"
-	"../../structs"
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/handler"
+	"github.com/figment-networks/skale-indexer/store"
+	"github.com/figment-networks/skale-indexer/structs"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http"

@@ -1,10 +1,10 @@
 package client
 
 import (
-	"../store"
-	"../structs"
 	"context"
 	"errors"
+	"github.com/figment-networks/skale-indexer/store"
+	"github.com/figment-networks/skale-indexer/structs"
 	//"go.uber.org/zap"
 )
 

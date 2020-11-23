@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"../structs"
+	"github.com/figment-networks/skale-indexer/structs"
 )
 
 func validateDelegationRequiredFields(delegation structs.Delegation) error {

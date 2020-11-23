@@ -5,7 +5,7 @@
 package store
 
 import (
-	structs "../structs"
+	structs "github.com/figment-networks/skale-indexer/structs"
 	context "context"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
