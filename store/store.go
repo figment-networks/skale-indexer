@@ -7,13 +7,13 @@ import (
 
 type DBDriver interface {
 	DelegationStore
-	DelegationEventStore
+	EventStore
 	ValidatorStore
 }
 
 type DataStore interface {
 	DelegationStore
-	DelegationEventStore
+	EventStore
 	ValidatorStore
 }
 
@@ -24,11 +24,10 @@ type DelegationStore interface {
 	GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error)
 }
 
-type DelegationEventStore interface {
-	SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error
-	GetDelegationEventById(ctx context.Context, id string) (res structs.DelegationEvent, err error)
-	GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) (delegationEvents []structs.DelegationEvent, err error)
-	GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error)
+type EventStore interface {
+	SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error
+	GetEventById(ctx context.Context, id string) (res structs.Event, err error)
+	GetAllEvents(ctx context.Context) (events []structs.Event, err error)
 }
 
 type ValidatorStore interface {
@@ -62,20 +61,16 @@ func (s *Store) GetDelegationsByValidatorId(ctx context.Context, validatorId uin
 	return s.driver.GetDelegationsByValidatorId(ctx, validatorId)
 }
 
-func (s *Store) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
-	return s.driver.SaveOrUpdateDelegationEvents(ctx, delegationEvents)
+func (s *Store) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {
+	return s.driver.SaveOrUpdateEvents(ctx, events)
 }
 
-func (s *Store) GetDelegationEventById(ctx context.Context, id string) (res structs.DelegationEvent, err error) {
-	return s.driver.GetDelegationEventById(ctx, id)
+func (s *Store) GetEventById(ctx context.Context, id string) (res structs.Event, err error) {
+	return s.driver.GetEventById(ctx, id)
 }
 
-func (s *Store) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) (delegationEvents []structs.DelegationEvent, err error) {
-	return s.driver.GetDelegationEventsByDelegationId(ctx, delegationId)
-}
-
-func (s *Store) GetAllDelegationEvents(ctx context.Context) (delegationEvents []structs.DelegationEvent, err error) {
-	return s.driver.GetAllDelegationEvents(ctx)
+func (s *Store) GetAllEvents(ctx context.Context) (events []structs.Event, err error) {
+	return s.driver.GetAllEvents(ctx)
 }
 
 func (s *Store) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {

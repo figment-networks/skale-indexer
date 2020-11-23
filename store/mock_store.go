@@ -93,63 +93,48 @@ func (mr *MockDBDriverMockRecorder) GetDelegationsByValidatorId(ctx, validatorId
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationsByValidatorId", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationsByValidatorId), ctx, validatorId)
 }
 
-// SaveOrUpdateDelegationEvents mocks base method
-func (m *MockDBDriver) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+// SaveOrUpdateEvents mocks base method
+func (m *MockDBDriver) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvents", ctx, delegationEvents)
+	ret := m.ctrl.Call(m, "SaveOrUpdateEvents", ctx, events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveOrUpdateDelegationEvents indicates an expected call of SaveOrUpdateDelegationEvents
-func (mr *MockDBDriverMockRecorder) SaveOrUpdateDelegationEvents(ctx, delegationEvents interface{}) *gomock.Call {
+// SaveOrUpdateEvents indicates an expected call of SaveOrUpdateEvents
+func (mr *MockDBDriverMockRecorder) SaveOrUpdateEvents(ctx, events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvents", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateDelegationEvents), ctx, delegationEvents)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateEvents", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateEvents), ctx, events)
 }
 
-// GetDelegationEventById mocks base method
-func (m *MockDBDriver) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
+// GetEventById mocks base method
+func (m *MockDBDriver) GetEventById(ctx context.Context, id string) (structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
-	ret0, _ := ret[0].(structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetEventById", ctx, id)
+	ret0, _ := ret[0].(structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventById indicates an expected call of GetDelegationEventById
-func (mr *MockDBDriverMockRecorder) GetDelegationEventById(ctx, id interface{}) *gomock.Call {
+// GetEventById indicates an expected call of GetEventById
+func (mr *MockDBDriverMockRecorder) GetEventById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventById", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationEventById), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventById", reflect.TypeOf((*MockDBDriver)(nil).GetEventById), ctx, id)
 }
 
-// GetDelegationEventsByDelegationId mocks base method
-func (m *MockDBDriver) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
+// GetAllEvents mocks base method
+func (m *MockDBDriver) GetAllEvents(ctx context.Context) ([]structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetAllEvents", ctx)
+	ret0, _ := ret[0].([]structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventsByDelegationId indicates an expected call of GetDelegationEventsByDelegationId
-func (mr *MockDBDriverMockRecorder) GetDelegationEventsByDelegationId(ctx, delegationId interface{}) *gomock.Call {
+// GetAllEvents indicates an expected call of GetAllEvents
+func (mr *MockDBDriverMockRecorder) GetAllEvents(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventsByDelegationId", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationEventsByDelegationId), ctx, delegationId)
-}
-
-// GetAllDelegationEvents mocks base method
-func (m *MockDBDriver) GetAllDelegationEvents(ctx context.Context) ([]structs.DelegationEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllDelegationEvents", ctx)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllDelegationEvents indicates an expected call of GetAllDelegationEvents
-func (mr *MockDBDriverMockRecorder) GetAllDelegationEvents(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDelegationEvents", reflect.TypeOf((*MockDBDriver)(nil).GetAllDelegationEvents), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllEvents", reflect.TypeOf((*MockDBDriver)(nil).GetAllEvents), ctx)
 }
 
 // SaveOrUpdateValidators mocks base method
@@ -293,63 +278,48 @@ func (mr *MockDataStoreMockRecorder) GetDelegationsByValidatorId(ctx, validatorI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationsByValidatorId", reflect.TypeOf((*MockDataStore)(nil).GetDelegationsByValidatorId), ctx, validatorId)
 }
 
-// SaveOrUpdateDelegationEvents mocks base method
-func (m *MockDataStore) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+// SaveOrUpdateEvents mocks base method
+func (m *MockDataStore) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvents", ctx, delegationEvents)
+	ret := m.ctrl.Call(m, "SaveOrUpdateEvents", ctx, events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveOrUpdateDelegationEvents indicates an expected call of SaveOrUpdateDelegationEvents
-func (mr *MockDataStoreMockRecorder) SaveOrUpdateDelegationEvents(ctx, delegationEvents interface{}) *gomock.Call {
+// SaveOrUpdateEvents indicates an expected call of SaveOrUpdateEvents
+func (mr *MockDataStoreMockRecorder) SaveOrUpdateEvents(ctx, events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvents", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateDelegationEvents), ctx, delegationEvents)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateEvents", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateEvents), ctx, events)
 }
 
-// GetDelegationEventById mocks base method
-func (m *MockDataStore) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
+// GetEventById mocks base method
+func (m *MockDataStore) GetEventById(ctx context.Context, id string) (structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
-	ret0, _ := ret[0].(structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetEventById", ctx, id)
+	ret0, _ := ret[0].(structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventById indicates an expected call of GetDelegationEventById
-func (mr *MockDataStoreMockRecorder) GetDelegationEventById(ctx, id interface{}) *gomock.Call {
+// GetEventById indicates an expected call of GetEventById
+func (mr *MockDataStoreMockRecorder) GetEventById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventById", reflect.TypeOf((*MockDataStore)(nil).GetDelegationEventById), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventById", reflect.TypeOf((*MockDataStore)(nil).GetEventById), ctx, id)
 }
 
-// GetDelegationEventsByDelegationId mocks base method
-func (m *MockDataStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
+// GetAllEvents mocks base method
+func (m *MockDataStore) GetAllEvents(ctx context.Context) ([]structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetAllEvents", ctx)
+	ret0, _ := ret[0].([]structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventsByDelegationId indicates an expected call of GetDelegationEventsByDelegationId
-func (mr *MockDataStoreMockRecorder) GetDelegationEventsByDelegationId(ctx, delegationId interface{}) *gomock.Call {
+// GetAllEvents indicates an expected call of GetAllEvents
+func (mr *MockDataStoreMockRecorder) GetAllEvents(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventsByDelegationId", reflect.TypeOf((*MockDataStore)(nil).GetDelegationEventsByDelegationId), ctx, delegationId)
-}
-
-// GetAllDelegationEvents mocks base method
-func (m *MockDataStore) GetAllDelegationEvents(ctx context.Context) ([]structs.DelegationEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllDelegationEvents", ctx)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllDelegationEvents indicates an expected call of GetAllDelegationEvents
-func (mr *MockDataStoreMockRecorder) GetAllDelegationEvents(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDelegationEvents", reflect.TypeOf((*MockDataStore)(nil).GetAllDelegationEvents), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllEvents", reflect.TypeOf((*MockDataStore)(nil).GetAllEvents), ctx)
 }
 
 // SaveOrUpdateValidators mocks base method
@@ -493,86 +463,71 @@ func (mr *MockDelegationStoreMockRecorder) GetDelegationsByValidatorId(ctx, vali
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationsByValidatorId", reflect.TypeOf((*MockDelegationStore)(nil).GetDelegationsByValidatorId), ctx, validatorId)
 }
 
-// MockDelegationEventStore is a mock of DelegationEventStore interface
-type MockDelegationEventStore struct {
+// MockEventStore is a mock of EventStore interface
+type MockEventStore struct {
 	ctrl     *gomock.Controller
-	recorder *MockDelegationEventStoreMockRecorder
+	recorder *MockEventStoreMockRecorder
 }
 
-// MockDelegationEventStoreMockRecorder is the mock recorder for MockDelegationEventStore
-type MockDelegationEventStoreMockRecorder struct {
-	mock *MockDelegationEventStore
+// MockEventStoreMockRecorder is the mock recorder for MockEventStore
+type MockEventStoreMockRecorder struct {
+	mock *MockEventStore
 }
 
-// NewMockDelegationEventStore creates a new mock instance
-func NewMockDelegationEventStore(ctrl *gomock.Controller) *MockDelegationEventStore {
-	mock := &MockDelegationEventStore{ctrl: ctrl}
-	mock.recorder = &MockDelegationEventStoreMockRecorder{mock}
+// NewMockEventStore creates a new mock instance
+func NewMockEventStore(ctrl *gomock.Controller) *MockEventStore {
+	mock := &MockEventStore{ctrl: ctrl}
+	mock.recorder = &MockEventStoreMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockDelegationEventStore) EXPECT() *MockDelegationEventStoreMockRecorder {
+func (m *MockEventStore) EXPECT() *MockEventStoreMockRecorder {
 	return m.recorder
 }
 
-// SaveOrUpdateDelegationEvents mocks base method
-func (m *MockDelegationEventStore) SaveOrUpdateDelegationEvents(ctx context.Context, delegationEvents []structs.DelegationEvent) error {
+// SaveOrUpdateEvents mocks base method
+func (m *MockEventStore) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOrUpdateDelegationEvents", ctx, delegationEvents)
+	ret := m.ctrl.Call(m, "SaveOrUpdateEvents", ctx, events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveOrUpdateDelegationEvents indicates an expected call of SaveOrUpdateDelegationEvents
-func (mr *MockDelegationEventStoreMockRecorder) SaveOrUpdateDelegationEvents(ctx, delegationEvents interface{}) *gomock.Call {
+// SaveOrUpdateEvents indicates an expected call of SaveOrUpdateEvents
+func (mr *MockEventStoreMockRecorder) SaveOrUpdateEvents(ctx, events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateDelegationEvents", reflect.TypeOf((*MockDelegationEventStore)(nil).SaveOrUpdateDelegationEvents), ctx, delegationEvents)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateEvents", reflect.TypeOf((*MockEventStore)(nil).SaveOrUpdateEvents), ctx, events)
 }
 
-// GetDelegationEventById mocks base method
-func (m *MockDelegationEventStore) GetDelegationEventById(ctx context.Context, id string) (structs.DelegationEvent, error) {
+// GetEventById mocks base method
+func (m *MockEventStore) GetEventById(ctx context.Context, id string) (structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventById", ctx, id)
-	ret0, _ := ret[0].(structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetEventById", ctx, id)
+	ret0, _ := ret[0].(structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventById indicates an expected call of GetDelegationEventById
-func (mr *MockDelegationEventStoreMockRecorder) GetDelegationEventById(ctx, id interface{}) *gomock.Call {
+// GetEventById indicates an expected call of GetEventById
+func (mr *MockEventStoreMockRecorder) GetEventById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventById", reflect.TypeOf((*MockDelegationEventStore)(nil).GetDelegationEventById), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventById", reflect.TypeOf((*MockEventStore)(nil).GetEventById), ctx, id)
 }
 
-// GetDelegationEventsByDelegationId mocks base method
-func (m *MockDelegationEventStore) GetDelegationEventsByDelegationId(ctx context.Context, delegationId string) ([]structs.DelegationEvent, error) {
+// GetAllEvents mocks base method
+func (m *MockEventStore) GetAllEvents(ctx context.Context) ([]structs.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationEventsByDelegationId", ctx, delegationId)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
+	ret := m.ctrl.Call(m, "GetAllEvents", ctx)
+	ret0, _ := ret[0].([]structs.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationEventsByDelegationId indicates an expected call of GetDelegationEventsByDelegationId
-func (mr *MockDelegationEventStoreMockRecorder) GetDelegationEventsByDelegationId(ctx, delegationId interface{}) *gomock.Call {
+// GetAllEvents indicates an expected call of GetAllEvents
+func (mr *MockEventStoreMockRecorder) GetAllEvents(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationEventsByDelegationId", reflect.TypeOf((*MockDelegationEventStore)(nil).GetDelegationEventsByDelegationId), ctx, delegationId)
-}
-
-// GetAllDelegationEvents mocks base method
-func (m *MockDelegationEventStore) GetAllDelegationEvents(ctx context.Context) ([]structs.DelegationEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllDelegationEvents", ctx)
-	ret0, _ := ret[0].([]structs.DelegationEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllDelegationEvents indicates an expected call of GetAllDelegationEvents
-func (mr *MockDelegationEventStoreMockRecorder) GetAllDelegationEvents(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDelegationEvents", reflect.TypeOf((*MockDelegationEventStore)(nil).GetAllDelegationEvents), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllEvents", reflect.TypeOf((*MockEventStore)(nil).GetAllEvents), ctx)
 }
 
 // MockValidatorStore is a mock of ValidatorStore interface

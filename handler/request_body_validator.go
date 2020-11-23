@@ -14,8 +14,10 @@ func validateDelegationRequiredFields(delegation structs.Delegation) error {
 	return nil
 }
 
-func validateDelegationEventRequiredFields(dlg structs.DelegationEvent) error {
-	if dlg.DelegationId == "" || dlg.EventName == "" || dlg.EventTime.IsZero() {
+func validateEventRequiredFields(dlg structs.Event) error {
+	if dlg.BlockHeight == 0 || dlg.SmartContractAddress == "" ||
+		dlg.TransactionIndex == 0 || dlg.EventType == "" ||
+		dlg.EventName == "" || dlg.EventTime.IsZero() {
 		return ErrMissingParameter
 	}
 	return nil

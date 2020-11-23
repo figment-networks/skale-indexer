@@ -15,26 +15,32 @@ import (
 	"time"
 )
 
-var dlgEvents = make([]structs.DelegationEvent, 1)
+var dlgEvents = make([]structs.Event, 1)
 
-func TestGetAllDelegationEvents(t *testing.T) {
-	delegationId := "delegationId1"
+func TestGetAllEvents(t *testing.T) {
+	blockHeight := int64(100)
+	smartContractAddress := ""
+	transactionIndex := int64(15)
+	eventType := "eventType1"
 	eventName := "eventName1"
 	eventTime := time.Now()
-	dlg := structs.DelegationEvent{
-		DelegationId: delegationId,
-		EventName:    eventName,
-		EventTime:    eventTime,
+	dlg := structs.Event{
+		BlockHeight:          blockHeight,
+		SmartContractAddress: smartContractAddress,
+		TransactionIndex:     transactionIndex,
+		EventType:            eventType,
+		EventName:            eventName,
+		EventTime:            eventTime,
 	}
 	dlgEvents = append(dlgEvents, dlg)
 	tests := []struct {
-		number           int
-		name             string
-		req              *http.Request
-		delegationId     string
-		delegationEvents []structs.DelegationEvent
-		dbResponse       error
-		code             int
+		number       int
+		name         string
+		req          *http.Request
+		delegationId string
+		events       []structs.Event
+		dbResponse   error
+		code         int
 	}{
 		{
 			number: 1,
@@ -51,9 +57,8 @@ func TestGetAllDelegationEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			delegationId: delegationId,
-			dbResponse:   errors.New("record not found"),
-			code:         http.StatusNotFound,
+			dbResponse: errors.New("record not found"),
+			code:       http.StatusNotFound,
 		},
 		{
 			number: 3,
@@ -61,9 +66,8 @@ func TestGetAllDelegationEvents(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 			},
-			delegationId: delegationId,
-			dbResponse:   errors.New("internal error"),
-			code:         http.StatusInternalServerError,
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
 		},
 		{
 			number: 4,
@@ -72,9 +76,8 @@ func TestGetAllDelegationEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			delegationId:     delegationId,
-			delegationEvents: dlgEvents,
-			code:             http.StatusOK,
+			events: dlgEvents,
+			code:   http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -83,11 +86,11 @@ func TestGetAllDelegationEvents(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 1 {
-				mockDB.EXPECT().GetAllDelegationEvents(tt.req.Context()).Return(tt.delegationEvents, tt.dbResponse)
+				mockDB.EXPECT().GetAllEvents(tt.req.Context()).Return(tt.events, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationEvents)
+			res := http.HandlerFunc(connector.GetEvents)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

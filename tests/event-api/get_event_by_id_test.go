@@ -15,27 +15,34 @@ import (
 	"time"
 )
 
-var dlgEventsByDelegationId = make([]structs.DelegationEvent, 1)
+var dlgById structs.Event
 
-func TestGetDelegationEventsByHolder(t *testing.T) {
-	invalidId := "delegationId1"
-	id := "11053aa6-4bbb-4094-b588-8368cd621f2c"
+func TestGetEventById(t *testing.T) {
+	blockHeight := int64(100)
+	smartContractAddress := ""
+	transactionIndex := int64(15)
+	eventType := "eventType1"
 	eventName := "eventName1"
 	eventTime := time.Now()
-	dlg := structs.DelegationEvent{
-		DelegationId: id,
-		EventName:    eventName,
-		EventTime:    eventTime,
+
+	dlgById = structs.Event{
+		BlockHeight:          blockHeight,
+		SmartContractAddress: smartContractAddress,
+		TransactionIndex:     transactionIndex,
+		EventType:            eventType,
+		EventName:            eventName,
+		EventTime:            eventTime,
 	}
-	dlgEventsByDelegationId = append(dlgEventsByDelegationId, dlg)
+	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	var invalidId = "id_test"
 	tests := []struct {
-		number           int
-		name             string
-		req              *http.Request
-		delegationId     string
-		delegationEvents []structs.DelegationEvent
-		dbResponse       error
-		code             int
+		number     int
+		name       string
+		req        *http.Request
+		id         string
+		event      structs.Event
+		dbResponse error
+		code       int
 	}{
 		{
 			number: 1,
@@ -43,6 +50,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
+			id:   id,
 			code: http.StatusMethodNotAllowed,
 		},
 		{
@@ -61,7 +69,7 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=",
+					RawQuery: "id=",
 				},
 			},
 			code: http.StatusBadRequest,
@@ -72,12 +80,12 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			delegationId: id,
-			dbResponse:   errors.New("record not found"),
-			code:         http.StatusNotFound,
+			id:         id,
+			dbResponse: errors.New("record not found"),
+			code:       http.StatusNotFound,
 		},
 		{
 			number: 5,
@@ -85,12 +93,12 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=delegationId1",
+					RawQuery: "id=id_test",
 				},
 			},
-			delegationId: invalidId,
-			dbResponse:   errors.New("internal error"),
-			code:         http.StatusInternalServerError,
+			id:         invalidId,
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
 		},
 		{
 			number: 6,
@@ -98,12 +106,12 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=11053aa6-4bbb-4094-b588-8368cd621f2c",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			delegationId:     id,
-			delegationEvents: dlgEventsByDelegationId,
-			code:             http.StatusOK,
+			id:    id,
+			event: dlgById,
+			code:  http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -112,11 +120,11 @@ func TestGetDelegationEventsByHolder(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegationEventsByDelegationId(tt.req.Context(), tt.delegationId).Return(tt.delegationEvents, tt.dbResponse)
+				mockDB.EXPECT().GetEventById(tt.req.Context(), tt.id).Return(tt.event, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationEventsByDelegationId)
+			res := http.HandlerFunc(connector.GetEventById)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

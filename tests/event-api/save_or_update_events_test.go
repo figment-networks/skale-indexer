@@ -17,24 +17,30 @@ import (
 )
 
 const (
-	invalidSyntaxForDelegationEvents = `[{
+	invalidSyntaxForEvents = `[{
         "delegation_id": "delegation_id_test",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z",
 	`
-	invalidPropertyNameForDelegationEvents = `[{
+	invalidPropertyNameForEvents = `[{
     	"delegation_id_invalid": "delegation_id_test",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
 	}]`
-	validJsonForDelegationEvents = `[{
-		"delegation_id": "122bcb7c-b283-4f59-a945-75d6cf37e978",
+	validJsonForEvents = `[{
+		"block_height": 100,
+		"smart_contract_address": "smart_contract_address1",
+		"transaction_index": 15,
+		"event_type": "eventType1",
         "event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     },	
 	{
-    	"delegation_id": "11053aa6-4bbb-4094-b588-8368cd621f2c",
-        "event_name": "event_name_test",
+		"block_height": 101,
+		"smart_contract_address": "smart_contract_address2",
+		"transaction_index": 25,
+		"event_type": "eventType2",        
+		"event_name": "event_name_test",
         "event_time": "2014-11-12T11:45:26.371Z"
     }
 	]`
@@ -42,36 +48,48 @@ const (
 	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
-var exampleDelegations []structs.DelegationEvent
+var exampleDelegations []structs.Event
 
-func TestSaveOrUpdateDelegations(t *testing.T) {
-	delegationId := "122bcb7c-b283-4f59-a945-75d6cf37e978"
+func TestSaveOrUpdateEvents(t *testing.T) {
+	blockHeight := int64(100)
+	smartContractAddress := "smart_contract_address1"
+	transactionIndex := int64(15)
+	eventType := "eventType1"
 	eventName := "event_name_test"
 	layout := "2006-01-02T15:04:05.000Z"
 	exampleTime, _ := time.Parse(layout, dummyTime)
 	var eventTime = exampleTime
-	example1 := structs.DelegationEvent{
-		DelegationId: delegationId,
-		EventName:    eventName,
-		EventTime:    eventTime,
+	example1 := structs.Event{
+		BlockHeight:          blockHeight,
+		SmartContractAddress: smartContractAddress,
+		TransactionIndex:     transactionIndex,
+		EventType:            eventType,
+		EventName:            eventName,
+		EventTime:            eventTime,
 	}
-	delegationId2 := "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	blockHeight2 := int64(101)
+	smartContractAddress2 := "smart_contract_address2"
+	transactionIndex2 := int64(25)
+	eventType2 := "eventType2"
 	eventName2 := "event_name_test"
-	example2 := structs.DelegationEvent{
-		DelegationId: delegationId2,
-		EventName:    eventName2,
-		EventTime:    eventTime,
+	example2 := structs.Event{
+		BlockHeight:          blockHeight2,
+		SmartContractAddress: smartContractAddress2,
+		TransactionIndex:     transactionIndex2,
+		EventType:            eventType2,
+		EventName:            eventName2,
+		EventTime:            eventTime,
 	}
 	exampleDelegations = append(exampleDelegations, example1)
 	exampleDelegations = append(exampleDelegations, example2)
 
 	tests := []struct {
-		number           int
-		name             string
-		req              *http.Request
-		delegationEvents []structs.DelegationEvent
-		dbResponse       error
-		code             int
+		number     int
+		name       string
+		req        *http.Request
+		events     []structs.Event
+		dbResponse error
+		code       int
 	}{
 		{
 			number: 1,
@@ -86,7 +104,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "invalid json syntax request body",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidSyntaxForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidSyntaxForEvents))),
 			},
 			code: http.StatusBadRequest,
 		},
@@ -95,7 +113,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(invalidPropertyNameForEvents))),
 			},
 			code: http.StatusBadRequest,
 		},
@@ -104,21 +122,21 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForEvents))),
 			},
-			delegationEvents: exampleDelegations,
-			dbResponse:       errors.New("internal error"),
-			code:             http.StatusInternalServerError,
+			events:     exampleDelegations,
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
 		},
 		{
 			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodPost,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForDelegationEvents))),
+				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForEvents))),
 			},
-			delegationEvents: exampleDelegations,
-			code:             http.StatusOK,
+			events: exampleDelegations,
+			code:   http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -127,11 +145,11 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().SaveOrUpdateDelegationEvents(tt.req.Context(), tt.delegationEvents).Return(tt.dbResponse)
+				mockDB.EXPECT().SaveOrUpdateEvents(tt.req.Context(), tt.events).Return(tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.SaveOrUpdateDelegationEvents)
+			res := http.HandlerFunc(connector.SaveOrUpdateEvents)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
