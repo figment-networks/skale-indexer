@@ -9,14 +9,12 @@ type DBDriver interface {
 	DelegationStore
 	DelegationEventStore
 	ValidatorStore
-	ValidatorEventStore
 }
 
 type DataStore interface {
 	DelegationStore
 	DelegationEventStore
 	ValidatorStore
-	ValidatorEventStore
 }
 
 type DelegationStore interface {
@@ -38,13 +36,6 @@ type ValidatorStore interface {
 	GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error)
 	GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
 	GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) (validators []structs.Validator, err error)
-}
-
-type ValidatorEventStore interface {
-	SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error
-	GetValidatorEventById(ctx context.Context, id string) (res structs.ValidatorEvent, err error)
-	GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) (validatorEvents []structs.ValidatorEvent, err error)
-	GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error)
 }
 
 type Store struct {
@@ -101,20 +92,4 @@ func (s *Store) GetValidatorsByAddress(ctx context.Context, validatorAddress str
 
 func (s *Store) GetValidatorsByRequestedAddress(ctx context.Context, validatorId string) (validators []structs.Validator, err error) {
 	return s.driver.GetValidatorsByRequestedAddress(ctx, validatorId)
-}
-
-func (s *Store) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {
-	return s.driver.SaveOrUpdateValidatorEvents(ctx, validatorEvents)
-}
-
-func (s *Store) GetValidatorEventById(ctx context.Context, id string) (res structs.ValidatorEvent, err error) {
-	return s.driver.GetValidatorEventById(ctx, id)
-}
-
-func (s *Store) GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) (delegationEvents []structs.ValidatorEvent, err error) {
-	return s.driver.GetValidatorEventsByValidatorId(ctx, validatorId)
-}
-
-func (s *Store) GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error) {
-	return s.driver.GetAllValidatorEvents(ctx)
 }

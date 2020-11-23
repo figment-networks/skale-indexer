@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/figment-networks/skale-indexer/structs"
-	//"go.uber.org/zap"
 )
 
 var (
@@ -74,20 +73,4 @@ func (c *ClientContractor) GetValidatorsByAddress(ctx context.Context, validator
 
 func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) (validators []structs.Validator, err error) {
 	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
-}
-
-func (c *ClientContractor) SaveOrUpdateValidatorEvents(ctx context.Context, validatorEvents []structs.ValidatorEvent) error {
-	return c.storeEng.SaveOrUpdateValidatorEvents(ctx, validatorEvents)
-}
-
-func (c *ClientContractor) GetValidatorEventById(ctx context.Context, id string) (res structs.ValidatorEvent, err error) {
-	return c.storeEng.GetValidatorEventById(ctx, id)
-}
-
-func (c *ClientContractor) GetValidatorEventsByValidatorId(ctx context.Context, validatorId string) (validatorEvents []structs.ValidatorEvent, err error) {
-	return c.storeEng.GetValidatorEventsByValidatorId(ctx, validatorId)
-}
-
-func (c *ClientContractor) GetAllValidatorEvents(ctx context.Context) (validatorEvents []structs.ValidatorEvent, err error) {
-	return c.storeEng.GetAllValidatorEvents(ctx)
 }
