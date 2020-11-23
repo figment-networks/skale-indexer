@@ -17,12 +17,11 @@ const (
 )
 
 func (d *Driver) saveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
-	var err error
 	if v.ID == "" {
-		_, err = d.db.Exec(insertStatementForValidator, v.Name, v.Address, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, &v.Trusted)
-	} else {
-		_, err = d.db.Exec(updateStatementForValidator, v.Name, v.Address, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, &v.Trusted, v.ID)
+		_, err := d.db.Exec(insertStatementForValidator, v.Name, v.Address, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, &v.Trusted)
+		return err
 	}
+	_, err := d.db.Exec(updateStatementForValidator, v.Name, v.Address, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, &v.Trusted, v.ID)
 	return err
 }
 

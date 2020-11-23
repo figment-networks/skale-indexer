@@ -16,12 +16,11 @@ const (
 )
 
 func (d *Driver) saveOrUpdateEvent(ctx context.Context, dl structs.Event) error {
-	var err error
 	if dl.ID == "" {
-		_, err = d.db.Exec(insertStatementForEvent, dl.BlockHeight, dl.SmartContractAddress, dl.TransactionIndex, dl.EventType, dl.EventName, dl.EventTime)
-	} else {
-		_, err = d.db.Exec(updateStatementForEvent, dl.BlockHeight, dl.SmartContractAddress, dl.TransactionIndex, dl.EventType, dl.EventName, dl.EventTime, dl.ID)
+		_, err := d.db.Exec(insertStatementForEvent, dl.BlockHeight, dl.SmartContractAddress, dl.TransactionIndex, dl.EventType, dl.EventName, dl.EventTime)
+		return err
 	}
+	_, err := d.db.Exec(updateStatementForEvent, dl.BlockHeight, dl.SmartContractAddress, dl.TransactionIndex, dl.EventType, dl.EventName, dl.EventTime, dl.ID)
 	return err
 }
 
