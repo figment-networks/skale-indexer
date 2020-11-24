@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/structs"
 )
 
@@ -46,7 +47,7 @@ func (d *Driver) GetEventById(ctx context.Context, id string) (res structs.Event
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.BlockHeight, &dlg.SmartContractAddress, &dlg.TransactionIndex, &dlg.EventType, &dlg.EventName, &dlg.EventTime)
 	if err == sql.ErrNoRows || !(dlg.ID != "") {
-		return res, ErrNotFound
+		return res, handler.ErrNotFound
 	}
 	return dlg, err
 }
@@ -70,7 +71,7 @@ func (d *Driver) GetAllEvents(ctx context.Context) (events []structs.Event, err 
 		events = append(events, dlg)
 	}
 	if len(events) == 0 {
-		return nil, ErrNotFound
+		return nil, handler.ErrNotFound
 	}
 	return events, nil
 }

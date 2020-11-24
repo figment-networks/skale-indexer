@@ -25,7 +25,7 @@ func validateEventRequiredFields(dlg structs.Event) error {
 
 func validateValidatorRequiredFields(validator structs.Validator) error {
 	if validator.Name == "" || len(validator.Address) == 0 ||
-		validator.Description == "" || validator.FeeRate == 0 {
+		validator.Description == "" || validator.FeeRate == 0 || len(validator.Data) == 0 {
 		return ErrMissingParameter
 	}
 	return nil

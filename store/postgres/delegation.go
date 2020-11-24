@@ -3,13 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/figment-networks/skale-indexer/structs"
-)
-
-var (
-	ErrNotFound = errors.New("record not found")
+	"github.com/figment-networks/skale-indexer/handler"
 )
 
 const (
@@ -53,7 +49,7 @@ func (d *Driver) GetDelegationById(ctx context.Context, id string) (res structs.
 
 	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
 	if err == sql.ErrNoRows || !(dlg.ID != "") {
-		return res, ErrNotFound
+		return res, handler.ErrNotFound
 	}
 	return dlg, err
 }
@@ -77,7 +73,7 @@ func (d *Driver) GetDelegationsByHolder(ctx context.Context, holder string) (del
 		delegations = append(delegations, dlg)
 	}
 	if len(delegations) == 0 {
-		return nil, ErrNotFound
+		return nil, handler.ErrNotFound
 	}
 	return delegations, nil
 }
@@ -101,7 +97,7 @@ func (d *Driver) GetDelegationsByValidatorId(ctx context.Context, validatorId ui
 		delegations = append(delegations, dlg)
 	}
 	if len(delegations) == 0 {
-		return nil, ErrNotFound
+		return nil, handler.ErrNotFound
 	}
 	return delegations, nil
 }
