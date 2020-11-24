@@ -78,7 +78,7 @@ var exampleValidators []structs.Validator
 func TestSaveOrUpdateDelegations(t *testing.T) {
 	exampleValidator := structs.Validator{
 		Name:        "name_test",
-		Address:     []int{1, 2},
+		Address:     []structs.Address{1, 2},
 		Description: "description_test",
 		FeeRate:     uint64(1),
 		Active:      true,
@@ -88,16 +88,16 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		Rewards:     uint64(20),
 		OptionalInfo: structs.OptionalInfo{[]structs.Data{
 			{
-				RequestedAddress: "requested_address_test",
+				RequestedAddress:        "requested_address_test",
 				MinimumDelegationAmount: 2,
-				AcceptNewRequests: true,
-				Trusted: true,
+				AcceptNewRequests:       true,
+				Trusted:                 true,
 			},
-		},},
+		}},
 	}
 	exampleValidator2 := structs.Validator{
 		Name:        "name_test",
-		Address:     []int{1, 2},
+		Address:     []structs.Address{1, 2},
 		Description: "description_test",
 		FeeRate:     uint64(1),
 		Active:      false,
@@ -105,14 +105,14 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		Staked:      uint64(100),
 		Pending:     uint64(0),
 		Rewards:     uint64(140),
-		OptionalInfo: structs.OptionalInfo{ []structs.Data{
+		OptionalInfo: structs.OptionalInfo{[]structs.Data{
 			{
-				RequestedAddress: "requested_address_test",
+				RequestedAddress:        "requested_address_test",
 				MinimumDelegationAmount: 2,
-				AcceptNewRequests: true,
-				Trusted: true,
+				AcceptNewRequests:       true,
+				Trusted:                 true,
 			},
-		},},
+		}},
 	}
 	exampleValidators = append(exampleValidators, exampleValidator)
 	exampleValidators = append(exampleValidators, exampleValidator2)

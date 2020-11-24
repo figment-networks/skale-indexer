@@ -12,7 +12,7 @@ type Validator struct {
 	CreatedAt    time.Time    `json:"created_at"`
 	UpdatedAt    time.Time    `json:"updated_at"`
 	Name         string       `json:"name"`
-	Address      []int        `json:"address"`
+	Address      []Address    `json:"address"`
 	Description  string       `json:"description"`
 	FeeRate      uint64       `json:"fee_rate"`
 	Active       bool         `json:"active"`
@@ -40,6 +40,16 @@ func (a OptionalInfo) Value() (driver.Value, error) {
 }
 
 func (a *OptionalInfo) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(b, &a)
+}
+
+type Address uint64
+
+func (a *Address) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")

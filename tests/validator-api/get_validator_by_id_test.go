@@ -19,7 +19,7 @@ var vldById structs.Validator
 func TestGetValidatorById(t *testing.T) {
 	vldById = structs.Validator{
 		Name:        "name_test",
-		Address:     []int{},
+		Address:     []structs.Address{},
 		Description: "description",
 	}
 	var id = "41754feb-1278-46da-981e-87a0876eed53"

@@ -46,7 +46,7 @@ func (d *Driver) GetValidatorById(ctx context.Context, id string) (res structs.V
 		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
-	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
+	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, pq.Array(&vld.Address), &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
 	if err == sql.ErrNoRows || !(vld.ID != "") {
 		return res, handler.ErrNotFound
 	}
@@ -65,7 +65,7 @@ func (d *Driver) GetValidatorsByAddress(ctx context.Context, validatorAddress st
 
 	for rows.Next() {
 		vld := structs.Validator{}
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, pq.Array(&vld.Address), &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
 		if err != nil {
 			return nil, err
 		}
