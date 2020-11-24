@@ -85,7 +85,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 				},
 			},
 			validatorId: validatorId,
-			dbResponse:  errors.New("record not found"),
+			dbResponse:  handler.ErrNotFound,
 			code:        http.StatusNotFound,
 		},
 		{

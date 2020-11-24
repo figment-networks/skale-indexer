@@ -88,7 +88,7 @@ func TestGetValidatorsByRequestedAddress(t *testing.T) {
 				},
 			},
 			requestedAddress: requestedAddress,
-			dbResponse:       errors.New("record not found"),
+			dbResponse:       handler.ErrNotFound,
 			code:             http.StatusNotFound,
 		},
 		{

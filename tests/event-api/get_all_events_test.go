@@ -57,7 +57,7 @@ func TestGetAllEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			dbResponse: errors.New("record not found"),
+			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{

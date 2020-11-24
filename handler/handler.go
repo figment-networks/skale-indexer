@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/structs"
 	"net/http"
@@ -69,13 +70,13 @@ func (c *Connector) GetDelegationById(w http.ResponseWriter, req *http.Request) 
 
 	res, err := c.cli.GetDelegationById(req.Context(), id)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -101,13 +102,13 @@ func (c *Connector) GetDelegationsByHolder(w http.ResponseWriter, req *http.Requ
 
 	res, err := c.cli.GetDelegationsByHolder(req.Context(), holder)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -134,13 +135,13 @@ func (c *Connector) GetDelegationsByValidatorId(w http.ResponseWriter, req *http
 
 	res, err := c.cli.GetDelegationsByValidatorId(req.Context(), validatorId)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -200,13 +201,13 @@ func (c *Connector) GetEventById(w http.ResponseWriter, req *http.Request) {
 
 	res, err := c.cli.GetEventById(req.Context(), id)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -225,13 +226,13 @@ func (c *Connector) GetEvents(w http.ResponseWriter, req *http.Request) {
 
 	res, err := c.cli.GetAllEvents(req.Context())
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -290,13 +291,13 @@ func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
 	}
 	res, err := c.cli.GetValidatorById(req.Context(), id)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -322,13 +323,13 @@ func (c *Connector) GetValidatorsByAddress(w http.ResponseWriter, req *http.Requ
 
 	res, err := c.cli.GetValidatorsByAddress(req.Context(), validatorAddress)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
@@ -354,13 +355,13 @@ func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *
 
 	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), requestedAddress)
 	if err != nil {
-		if err.Error() == ErrNotFound.Error() {
+		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(newApiError(err, http.StatusInternalServerError))
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 

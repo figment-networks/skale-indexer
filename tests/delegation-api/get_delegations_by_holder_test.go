@@ -85,7 +85,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 				},
 			},
 			holder:     holder,
-			dbResponse: errors.New("record not found"),
+			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{

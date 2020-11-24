@@ -87,7 +87,7 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			id:         id,
-			dbResponse: errors.New("record not found"),
+			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
