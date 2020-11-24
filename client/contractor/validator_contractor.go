@@ -7,6 +7,5 @@ import (
 
 type validatorContractor interface {
 	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
-	GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error)
-	GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
+	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
 }

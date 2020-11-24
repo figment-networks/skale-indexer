@@ -56,8 +56,7 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 	transactionIndex := int64(15)
 	eventType := "eventType1"
 	eventName := "event_name_test"
-	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, dummyTime)
+	exampleTime, _ := time.Parse(handler.Layout, dummyTime)
 	var eventTime = exampleTime
 	example1 := structs.Event{
 		BlockHeight:          blockHeight,

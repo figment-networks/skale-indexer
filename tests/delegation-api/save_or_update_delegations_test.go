@@ -69,8 +69,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
-	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, DummyTime)
+	exampleTime, _ := time.Parse(handler.Layout, DummyTime)
 	var created = exampleTime
 	var started = exampleTime
 	var finished = exampleTime

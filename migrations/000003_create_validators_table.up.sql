@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS validators
     staked                      DECIMAL(65, 0)           NOT NULL,
     pending                     DECIMAL(65, 0)           NOT NULL,
     rewards                     DECIMAL(65, 0)           NOT NULL,
-    --data                        JSONB                    NOT NULL,
+    data                        JSONB                    NOT NULL,
     PRIMARY KEY (id)
 );
 -- Indexes

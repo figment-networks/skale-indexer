@@ -12,18 +12,19 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-var vldById structs.Validator
+var vldByDateRange structs.Validator
 
-func TestGetValidatorById(t *testing.T) {
-	vldById = structs.Validator{
+func TestGetValidatorByDateRange(t *testing.T) {
+	vldByDateRange = structs.Validator{
 		Name:        "name_test",
 		Address:     []structs.Address{},
 		Description: "description",
 	}
-	var id = "41754feb-1278-46da-981e-87a0876eed53"
-	var invalidId = "id_test"
+	from, _ := time.Parse(handler.Layout, "2006-01-02T15:04:05.000Z")
+	to, _ := time.Parse(handler.Layout, "2106-01-02T15:04:05.000Z")
 	tests := []struct {
 		number     int
 		name       string
@@ -53,11 +54,11 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "empty id",
+			name:   "empty from and to ",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=",
+					RawQuery: "from=&to=",
 				},
 			},
 			code: http.StatusBadRequest,
@@ -68,11 +69,12 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -83,11 +85,12 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id: invalidId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -98,13 +101,14 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			validators: []structs.Validator{vldById},
+			validators: []structs.Validator{vldByDateRange},
 			code:       http.StatusOK,
 		},
 	}

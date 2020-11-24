@@ -151,34 +151,19 @@ func (mr *MockDBDriverMockRecorder) SaveOrUpdateValidators(ctx, validators inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidators", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateValidators), ctx, validators)
 }
 
-// GetValidatorById mocks base method
-func (m *MockDBDriver) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
+// GetValidators mocks base method
+func (m *MockDBDriver) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
-	ret0, _ := ret[0].(structs.Validator)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetValidatorById indicates an expected call of GetValidatorById
-func (mr *MockDBDriverMockRecorder) GetValidatorById(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorById", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorById), ctx, id)
-}
-
-// GetValidatorsByAddress mocks base method
-func (m *MockDBDriver) GetValidatorsByAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorsByAddress", ctx, validatorAddress)
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetValidatorsByAddress indicates an expected call of GetValidatorsByAddress
-func (mr *MockDBDriverMockRecorder) GetValidatorsByAddress(ctx, validatorAddress interface{}) *gomock.Call {
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockDBDriverMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorsByAddress", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorsByAddress), ctx, validatorAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDBDriver)(nil).GetValidators), ctx, params)
 }
 
 // MockDataStore is a mock of DataStore interface
@@ -321,34 +306,19 @@ func (mr *MockDataStoreMockRecorder) SaveOrUpdateValidators(ctx, validators inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidators", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateValidators), ctx, validators)
 }
 
-// GetValidatorById mocks base method
-func (m *MockDataStore) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
+// GetValidators mocks base method
+func (m *MockDataStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
-	ret0, _ := ret[0].(structs.Validator)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetValidatorById indicates an expected call of GetValidatorById
-func (mr *MockDataStoreMockRecorder) GetValidatorById(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorById", reflect.TypeOf((*MockDataStore)(nil).GetValidatorById), ctx, id)
-}
-
-// GetValidatorsByAddress mocks base method
-func (m *MockDataStore) GetValidatorsByAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorsByAddress", ctx, validatorAddress)
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetValidatorsByAddress indicates an expected call of GetValidatorsByAddress
-func (mr *MockDataStoreMockRecorder) GetValidatorsByAddress(ctx, validatorAddress interface{}) *gomock.Call {
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockDataStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorsByAddress", reflect.TypeOf((*MockDataStore)(nil).GetValidatorsByAddress), ctx, validatorAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDataStore)(nil).GetValidators), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -537,32 +507,17 @@ func (mr *MockValidatorStoreMockRecorder) SaveOrUpdateValidators(ctx, validators
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateValidators", reflect.TypeOf((*MockValidatorStore)(nil).SaveOrUpdateValidators), ctx, validators)
 }
 
-// GetValidatorById mocks base method
-func (m *MockValidatorStore) GetValidatorById(ctx context.Context, id string) (structs.Validator, error) {
+// GetValidators mocks base method
+func (m *MockValidatorStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorById", ctx, id)
-	ret0, _ := ret[0].(structs.Validator)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetValidatorById indicates an expected call of GetValidatorById
-func (mr *MockValidatorStoreMockRecorder) GetValidatorById(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorById", reflect.TypeOf((*MockValidatorStore)(nil).GetValidatorById), ctx, id)
-}
-
-// GetValidatorsByAddress mocks base method
-func (m *MockValidatorStore) GetValidatorsByAddress(ctx context.Context, validatorAddress string) ([]structs.Validator, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorsByAddress", ctx, validatorAddress)
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetValidatorsByAddress indicates an expected call of GetValidatorsByAddress
-func (mr *MockValidatorStoreMockRecorder) GetValidatorsByAddress(ctx, validatorAddress interface{}) *gomock.Call {
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockValidatorStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorsByAddress", reflect.TypeOf((*MockValidatorStore)(nil).GetValidatorsByAddress), ctx, validatorAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockValidatorStore)(nil).GetValidators), ctx, params)
 }

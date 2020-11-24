@@ -32,8 +32,7 @@ type EventStore interface {
 
 type ValidatorStore interface {
 	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
-	GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error)
-	GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
+	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
 }
 
 type Store struct {
@@ -76,10 +75,6 @@ func (s *Store) SaveOrUpdateValidators(ctx context.Context, validators []structs
 	return s.driver.SaveOrUpdateValidators(ctx, validators)
 }
 
-func (s *Store) GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error) {
-	return s.driver.GetValidatorById(ctx, id)
-}
-
-func (s *Store) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
-	return s.driver.GetValidatorsByAddress(ctx, validatorAddress)
+func (s *Store) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+	return s.driver.GetValidators(ctx, params)
 }

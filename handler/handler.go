@@ -7,7 +7,10 @@ import (
 	"github.com/figment-networks/skale-indexer/structs"
 	"net/http"
 	"strconv"
+	"time"
 )
+
+const Layout = "2006-01-02T15:04:05.000Z"
 
 // Connector is main HTTP connector for manager
 type Connector struct {
@@ -275,53 +278,41 @@ func (c *Connector) SaveOrUpdateValidators(w http.ResponseWriter, req *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *Connector) GetValidatorById(w http.ResponseWriter, req *http.Request) {
+func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
+	/*
+		validatorAddress := req.URL.Query().Get("address")
+		if validatorAddress == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+			return
+		}*/
 
 	id := req.URL.Query().Get("id")
-	if id == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-	res, err := c.cli.GetValidatorById(req.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(err, http.StatusInternalServerError))
-		return
-	}
+	from := req.URL.Query().Get("from")
+	timeFrom, errFrom := time.Parse(Layout, from)
 
-	enc := json.NewEncoder(w)
-	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
-}
+	to := req.URL.Query().Get("to")
+	timeTo, errTo := time.Parse(Layout, to)
 
-func (c *Connector) GetValidatorsByAddress(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	if req.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
-		return
-	}
-
-	validatorAddress := req.URL.Query().Get("address")
-	if validatorAddress == "" {
+	if id == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	res, err := c.cli.GetValidatorsByAddress(req.Context(), validatorAddress)
+	params := structs.QueryParams{
+		Id:       id,
+		TimeFrom: timeFrom,
+		TimeTo:   timeTo,
+	}
+
+	res, err := c.cli.GetValidators(req.Context(), params)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -350,6 +341,5 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/get-events", c.GetEvents)
 
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
-	mux.HandleFunc("/get-validator", c.GetValidatorById)
-	mux.HandleFunc("/get-validators-by-address", c.GetValidatorsByAddress)
+	mux.HandleFunc("/validators", c.GetValidators)
 }

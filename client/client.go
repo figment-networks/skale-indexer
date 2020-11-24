@@ -56,13 +56,6 @@ func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validator
 	return c.storeEng.SaveOrUpdateValidators(ctx, validators)
 }
 
-func (c *ClientContractor) GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error) {
-	if !(id != "") {
-		return res, InvalidId
-	}
-	return c.storeEng.GetValidatorById(ctx, id)
-}
-
-func (c *ClientContractor) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
-	return c.storeEng.GetValidatorsByAddress(ctx, validatorAddress)
+func (c *ClientContractor) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+	return c.storeEng.GetValidators(ctx, params)
 }

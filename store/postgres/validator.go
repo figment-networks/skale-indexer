@@ -14,6 +14,7 @@ const (
 	updateStatementForValidator = `UPDATE validators SET updated_at = NOW(), name = $1, address = $2, description = $3, fee_rate = $4, active = $5, active_nodes = $6, staked = $7, pending = $8, rewards = $9, data = $10  WHERE id = $11 `
 	getByStatementForValidator  = `SELECT v.id, v.created_at, v.updated_at, v.name, v.address, v.description, v.fee_rate, v.active, v.active_nodes, v.staked, v.pending, v.rewards, v.data FROM validators v WHERE `
 	byIdForValidator            = `v.id =  $1 `
+	byDateRange                 = `v.created_at between $1 and $2`
 	byAddressForValidator       = `v.address =  $1 `
 )
 
@@ -57,6 +58,38 @@ func (d *Driver) GetValidatorById(ctx context.Context, id string) (res structs.V
 func (d *Driver) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
 	q := fmt.Sprintf("%s%s", getByStatementForValidator, byAddressForValidator)
 	rows, err := d.db.QueryContext(ctx, q, validatorAddress)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		vld := structs.Validator{}
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, pq.Array(&vld.Address), &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
+		if err != nil {
+			return nil, err
+		}
+		validators = append(validators, vld)
+	}
+	if len(validators) == 0 {
+		return nil, handler.ErrNotFound
+	}
+	return validators, nil
+}
+
+// GetValidators gets validators by params
+func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+	var q string
+	var rows *sql.Rows
+	if params.Id != "" {
+		q = fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
+		rows, err = d.db.QueryContext(ctx, q, params.Id)
+	} else {
+		q = fmt.Sprintf("%s%s", getByStatementForValidator, byDateRange)
+		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
