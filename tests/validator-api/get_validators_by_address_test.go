@@ -20,7 +20,7 @@ func TestGetValidatorsByAddress(t *testing.T) {
 	validatorAddress := "validator_address_test"
 	vld := structs.Validator{
 		Name:        "name_test",
-		Address:     validatorAddress,
+		Address:      []int{},
 		Description: "description",
 	}
 	vldsByValidatorAddress = append(vldsByValidatorAddress, vld)

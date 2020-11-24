@@ -25,23 +25,23 @@ const (
 	invalidPropertyNameForValidators = `[{
         "name_invalid": "name_test",
         "address": "validator_address_test",
-        "description": "description_test",
+        "description": "",
         "fee_rate": 1,
     }]`
 	validJsonForValidators = `[{
         "name": "name_test",
-        "address": "validator_address_test",
+        "address": [1,2],
         "description": "description_test",
         "fee_rate": 1,
         "active": true,
 		"active_nodes": 2,
-		"staked": 10,
+		"staked":  10,
 		"pending": 15,
         "rewards": 20
     },	
 	{
      	"name": "name_test",
-        "address": "validator_address_test",
+        "address": [1, 2],
         "description": "description_test",
         "fee_rate": 1,
         "active": false,
@@ -58,7 +58,7 @@ var exampleValidators []structs.Validator
 func TestSaveOrUpdateDelegations(t *testing.T) {
 	exampleValidator := structs.Validator{
 		Name:        "name_test",
-		Address:     "validator_address_test",
+		Address:     []int{1, 2},
 		Description: "description_test",
 		FeeRate:     uint64(1),
 		Active:      true,
@@ -69,7 +69,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	}
 	exampleValidator2 := structs.Validator{
 		Name:        "name_test",
-		Address:     "validator_address_test",
+		Address:     []int{1, 2},
 		Description: "description_test",
 		FeeRate:     uint64(1),
 		Active:      false,
