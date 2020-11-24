@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	insertStatementForValidator    = `INSERT INTO validators ("created_at", "updated_at", "name", "address", "requested_address", "description", "fee_rate", "registration_time",  "minimum_delegation_amount", "accept_new_requests", "trusted") VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9) `
+	insertStatementForValidator    = `INSERT INTO validators ("updated_at", "name", "address", "requested_address", "description", "fee_rate", "registration_time",  "minimum_delegation_amount", "accept_new_requests", "trusted") VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9) `
 	updateStatementForValidator    = `UPDATE validators SET updated_at = NOW(), name = $1, address = $2, requested_address = $3, description = $4, fee_rate = $5, registration_time = $6, minimum_delegation_amount = $7, accept_new_requests = $8 , trusted = $9  WHERE id = $10 `
 	getByStatementForValidator     = `SELECT v.id, v.created_at, v.updated_at, v.name, v.address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.trusted FROM validators v WHERE `
 	byIdForValidator               = `v.id =  $1 `

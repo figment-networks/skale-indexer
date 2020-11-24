@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	insertStatementForEvent = `INSERT INTO events ("created_at", "updated_at", "block_height", "smart_contract_address", "transaction_index", "event_type", "event_name", "event_time") VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6) `
+	insertStatementForEvent = `INSERT INTO events ("updated_at", "block_height", "smart_contract_address", "transaction_index", "event_type", "event_name", "event_time") VALUES ( NOW(), $1, $2, $3, $4, $5, $6) `
 	updateStatementForEvent = `UPDATE events SET updated_at = NOW(), block_height = $1, smart_contract_address = $2, transaction_index = $3, event_type = $4, event_name = $5, event_time = $6 WHERE id = $7 `
 	getByStatementForEvent  = `SELECT e.id, e.created_at, e.updated_at, e.block_height, e.smart_contract_address, e.transaction_index, e.event_type, e.event_name, e.event_time FROM events e `
 	byIdForEvent            = `WHERE e.id =  $1 `

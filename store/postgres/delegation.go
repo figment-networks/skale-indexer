@@ -13,7 +13,7 @@ var (
 )
 
 const (
-	insertStatementForDelegation = `INSERT INTO delegations ("created_at", "updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
+	insertStatementForDelegation = `INSERT INTO delegations ("updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
 	updateStatementForDelegation = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8  WHERE id = $9 `
 	getByStatementForDelegation  = `SELECT d.id, d.created_at, d.updated_at, d.holder, d.validator_id, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info FROM delegations d WHERE `
 	byIdForDelegation            = `d.id =  $1 `
