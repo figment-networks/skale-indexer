@@ -13,101 +13,70 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 const (
 	invalidSyntaxForValidators = `[{
         "name": "name_test",
         "address": "validator_address_test",
-        "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": "2014-11-12T11:45:26.371Z",
-        "minimum_delegation_amount": 0,
-        "accept_new_requests": false,
-        "trusted": true,
 	`
 	invalidPropertyNameForValidators = `[{
         "name_invalid": "name_test",
         "address": "validator_address_test",
-        "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": "2014-11-12T11:45:26.371Z",
-        "minimum_delegation_amount": 0,
-        "accept_new_requests": false,
-        "trusted": true
     }]`
 	validJsonForValidators = `[{
-       "name": "name_test",
+        "name": "name_test",
         "address": "validator_address_test",
-        "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": "2014-11-12T11:45:26.371Z",
-        "minimum_delegation_amount": 0,
-        "accept_new_requests": false,
-        "trusted": true
+        "active": true,
+		"active_nodes": 2,
+		"staked": 10,
+		"pending": 15,
+        "rewards": 20
     },	
 	{
      	"name": "name_test",
         "address": "validator_address_test",
-        "requested_address": "requested_address_test",
         "description": "description_test",
         "fee_rate": 1,
-        "registration_time": "2014-11-12T11:45:26.371Z",
-        "minimum_delegation_amount": 0,
-        "accept_new_requests": false,
-        "trusted": true
+        "active": false,
+		"active_nodes": 0,
+		"staked": 100,
+		"pending": 0,
+        "rewards": 140
     }	
 	]`
-	// same value should be used in json examples above for valid cases
-	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
 var exampleValidators []structs.Validator
 
 func TestSaveOrUpdateDelegations(t *testing.T) {
-	name := "name_test"
-	validatorAddress := "validator_address_test"
-	requestedAddress := "requested_address_test"
-	description := "description_test"
-	var feeRate uint64 = 1
-	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime = exampleTime
-	var minimumDelegationAmount uint64 = 0
-	var acceptNewRequests = false
 	exampleValidator := structs.Validator{
-		Name:                    name,
-		Address:                 validatorAddress,
-		RequestedAddress:        requestedAddress,
-		Description:             description,
-		FeeRate:                 feeRate,
-		RegistrationTime:        registrationTime,
-		MinimumDelegationAmount: minimumDelegationAmount,
-		AcceptNewRequests:       acceptNewRequests,
-		Trusted:                 true,
+		Name:        "name_test",
+		Address:     "validator_address_test",
+		Description: "description_test",
+		FeeRate:     uint64(1),
+		Active:      true,
+		ActiveNodes: 2,
+		Staked:      uint64(10),
+		Pending:     uint64(15),
+		Rewards:     uint64(20),
 	}
-	name2 := "name_test"
-	validatorAddress2 := "validator_address_test"
-	requestedAddress2 := "requested_address_test"
-	description2 := "description_test"
-	var feeRate2 uint64 = 1
-	var registrationTime2 = exampleTime
-	var minimumDelegationAmount2 uint64 = 0
-	var acceptNewRequests2 = false
 	exampleValidator2 := structs.Validator{
-		Name:                    name2,
-		Address:                 validatorAddress2,
-		RequestedAddress:        requestedAddress2,
-		Description:             description2,
-		FeeRate:                 feeRate2,
-		RegistrationTime:        registrationTime2,
-		MinimumDelegationAmount: minimumDelegationAmount2,
-		AcceptNewRequests:       acceptNewRequests2,
-		Trusted:                 true,
+		Name:        "name_test",
+		Address:     "validator_address_test",
+		Description: "description_test",
+		FeeRate:     uint64(1),
+		Active:      false,
+		ActiveNodes: 0,
+		Staked:      uint64(100),
+		Pending:     uint64(0),
+		Rewards:     uint64(140),
 	}
 	exampleValidators = append(exampleValidators, exampleValidator)
 	exampleValidators = append(exampleValidators, exampleValidator2)

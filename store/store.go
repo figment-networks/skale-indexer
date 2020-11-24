@@ -34,7 +34,6 @@ type ValidatorStore interface {
 	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
 	GetValidatorById(ctx context.Context, id string) (res structs.Validator, err error)
 	GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error)
-	GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) (validators []structs.Validator, err error)
 }
 
 type Store struct {
@@ -83,8 +82,4 @@ func (s *Store) GetValidatorById(ctx context.Context, id string) (res structs.Va
 
 func (s *Store) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
 	return s.driver.GetValidatorsByAddress(ctx, validatorAddress)
-}
-
-func (s *Store) GetValidatorsByRequestedAddress(ctx context.Context, validatorId string) (validators []structs.Validator, err error) {
-	return s.driver.GetValidatorsByRequestedAddress(ctx, validatorId)
 }

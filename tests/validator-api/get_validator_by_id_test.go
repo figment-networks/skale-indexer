@@ -12,32 +12,15 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
 var vldById structs.Validator
 
 func TestGetValidatorById(t *testing.T) {
-	name := "name_test"
-	validatorAddress := "validator_address_test"
-	requestedAddress := "requested_address_test"
-	description := "description"
-	var feeRate uint64 = 1
-	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime = exampleTime
-	var minimumDelegationAmount uint64 = 0
-	var acceptNewRequests = true
 	vldById = structs.Validator{
-		Name:                    name,
-		Address:                 validatorAddress,
-		RequestedAddress:        requestedAddress,
-		Description:             description,
-		FeeRate:                 feeRate,
-		RegistrationTime:        registrationTime,
-		MinimumDelegationAmount: minimumDelegationAmount,
-		AcceptNewRequests:       acceptNewRequests,
-		Trusted:                 true,
+		Name:        "name_test",
+		Address:     "validator_address_test",
+		Description: "description",
 	}
 	var id = "41754feb-1278-46da-981e-87a0876eed53"
 	var invalidId = "id_test"

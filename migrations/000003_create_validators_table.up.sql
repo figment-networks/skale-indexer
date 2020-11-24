@@ -4,16 +4,16 @@ CREATE TABLE IF NOT EXISTS validators
     created_at                  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL,
     name                        TEXT                     NOT NULL,
-    address                     TEXT                     NOT NULL,
-    requested_address           TEXT                     NOT NULL,
+    address                     []NUMERIC(78)            NOT NULL,
     description                 TEXT                     NOT NULL,
     fee_rate                    DECIMAL(65, 0)           NOT NULL,
-    registration_time           TIMESTAMP WITH TIME ZONE NOT NULL,
-    minimum_delegation_amount   DECIMAL(65, 0)           NOT NULL,
-    accept_new_requests         BOOLEAN                  NOT NULL,
-    trusted                     BOOLEAN                  NOT NULL,
+    active                      BOOLEAN                  NOT NULL,
+    active_nodes                SMALLINT                 NOT NULL,
+    staked                      DECIMAL(65, 0)           NOT NULL,
+    pending                     DECIMAL(65, 0)           NOT NULL,
+    rewards                     DECIMAL(65, 0)           NOT NULL,
+    --data                        JSONB                    NOT NULL,
     PRIMARY KEY (id)
 );
 -- Indexes
 CREATE index idx_validators_address on validators (address);
-CREATE index idx_validators_requested_address on validators (requested_address);

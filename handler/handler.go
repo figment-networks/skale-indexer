@@ -338,38 +338,6 @@ func (c *Connector) GetValidatorsByAddress(w http.ResponseWriter, req *http.Requ
 	enc.Encode(res)
 }
 
-func (c *Connector) GetValidatorsByRequestedAddress(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	if req.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
-		return
-	}
-
-	requestedAddress := req.URL.Query().Get("requested_address")
-	if requestedAddress == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	res, err := c.cli.GetValidatorsByRequestedAddress(req.Context(), requestedAddress)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(err, http.StatusInternalServerError))
-		return
-	}
-
-	enc := json.NewEncoder(w)
-	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
-}
-
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-or-update-delegations", c.SaveOrUpdateDelegations)
@@ -384,5 +352,4 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/get-validator", c.GetValidatorById)
 	mux.HandleFunc("/get-validators-by-address", c.GetValidatorsByAddress)
-	mux.HandleFunc("/get-validators-by-requested-address", c.GetValidatorsByRequestedAddress)
 }

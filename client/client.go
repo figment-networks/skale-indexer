@@ -66,7 +66,3 @@ func (c *ClientContractor) GetValidatorById(ctx context.Context, id string) (res
 func (c *ClientContractor) GetValidatorsByAddress(ctx context.Context, validatorAddress string) (validators []structs.Validator, err error) {
 	return c.storeEng.GetValidatorsByAddress(ctx, validatorAddress)
 }
-
-func (c *ClientContractor) GetValidatorsByRequestedAddress(ctx context.Context, requestedAddress string) (validators []structs.Validator, err error) {
-	return c.storeEng.GetValidatorsByRequestedAddress(ctx, requestedAddress)
-}

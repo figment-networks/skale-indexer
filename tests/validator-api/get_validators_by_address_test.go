@@ -12,32 +12,16 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
 var vldsByValidatorAddress = make([]structs.Validator, 1)
 
 func TestGetValidatorsByAddress(t *testing.T) {
-	name := "name_test"
 	validatorAddress := "validator_address_test"
-	requestedAddress := "requested_address_test"
-	description := "description"
-	var feeRate uint64 = 1
-	layout := "2006-01-02T15:04:05.000Z"
-	exampleTime, _ := time.Parse(layout, dummyTime)
-	var registrationTime = exampleTime
-	var minimumDelegationAmount uint64 = 0
-	var acceptNewRequests = true
 	vld := structs.Validator{
-		Name:                    name,
-		Address:                 validatorAddress,
-		RequestedAddress:        requestedAddress,
-		Description:             description,
-		FeeRate:                 feeRate,
-		RegistrationTime:        registrationTime,
-		MinimumDelegationAmount: minimumDelegationAmount,
-		AcceptNewRequests:       acceptNewRequests,
-		Trusted:                 true,
+		Name:        "name_test",
+		Address:     validatorAddress,
+		Description: "description",
 	}
 	vldsByValidatorAddress = append(vldsByValidatorAddress, vld)
 	tests := []struct {
