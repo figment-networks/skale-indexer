@@ -38,14 +38,16 @@ const (
 		"staked":  10,
 		"pending": 15,
         "rewards": 20,
-		"data": [	
-					{
-						"requested_address": "requested_address_test",
-						"minimum_delegation_amount" : 2,
-						"accept_new_requests": true,
-						"trusted": true
-					}	
-				]			
+		"optional_info" : {
+						"data": [	
+							{
+								"requested_address": "requested_address_test",
+								"minimum_delegation_amount" : 2,
+								"accept_new_requests": true,
+								"trusted": true
+							}	
+						]	
+			}
     },	
 	{
      	"name": "name_test",
@@ -57,14 +59,16 @@ const (
 		"staked": 100,
 		"pending": 0,
         "rewards": 140,
-		"data": [	
-					{
-						"requested_address": "requested_address_test",
-						"minimum_delegation_amount" : 2,
-						"accept_new_requests": true,
-						"trusted": true
-					}	
-				]			
+		"optional_info" : {
+						"data": [	
+							{
+								"requested_address": "requested_address_test",
+								"minimum_delegation_amount" : 2,
+								"accept_new_requests": true,
+								"trusted": true
+							}	
+						]	
+			}
     }	
 	]`
 )
@@ -82,14 +86,14 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		Staked:      uint64(10),
 		Pending:     uint64(15),
 		Rewards:     uint64(20),
-		Data: []structs.Data{
+		OptionalInfo: structs.OptionalInfo{[]structs.Data{
 			{
 				RequestedAddress: "requested_address_test",
 				MinimumDelegationAmount: 2,
 				AcceptNewRequests: true,
 				Trusted: true,
 			},
-		},
+		},},
 	}
 	exampleValidator2 := structs.Validator{
 		Name:        "name_test",
@@ -101,14 +105,14 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		Staked:      uint64(100),
 		Pending:     uint64(0),
 		Rewards:     uint64(140),
-		Data: []structs.Data{
+		OptionalInfo: structs.OptionalInfo{ []structs.Data{
 			{
 				RequestedAddress: "requested_address_test",
 				MinimumDelegationAmount: 2,
 				AcceptNewRequests: true,
 				Trusted: true,
 			},
-		},
+		},},
 	}
 	exampleValidators = append(exampleValidators, exampleValidator)
 	exampleValidators = append(exampleValidators, exampleValidator2)

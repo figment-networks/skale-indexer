@@ -19,10 +19,10 @@ const (
 
 func (d *Driver) saveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
 	if v.ID == "" {
-		_, err := d.db.Exec(insertStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.Staked, v.Pending, v.Rewards, &v.Data)
+		_, err := d.db.Exec(insertStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo)
 		return err
 	}
-	_, err := d.db.Exec(updateStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.Staked, v.Pending, v.Rewards, &v.Data, v.ID)
+	_, err := d.db.Exec(updateStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo, v.ID)
 	return err
 }
 
@@ -46,7 +46,7 @@ func (d *Driver) GetValidatorById(ctx context.Context, id string) (res structs.V
 		return res, fmt.Errorf("query error: %w", row.Err().Error())
 	}
 
-	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.Data)
+	err = row.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
 	if err == sql.ErrNoRows || !(vld.ID != "") {
 		return res, handler.ErrNotFound
 	}
@@ -65,7 +65,7 @@ func (d *Driver) GetValidatorsByAddress(ctx context.Context, validatorAddress st
 
 	for rows.Next() {
 		vld := structs.Validator{}
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.Data)
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.Address, &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
 		if err != nil {
 			return nil, err
 		}
