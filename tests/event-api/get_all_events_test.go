@@ -18,29 +18,23 @@ import (
 var dlgEvents = make([]structs.Event, 1)
 
 func TestGetAllEvents(t *testing.T) {
-	blockHeight := int64(100)
-	smartContractAddress := ""
-	transactionIndex := int64(15)
-	eventType := "eventType1"
-	eventName := "eventName1"
-	eventTime := time.Now()
 	dlg := structs.Event{
-		BlockHeight:          blockHeight,
-		SmartContractAddress: smartContractAddress,
-		TransactionIndex:     transactionIndex,
-		EventType:            eventType,
-		EventName:            eventName,
-		EventTime:            eventTime,
+		BlockHeight:          int64(100),
+		SmartContractAddress: "smartContractAddress",
+		TransactionIndex:     int64(15),
+		EventType:            "eventType1",
+		EventName:            "eventName1",
+		EventTime:            time.Now(),
 	}
 	dlgEvents = append(dlgEvents, dlg)
 	tests := []struct {
-		number       int
-		name         string
-		req          *http.Request
-		delegationId string
-		events       []structs.Event
-		dbResponse   error
-		code         int
+		number     int
+		name       string
+		req        *http.Request
+		params     structs.QueryParams
+		events     []structs.Event
+		dbResponse error
+		code       int
 	}{
 		{
 			number: 1,
@@ -57,6 +51,7 @@ func TestGetAllEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
+			params:     structs.QueryParams{},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
@@ -65,8 +60,10 @@ func TestGetAllEvents(t *testing.T) {
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
+				URL:    &url.URL{},
 			},
 			dbResponse: errors.New("internal error"),
+			params:     structs.QueryParams{},
 			code:       http.StatusInternalServerError,
 		},
 		{
@@ -76,6 +73,7 @@ func TestGetAllEvents(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
+			params: structs.QueryParams{},
 			events: dlgEvents,
 			code:   http.StatusOK,
 		},
@@ -86,7 +84,7 @@ func TestGetAllEvents(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 1 {
-				mockDB.EXPECT().GetAllEvents(tt.req.Context()).Return(tt.events, tt.dbResponse)
+				mockDB.EXPECT().GetEvents(tt.req.Context(), tt.params).Return(tt.events, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)

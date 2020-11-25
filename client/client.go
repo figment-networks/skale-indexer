@@ -33,12 +33,8 @@ func (c *ClientContractor) SaveOrUpdateEvents(ctx context.Context, events []stru
 	return c.storeEng.SaveOrUpdateEvents(ctx, events)
 }
 
-func (c *ClientContractor) GetEventById(ctx context.Context, id string) (res structs.Event, err error) {
-	return c.storeEng.GetEventById(ctx, id)
-}
-
-func (c *ClientContractor) GetAllEvents(ctx context.Context) (events []structs.Event, err error) {
-	return c.storeEng.GetAllEvents(ctx)
+func (c *ClientContractor) GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error) {
+	return c.storeEng.GetEvents(ctx, params)
 }
 
 func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {

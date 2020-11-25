@@ -24,8 +24,7 @@ type DelegationStore interface {
 
 type EventStore interface {
 	SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error
-	GetEventById(ctx context.Context, id string) (res structs.Event, err error)
-	GetAllEvents(ctx context.Context) (events []structs.Event, err error)
+	GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error)
 }
 
 type ValidatorStore interface {
@@ -53,12 +52,8 @@ func (s *Store) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) 
 	return s.driver.SaveOrUpdateEvents(ctx, events)
 }
 
-func (s *Store) GetEventById(ctx context.Context, id string) (res structs.Event, err error) {
-	return s.driver.GetEventById(ctx, id)
-}
-
-func (s *Store) GetAllEvents(ctx context.Context) (events []structs.Event, err error) {
-	return s.driver.GetAllEvents(ctx)
+func (s *Store) GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error) {
+	return s.driver.GetEvents(ctx, params)
 }
 
 func (s *Store) SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error {

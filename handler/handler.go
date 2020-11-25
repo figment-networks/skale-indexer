@@ -148,38 +148,6 @@ func (c *Connector) SaveOrUpdateEvents(w http.ResponseWriter, req *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *Connector) GetEventById(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	if req.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
-		return
-	}
-
-	id := req.URL.Query().Get("id")
-	if id == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	res, err := c.cli.GetEventById(req.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(err, http.StatusInternalServerError))
-		return
-	}
-
-	enc := json.NewEncoder(w)
-	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
-}
-
 func (c *Connector) GetEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
@@ -188,7 +156,11 @@ func (c *Connector) GetEvents(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res, err := c.cli.GetAllEvents(req.Context())
+	id := req.URL.Query().Get("id")
+	params := structs.QueryParams{
+		Id: id,
+	}
+	res, err := c.cli.GetEvents(req.Context(), params)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -300,8 +272,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations", c.GetDelegations)
 
 	mux.HandleFunc("/save-or-update-events", c.SaveOrUpdateEvents)
-	mux.HandleFunc("/get-event-by-id", c.GetEventById)
-	mux.HandleFunc("/get-events", c.GetEvents)
+	mux.HandleFunc("/events", c.GetEvents)
 
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/validators", c.GetValidators)

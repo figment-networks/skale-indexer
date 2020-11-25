@@ -18,20 +18,13 @@ import (
 var dlgById structs.Event
 
 func TestGetEventById(t *testing.T) {
-	blockHeight := int64(100)
-	smartContractAddress := ""
-	transactionIndex := int64(15)
-	eventType := "eventType1"
-	eventName := "eventName1"
-	eventTime := time.Now()
-
 	dlgById = structs.Event{
-		BlockHeight:          blockHeight,
-		SmartContractAddress: smartContractAddress,
-		TransactionIndex:     transactionIndex,
-		EventType:            eventType,
-		EventName:            eventName,
-		EventTime:            eventTime,
+		BlockHeight:          int64(100),
+		SmartContractAddress: "smartContractAddress",
+		TransactionIndex:     int64(15),
+		EventType:            "eventType1",
+		EventName:            "eventName1",
+		EventTime:            time.Now(),
 	}
 	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	var invalidId = "id_test"
@@ -39,8 +32,8 @@ func TestGetEventById(t *testing.T) {
 		number     int
 		name       string
 		req        *http.Request
-		id         string
-		event      structs.Event
+		params     structs.QueryParams
+		event      []structs.Event
 		dbResponse error
 		code       int
 	}{
@@ -50,32 +43,13 @@ func TestGetEventById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			id:   id,
+			params: structs.QueryParams{
+				Id: id,
+			},
 			code: http.StatusMethodNotAllowed,
 		},
 		{
 			number: 2,
-			name:   "missing parameter",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 3,
-			name:   "empty id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -83,12 +57,14 @@ func TestGetEventById(t *testing.T) {
 					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			id:         id,
+			params: structs.QueryParams{
+				Id: id,
+			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 3,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -96,12 +72,14 @@ func TestGetEventById(t *testing.T) {
 					RawQuery: "id=id_test",
 				},
 			},
-			id:         invalidId,
+			params: structs.QueryParams{
+				Id: invalidId,
+			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 4,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -109,8 +87,10 @@ func TestGetEventById(t *testing.T) {
 					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
-			id:    id,
-			event: dlgById,
+			params: structs.QueryParams{
+				Id: id,
+			},
+			event: []structs.Event{dlgById},
 			code:  http.StatusOK,
 		},
 	}
@@ -119,12 +99,12 @@ func TestGetEventById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetEventById(tt.req.Context(), tt.id).Return(tt.event, tt.dbResponse)
+			if tt.number > 1 {
+				mockDB.EXPECT().GetEvents(tt.req.Context(), tt.params).Return(tt.event, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetEventById)
+			res := http.HandlerFunc(connector.GetEvents)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

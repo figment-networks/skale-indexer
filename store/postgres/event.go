@@ -35,27 +35,18 @@ func (d *Driver) SaveOrUpdateEvents(ctx context.Context, events []structs.Event)
 	return nil
 }
 
-// GetEventById gets event by id
-func (d *Driver) GetEventById(ctx context.Context, id string) (res structs.Event, err error) {
-	dlg := structs.Event{}
-	q := fmt.Sprintf("%s%s", getByStatementForEvent, byIdForEvent)
-
-	row := d.db.QueryRowContext(ctx, q, id)
-	if row.Err() != nil {
-		return res, fmt.Errorf("query error: %w", row.Err().Error())
+// GetEvents gets  events
+func (d *Driver) GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error) {
+	var q string
+	var rows *sql.Rows
+	if params.Id != "" {
+		q = fmt.Sprintf("%s%s", getByStatementForEvent, byIdForEvent)
+		rows, err = d.db.QueryContext(ctx, q, params.Id)
+	} else {
+		q = fmt.Sprintf("%s%s", getByStatementForEvent, orderByEventTime)
+		rows, err = d.db.QueryContext(ctx, q)
 	}
 
-	err = row.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.BlockHeight, &dlg.SmartContractAddress, &dlg.TransactionIndex, &dlg.EventType, &dlg.EventName, &dlg.EventTime)
-	if err == sql.ErrNoRows || !(dlg.ID != "") {
-		return res, handler.ErrNotFound
-	}
-	return dlg, err
-}
-
-// GetAllEvents gets all events
-func (d *Driver) GetAllEvents(ctx context.Context) (events []structs.Event, err error) {
-	q := fmt.Sprintf("%s%s", getByStatementForEvent, orderByEventTime)
-	rows, err := d.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
@@ -63,12 +54,12 @@ func (d *Driver) GetAllEvents(ctx context.Context) (events []structs.Event, err 
 	defer rows.Close()
 
 	for rows.Next() {
-		dlg := structs.Event{}
-		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.BlockHeight, &dlg.SmartContractAddress, &dlg.TransactionIndex, &dlg.EventType, &dlg.EventName, &dlg.EventTime)
+		e := structs.Event{}
+		err = rows.Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt, &e.BlockHeight, &e.SmartContractAddress, &e.TransactionIndex, &e.EventType, &e.EventName, &e.EventTime)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, dlg)
+		events = append(events, e)
 	}
 	if len(events) == 0 {
 		return nil, handler.ErrNotFound

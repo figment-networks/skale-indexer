@@ -7,6 +7,5 @@ import (
 
 type eventContractor interface {
 	SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error
-	GetEventById(ctx context.Context, id string) (res structs.Event, err error)
-	GetAllEvents(ctx context.Context) (events []structs.Event, err error)
+	GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error)
 }
