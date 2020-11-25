@@ -9,5 +9,7 @@ CREATE TABLE IF NOT EXISTS events
     event_type              TEXT                     NOT NULL,
     event_name              TEXT                     NOT NULL,
     event_time              TIMESTAMP WITH TIME ZONE NOT NULL,
+    event_info              JSONB                    NOT NULL,
     PRIMARY KEY (id)
 );
+// todo: add indexes based on queries

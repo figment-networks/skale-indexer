@@ -33,7 +33,14 @@ const (
 		"transaction_index": 15,
 		"event_type": "eventType1",
         "event_name": "event_name_test",
-        "event_time": "2014-11-12T11:45:26.371Z"
+        "event_time": "2014-11-12T11:45:26.371Z",
+	    "event_info": {
+						"wallet": "wallet_test1",
+						"holder": "holder3",	
+						"destination": [10,21],
+						"validator_id": 21,
+						"amount": 22
+				}
     },	
 	{
 		"block_height": 101,
@@ -41,7 +48,14 @@ const (
 		"transaction_index": 25,
 		"event_type": "eventType2",        
 		"event_name": "event_name_test",
-        "event_time": "2014-11-12T11:45:26.371Z"
+        "event_time": "2014-11-12T11:45:26.371Z",
+	    "event_info": {
+						"wallet": "wallet_test2",
+						"holder": "holder1",	
+						"destination":  [1,2],
+						"validator_id": 1,
+						"amount": 2
+				}
     }
 	]`
 	// same value should be used in json examples above for valid cases
@@ -65,6 +79,13 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 		EventType:            eventType,
 		EventName:            eventName,
 		EventTime:            eventTime,
+		EventInfo: structs.EventInfo{
+			Wallet:      "wallet_test1",
+			Holder:      "holder3",
+			Destination: []structs.Address{10, 21},
+			ValidatorId: 21,
+			Amount:      22,
+		},
 	}
 	blockHeight2 := int64(101)
 	smartContractAddress2 := "smart_contract_address2"
@@ -78,6 +99,13 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 		EventType:            eventType2,
 		EventName:            eventName2,
 		EventTime:            eventTime,
+		EventInfo: structs.EventInfo{
+			Wallet:      "wallet_test2",
+			Holder:      "holder1",
+			Destination: []structs.Address{1, 2},
+			ValidatorId: 1,
+			Amount:      2,
+		},
 	}
 	exampleDelegations = append(exampleDelegations, example1)
 	exampleDelegations = append(exampleDelegations, example2)
