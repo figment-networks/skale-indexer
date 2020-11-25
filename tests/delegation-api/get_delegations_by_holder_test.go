@@ -19,29 +19,22 @@ var dlgsByHolder = make([]structs.Delegation, 1)
 
 func TestGetDelegationsByHolder(t *testing.T) {
 	holder := "holder1"
-	var validatorId uint64 = 2
-	var amount uint64 = 0
-	var delegationPeriod uint64 = 0
-	var created = time.Now()
-	var started = time.Now()
-	var finished = time.Now()
-	info := "info1"
 	dlg := structs.Delegation{
 		Holder:           holder,
-		ValidatorId:      validatorId,
-		Amount:           amount,
-		DelegationPeriod: delegationPeriod,
-		Created:          created,
-		Started:          started,
-		Finished:         finished,
-		Info:             info,
+		ValidatorId:      uint64(2),
+		Amount:           uint64(0),
+		DelegationPeriod: uint64(0),
+		Created:          time.Now(),
+		Started:          time.Now(),
+		Finished:         time.Now(),
+		Info:             "info1",
 	}
 	dlgsByHolder = append(dlgsByHolder, dlg)
 	tests := []struct {
 		number      int
 		name        string
 		req         *http.Request
-		holder      string
+		params      structs.QueryParams
 		delegations []structs.Delegation
 		dbResponse  error
 		code        int
@@ -84,7 +77,9 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:     holder,
+			params: structs.QueryParams{
+				Holder: holder,
+			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
@@ -97,7 +92,9 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:     holder,
+			params: structs.QueryParams{
+				Holder: holder,
+			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -110,7 +107,9 @@ func TestGetDelegationsByHolder(t *testing.T) {
 					RawQuery: "holder=holder1",
 				},
 			},
-			holder:      holder,
+			params: structs.QueryParams{
+				Holder: holder,
+			},
 			delegations: dlgsByHolder,
 			code:        http.StatusOK,
 		},
@@ -121,11 +120,11 @@ func TestGetDelegationsByHolder(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegationsByHolder(tt.req.Context(), tt.holder).Return(tt.delegations, tt.dbResponse)
+				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationsByHolder)
+			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

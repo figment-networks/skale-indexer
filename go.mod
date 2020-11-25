@@ -7,6 +7,7 @@ require (
 	github.com/figment-networks/indexing-engine v0.1.14
 	github.com/golang/mock v1.4.4
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.1.1
 	github.com/rollbar/rollbar-go v1.2.0
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.16.0

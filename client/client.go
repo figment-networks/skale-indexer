@@ -25,19 +25,8 @@ func (c *ClientContractor) SaveOrUpdateDelegations(ctx context.Context, delegati
 	return c.storeEng.SaveOrUpdateDelegations(ctx, delegations)
 }
 
-func (c *ClientContractor) GetDelegationById(ctx context.Context, id string) (res structs.Delegation, err error) {
-	if !(id != "") {
-		return res, InvalidId
-	}
-	return c.storeEng.GetDelegationById(ctx, id)
-}
-
-func (c *ClientContractor) GetDelegationsByHolder(ctx context.Context, holder string) (delegations []structs.Delegation, err error) {
-	return c.storeEng.GetDelegationsByHolder(ctx, holder)
-}
-
-func (c *ClientContractor) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error) {
-	return c.storeEng.GetDelegationsByValidatorId(ctx, validatorId)
+func (c *ClientContractor) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+	return c.storeEng.GetDelegations(ctx, params)
 }
 
 func (c *ClientContractor) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {

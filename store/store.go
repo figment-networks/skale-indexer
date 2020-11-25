@@ -19,9 +19,7 @@ type DataStore interface {
 
 type DelegationStore interface {
 	SaveOrUpdateDelegations(ctx context.Context, delegations []structs.Delegation) error
-	GetDelegationById(ctx context.Context, id string) (res structs.Delegation, err error)
-	GetDelegationsByHolder(ctx context.Context, holder string) (delegations []structs.Delegation, err error)
-	GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error)
+	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
 }
 
 type EventStore interface {
@@ -47,16 +45,8 @@ func (s *Store) SaveOrUpdateDelegations(ctx context.Context, delegations []struc
 	return s.driver.SaveOrUpdateDelegations(ctx, delegations)
 }
 
-func (s *Store) GetDelegationById(ctx context.Context, id string) (res structs.Delegation, err error) {
-	return s.driver.GetDelegationById(ctx, id)
-}
-
-func (s *Store) GetDelegationsByHolder(ctx context.Context, holder string) (delegations []structs.Delegation, err error) {
-	return s.driver.GetDelegationsByHolder(ctx, holder)
-}
-
-func (s *Store) GetDelegationsByValidatorId(ctx context.Context, validatorId uint64) (delegations []structs.Delegation, err error) {
-	return s.driver.GetDelegationsByValidatorId(ctx, validatorId)
+func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+	return s.driver.GetDelegations(ctx, params)
 }
 
 func (s *Store) SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error {

@@ -12,28 +12,34 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-var vldById structs.Validator
+var dlgByDateRange structs.Delegation
 
-func TestGetValidatorById(t *testing.T) {
-	vldById = structs.Validator{
-		Name:        "name_test",
-		Address:     []structs.Address{},
-		Description: "description",
+func TestGetValidatorByDateRange(t *testing.T) {
+	dlgByDateRange = structs.Delegation{
+		Holder:           "holder1",
+		ValidatorId:      uint64(2),
+		Amount:           uint64(0),
+		DelegationPeriod: uint64(0),
+		Created:          time.Now(),
+		Started:          time.Now(),
+		Finished:         time.Now(),
+		Info:             "info1",
 	}
-	var id = "41754feb-1278-46da-981e-87a0876eed53"
-	var invalidId = "id_test"
+	from, _ := time.Parse(handler.Layout, "2006-01-02T15:04:05.000Z")
+	to, _ := time.Parse(handler.Layout, "2106-01-02T15:04:05.000Z")
 	tests := []struct {
-		number     int
-		name       string
-		req        *http.Request
-		params     structs.QueryParams
-		validators []structs.Validator
-		dbResponse error
-		code       int
+		number      int
+		name        string
+		req         *http.Request
+		params      structs.QueryParams
+		delegations []structs.Delegation
+		dbResponse  error
+		code        int
 	}{
-		/*{
+		{
 			number: 1,
 			name:   "not allowed method",
 			req: &http.Request{
@@ -53,62 +59,73 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "empty id",
+			name:   "empty from and to ",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=",
+					RawQuery: "from=&to=",
 				},
 			},
 			code: http.StatusBadRequest,
-		},*/
+		},
 		{
 			number: 4,
+			name:   "invalid date from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2020&to=2100",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:      id,
-				Address: make([]structs.Address, 0),
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:      invalidId,
-				Address: make([]structs.Address, 0),
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:      id,
-				Address: make([]structs.Address, 0),
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			validators: []structs.Validator{vldById},
-			code:       http.StatusOK,
+			delegations: []structs.Delegation{dlgByDateRange},
+			code:        http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -116,12 +133,12 @@ func TestGetValidatorById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
+			if tt.number > 4 {
+				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidators)
+			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

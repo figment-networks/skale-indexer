@@ -18,34 +18,26 @@ import (
 var dlgById structs.Delegation
 
 func TestGetDelegationById(t *testing.T) {
-	holder := "holder1"
-	var validatorId uint64 = 2
-	var amount uint64 = 0
-	var delegationPeriod uint64 = 0
-	var created = time.Now()
-	var started = time.Now()
-	var finished = time.Now()
-	info := "info1"
 	dlgById = structs.Delegation{
-		Holder:           holder,
-		ValidatorId:      validatorId,
-		Amount:           amount,
-		DelegationPeriod: delegationPeriod,
-		Created:          created,
-		Started:          started,
-		Finished:         finished,
-		Info:             info,
+		Holder:           "holder1",
+		ValidatorId:      uint64(2),
+		Amount:           uint64(0),
+		DelegationPeriod: uint64(0),
+		Created:          time.Now(),
+		Started:          time.Now(),
+		Finished:         time.Now(),
+		Info:             "info1",
 	}
 	var id = "93f14795-86dc-4db6-b20f-dda12e626406"
 	var invalidId = "id_not_uuid"
 	tests := []struct {
-		number     int
-		name       string
-		req        *http.Request
-		id         string
-		delegation structs.Delegation
-		dbResponse error
-		code       int
+		number      int
+		name        string
+		req         *http.Request
+		params      structs.QueryParams
+		delegations []structs.Delegation
+		dbResponse  error
+		code        int
 	}{
 		{
 			number: 1,
@@ -53,7 +45,9 @@ func TestGetDelegationById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			id:   id,
+			params: structs.QueryParams{
+				Id: id,
+			},
 			code: http.StatusMethodNotAllowed,
 		},
 		{
@@ -86,7 +80,9 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
 				},
 			},
-			id:         id,
+			params: structs.QueryParams{
+				Id: id,
+			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
@@ -99,7 +95,9 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=id_not_uuid",
 				},
 			},
-			id:         invalidId,
+			params: structs.QueryParams{
+				Id: invalidId,
+			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -112,9 +110,11 @@ func TestGetDelegationById(t *testing.T) {
 					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
 				},
 			},
-			id:         id,
-			delegation: dlgById,
-			code:       http.StatusOK,
+			params: structs.QueryParams{
+				Id: id,
+			},
+			delegations: []structs.Delegation{dlgById},
+			code:        http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -123,11 +123,11 @@ func TestGetDelegationById(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegationById(tt.req.Context(), tt.id).Return(tt.delegation, tt.dbResponse)
+				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationById)
+			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

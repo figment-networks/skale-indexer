@@ -3,8 +3,10 @@ package structs
 import "time"
 
 type QueryParams struct {
-	Id       string
-	Address  []Address
-	TimeFrom time.Time
-	TimeTo   time.Time
+	Id          string
+	ValidatorId uint64
+	Holder      string
+	Address     []Address
+	TimeFrom    time.Time
+	TimeTo      time.Time
 }

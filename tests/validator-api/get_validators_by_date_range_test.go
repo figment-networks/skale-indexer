@@ -65,6 +65,17 @@ func TestGetValidatorByDateRange(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "invalid date from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2020&to=2100",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -73,6 +84,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
+				Address:  make([]structs.Address, 0),
 				TimeFrom: from,
 				TimeTo:   to,
 			},
@@ -80,7 +92,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -89,6 +101,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
+				Address:  make([]structs.Address, 0),
 				TimeFrom: from,
 				TimeTo:   to,
 			},
@@ -96,7 +109,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -105,6 +118,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
+				Address:  make([]structs.Address, 0),
 				TimeFrom: from,
 				TimeTo:   to,
 			},
@@ -117,7 +131,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
+			if tt.number > 4 {
 				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

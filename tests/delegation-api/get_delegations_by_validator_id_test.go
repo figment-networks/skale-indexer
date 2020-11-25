@@ -18,22 +18,16 @@ import (
 var dlgsByValidatorId = make([]structs.Delegation, 1)
 
 func TestGetDelegationsByValidatorId(t *testing.T) {
-	holder := "holder1"
 	var validatorId uint64 = 2
-	var amount uint64 = 0
-	var delegationPeriod uint64 = 0
-	var created = time.Now()
-	var started = time.Now()
-	var finished = time.Now()
 	info := "info1"
 	dlg := structs.Delegation{
-		Holder:           holder,
+		Holder:           "holder1",
 		ValidatorId:      validatorId,
-		Amount:           amount,
-		DelegationPeriod: delegationPeriod,
-		Created:          created,
-		Started:          started,
-		Finished:         finished,
+		Amount:           uint64(0),
+		DelegationPeriod: uint64(0),
+		Created:          time.Now(),
+		Started:          time.Now(),
+		Finished:         time.Now(),
 		Info:             info,
 	}
 	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
@@ -41,7 +35,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		number      int
 		name        string
 		req         *http.Request
-		validatorId uint64
+		params      structs.QueryParams
 		delegations []structs.Delegation
 		dbResponse  error
 		code        int
@@ -84,9 +78,11 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: validatorId,
-			dbResponse:  handler.ErrNotFound,
-			code:        http.StatusNotFound,
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
+			},
+			dbResponse: handler.ErrNotFound,
+			code:       http.StatusNotFound,
 		},
 		{
 			number: 5,
@@ -97,9 +93,11 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: validatorId,
-			dbResponse:  errors.New("internal error"),
-			code:        http.StatusInternalServerError,
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
+			},
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
 		},
 		{
 			number: 6,
@@ -110,7 +108,9 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 					RawQuery: "validator_id=2",
 				},
 			},
-			validatorId: validatorId,
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
+			},
 			delegations: dlgsByValidatorId,
 			code:        http.StatusOK,
 		},
@@ -121,11 +121,11 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegationsByValidatorId(tt.req.Context(), tt.validatorId).Return(tt.delegations, tt.dbResponse)
+				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationsByValidatorId)
+			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
