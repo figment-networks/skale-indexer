@@ -14,7 +14,8 @@ const (
 	updateStatementForValidator = `UPDATE validators SET updated_at = NOW(), name = $1, address = $2, description = $3, fee_rate = $4, active = $5, active_nodes = $6, staked = $7, pending = $8, rewards = $9, data = $10  WHERE id = $11 `
 	getByStatementForValidator  = `SELECT v.id, v.created_at, v.updated_at, v.name, v.address, v.description, v.fee_rate, v.active, v.active_nodes, v.staked, v.pending, v.rewards, v.data FROM validators v WHERE `
 	byIdForValidator            = `v.id =  $1 `
-	byDateRange                 = `v.created_at between $1 and $2`
+	byDateRange                 = `v.created_at between $1 and $2 `
+	byAddress                   = `v.address =  $1 `
 	byAddressForValidator       = `v.address =  $1 `
 )
 
@@ -85,6 +86,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 	if params.Id != "" {
 		q = fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
 		rows, err = d.db.QueryContext(ctx, q, params.Id)
+	} else if len(params.Address) > 0 {
+		q = fmt.Sprintf("%s%s", getByStatementForValidator, byAddress)
+		rows, err = d.db.QueryContext(ctx, q, pq.Array(params.Address))
 	} else {
 		q = fmt.Sprintf("%s%s", getByStatementForValidator, byDateRange)
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)

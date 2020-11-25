@@ -4,7 +4,7 @@ import "time"
 
 type QueryParams struct {
 	Id       string
-	Address  Address
+	Address  []Address
 	TimeFrom time.Time
 	TimeTo   time.Time
 }

@@ -285,22 +285,25 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-	/*
-		validatorAddress := req.URL.Query().Get("address")
-		if validatorAddress == "" {
+
+	id := req.URL.Query().Get("id")
+	address, ok := req.URL.Query()["address"]
+	a := make([]structs.Address, len(address))
+	for i, v := range address {
+		val, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 			return
-		}*/
-
-	id := req.URL.Query().Get("id")
+		}
+		a[i] = structs.Address(val)
+	}
 	from := req.URL.Query().Get("from")
 	timeFrom, errFrom := time.Parse(Layout, from)
-
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
 
-	if id == "" && (errFrom != nil || errTo != nil) {
+	if id == "" && (!ok || len(address) == 0) && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
@@ -308,6 +311,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.QueryParams{
 		Id:       id,
+		Address:  a,
 		TimeFrom: timeFrom,
 		TimeTo:   timeTo,
 	}
