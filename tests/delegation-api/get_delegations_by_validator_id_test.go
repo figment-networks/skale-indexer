@@ -20,7 +20,7 @@ var dlgsByValidatorId = make([]structs.Delegation, 1)
 func TestGetDelegationsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	dlg := structs.Delegation{
-		Holder:           "holder1",
+		Holder:           1,
 		ValidatorId:      validatorId,
 		Amount:           uint64(0),
 		DelegationPeriod: uint64(0),

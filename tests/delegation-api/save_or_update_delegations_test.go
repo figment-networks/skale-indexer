@@ -18,7 +18,7 @@ import (
 
 const (
 	invalidSyntaxForDelegations = `[{
-        "holder_invalid": "holder1",
+        "holder_invalid": 1,
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
@@ -28,7 +28,7 @@ const (
         "info": "info1"
 	`
 	invalidPropertyNameForDelegations = `[{
-        "holder_invalid": "holder1",
+        "holder_invalid": 1,
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
@@ -38,7 +38,7 @@ const (
         "info": "info1"
     }]`
 	validJsonForDelegations = `[{
-        "holder": "holder1",
+        "holder": 1,
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
@@ -48,7 +48,7 @@ const (
         "info": "info1"
     },	
 	{
-        "holder": "holder2",
+        "holder": 2,
         "validator_id": 2,
         "amount": 0,
         "delegation_period": 0,
@@ -65,7 +65,7 @@ const (
 var exampleDelegations []structs.Delegation
 
 func TestSaveOrUpdateDelegations(t *testing.T) {
-	holder := "holder1"
+	var holder uint64= 1
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
@@ -84,7 +84,7 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 		Finished:         finished,
 		Info:             info,
 	}
-	holder2 := "holder2"
+	var holder2 uint64= 2
 	var validatorId2 uint64 = 2
 	var amount2 uint64 = 0
 	var delegationPeriod2 uint64 = 0

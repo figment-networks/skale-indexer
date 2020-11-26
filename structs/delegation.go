@@ -8,7 +8,7 @@ type Delegation struct {
 	ID               string    `json:"id"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
-	Holder           string    `json:"holder"`
+	Holder           uint64    `json:"holder"`
 	ValidatorId      uint64    `json:"validator_id"`
 	Amount           uint64    `json:"amount"`
 	DelegationPeriod uint64    `json:"delegation_period"`

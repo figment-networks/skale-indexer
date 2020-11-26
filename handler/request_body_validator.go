@@ -5,7 +5,7 @@ import (
 )
 
 func validateDelegationRequiredFields(delegation structs.Delegation) error {
-	if delegation.Holder == "" || delegation.ValidatorId == 0 ||
+	if delegation.Holder == 0 || delegation.ValidatorId == 0 ||
 		delegation.Created.IsZero() ||
 		delegation.Started.IsZero() || delegation.Finished.IsZero() ||
 		delegation.Info == "" {

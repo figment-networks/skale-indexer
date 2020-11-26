@@ -18,7 +18,7 @@ import (
 var dlgsByHolder = make([]structs.Delegation, 1)
 
 func TestGetDelegationsByHolder(t *testing.T) {
-	holder := "holder1"
+	var holder uint64 = 1
 	dlg := structs.Delegation{
 		Holder:           holder,
 		ValidatorId:      uint64(2),
@@ -70,11 +70,22 @@ func TestGetDelegationsByHolder(t *testing.T) {
 		},
 		{
 			number: 4,
+			name:   "invalid id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=test",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "holder=holder1",
+					RawQuery: "holder=1",
 				},
 			},
 			params: structs.QueryParams{
@@ -84,12 +95,12 @@ func TestGetDelegationsByHolder(t *testing.T) {
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "holder=holder1",
+					RawQuery: "holder=1",
 				},
 			},
 			params: structs.QueryParams{
@@ -99,12 +110,12 @@ func TestGetDelegationsByHolder(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "holder=holder1",
+					RawQuery: "holder=1",
 				},
 			},
 			params: structs.QueryParams{
@@ -119,7 +130,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
+			if tt.number > 4 {
 				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

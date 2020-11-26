@@ -19,7 +19,7 @@ var dlgByDateRange structs.Delegation
 
 func TestGetValidatorByDateRange(t *testing.T) {
 	dlgByDateRange = structs.Delegation{
-		Holder:           "holder1",
+		Holder:           1,
 		ValidatorId:      uint64(2),
 		Amount:           uint64(0),
 		DelegationPeriod: uint64(0),

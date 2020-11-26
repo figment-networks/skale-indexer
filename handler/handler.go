@@ -65,12 +65,21 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	}
 
 	id := req.URL.Query().Get("id")
-	holder := req.URL.Query().Get("holder")
 	validatorIdParam := req.URL.Query().Get("validator_id")
 	var validatorId uint64
 	var err error
 	if validatorIdParam != "" {
 		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+	}
+	holderParam := req.URL.Query().Get("holder")
+	var holder uint64
+	if holderParam != "" {
+		holder, err = strconv.ParseUint(holderParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -83,7 +92,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
 
-	if id == "" && holder == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
+	if id == "" && holderParam == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
