@@ -62,7 +62,7 @@ const (
 	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
-var exampleDelegations []structs.Event
+var exampleEvents []structs.Event
 
 func TestSaveOrUpdateEvents(t *testing.T) {
 	blockHeight := int64(100)
@@ -107,8 +107,8 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 			Amount:      2,
 		},
 	}
-	exampleDelegations = append(exampleDelegations, example1)
-	exampleDelegations = append(exampleDelegations, example2)
+	exampleEvents = append(exampleEvents, example1)
+	exampleEvents = append(exampleEvents, example2)
 
 	tests := []struct {
 		number     int
@@ -151,7 +151,7 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 				Method: http.MethodPost,
 				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForEvents))),
 			},
-			events:     exampleDelegations,
+			events:     exampleEvents,
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -162,7 +162,7 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 				Method: http.MethodPost,
 				Body:   ioutil.NopCloser(bytes.NewReader([]byte(validJsonForEvents))),
 			},
-			events: exampleDelegations,
+			events: exampleEvents,
 			code:   http.StatusOK,
 		},
 	}

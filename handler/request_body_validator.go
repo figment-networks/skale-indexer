@@ -30,3 +30,12 @@ func validateValidatorRequiredFields(validator structs.Validator) error {
 	}
 	return nil
 }
+
+func validateNodeRequiredFields(node structs.Node) error {
+	if node.Name == "" || node.Ip == "" || node.PublicIp == "" || node.Port == 0 ||
+		node.PublicKey == "" || node.StartBlock == 0 || node.LastRewardDate.IsZero() ||
+		node.FinishTime.IsZero() || node.Status == "" || node.ValidatorId == 0 {
+		return ErrMissingParameter
+	}
+	return nil
+}

@@ -2,13 +2,8 @@ package client
 
 import (
 	"context"
-	"errors"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/figment-networks/skale-indexer/structs"
-)
-
-var (
-	InvalidId = errors.New("invalid id")
 )
 
 type ClientContractor struct {
@@ -43,4 +38,12 @@ func (c *ClientContractor) SaveOrUpdateValidators(ctx context.Context, validator
 
 func (c *ClientContractor) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
 	return c.storeEng.GetValidators(ctx, params)
+}
+
+func (c *ClientContractor) SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error {
+	return c.storeEng.SaveOrUpdateNodes(ctx, nodes)
+}
+
+func (c *ClientContractor) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+	return c.storeEng.GetNodes(ctx, params)
 }

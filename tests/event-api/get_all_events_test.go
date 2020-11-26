@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var dlgEvents = make([]structs.Event, 1)
+var events = make([]structs.Event, 1)
 
 func TestGetAllEvents(t *testing.T) {
 	dlg := structs.Event{
@@ -26,7 +26,7 @@ func TestGetAllEvents(t *testing.T) {
 		EventName:            "eventName1",
 		EventTime:            time.Now(),
 	}
-	dlgEvents = append(dlgEvents, dlg)
+	events = append(events, dlg)
 	tests := []struct {
 		number     int
 		name       string
@@ -74,7 +74,7 @@ func TestGetAllEvents(t *testing.T) {
 				URL:    &url.URL{},
 			},
 			params: structs.QueryParams{},
-			events: dlgEvents,
+			events: events,
 			code:   http.StatusOK,
 		},
 	}

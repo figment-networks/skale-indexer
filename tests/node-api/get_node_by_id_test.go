@@ -12,20 +12,12 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
-var eventById structs.Event
+var nodeById structs.Node
 
-func TestGetEventById(t *testing.T) {
-	eventById = structs.Event{
-		BlockHeight:          int64(100),
-		SmartContractAddress: "smartContractAddress",
-		TransactionIndex:     int64(15),
-		EventType:            "eventType1",
-		EventName:            "eventName1",
-		EventTime:            time.Now(),
-	}
+func TestGetNodeById(t *testing.T) {
+	nodeById = structs.Node{}
 	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	var invalidId = "id_test"
 	tests := []struct {
@@ -33,7 +25,7 @@ func TestGetEventById(t *testing.T) {
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		event      []structs.Event
+		node       []structs.Node
 		dbResponse error
 		code       int
 	}{
@@ -90,8 +82,8 @@ func TestGetEventById(t *testing.T) {
 			params: structs.QueryParams{
 				Id: id,
 			},
-			event: []structs.Event{eventById},
-			code:  http.StatusOK,
+			node: []structs.Node{nodeById},
+			code: http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -100,11 +92,11 @@ func TestGetEventById(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 1 {
-				mockDB.EXPECT().GetEvents(tt.req.Context(), tt.params).Return(tt.event, tt.dbResponse)
+				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.node, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetEvents)
+			res := http.HandlerFunc(connector.GetNodes)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

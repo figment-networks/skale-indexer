@@ -33,7 +33,7 @@ func TestGetValidatorById(t *testing.T) {
 		dbResponse error
 		code       int
 	}{
-		/*{
+		{
 			number: 1,
 			name:   "not allowed method",
 			req: &http.Request{
@@ -61,7 +61,7 @@ func TestGetValidatorById(t *testing.T) {
 				},
 			},
 			code: http.StatusBadRequest,
-		},*/
+		},
 		{
 			number: 4,
 			name:   "record not found error",

@@ -19,7 +19,6 @@ var dlgsByValidatorId = make([]structs.Delegation, 1)
 
 func TestGetDelegationsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
-	info := "info1"
 	dlg := structs.Delegation{
 		Holder:           "holder1",
 		ValidatorId:      validatorId,
@@ -28,7 +27,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		Created:          time.Now(),
 		Started:          time.Now(),
 		Finished:         time.Now(),
-		Info:             info,
+		Info:             "info1",
 	}
 	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
 	tests := []struct {

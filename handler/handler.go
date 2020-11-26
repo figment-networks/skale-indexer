@@ -266,6 +266,82 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(res)
 }
 
+func (c *Connector) SaveOrUpdateNodes(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	decoder := json.NewDecoder(req.Body)
+	var nodes []structs.Node
+	err := decoder.Decode(&nodes)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(err, http.StatusBadRequest))
+		return
+	}
+	for _, n := range nodes {
+		err = validateNodeRequiredFields(n)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+	}
+
+	err = c.cli.SaveOrUpdateNodes(req.Context(), nodes)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	id := req.URL.Query().Get("id")
+	validatorIdParam := req.URL.Query().Get("validator_id")
+	var validatorId uint64
+	var err error
+	if validatorIdParam != "" {
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+	}
+
+	params := structs.QueryParams{
+		Id:          id,
+		ValidatorId: validatorId,
+	}
+	res, err := c.cli.GetNodes(req.Context(), params)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-or-update-delegations", c.SaveOrUpdateDelegations)
@@ -276,4 +352,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 
 	mux.HandleFunc("/save-or-update-validators", c.SaveOrUpdateValidators)
 	mux.HandleFunc("/validators", c.GetValidators)
+
+	mux.HandleFunc("/save-or-update-nodes", c.SaveOrUpdateNodes)
+	mux.HandleFunc("/nodes", c.GetNodes)
 }

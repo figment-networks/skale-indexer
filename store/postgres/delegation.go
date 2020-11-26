@@ -15,8 +15,8 @@ const (
 	byIdForDelegation            = `d.id =  $1 `
 	byHolderForDelegation        = `d.holder =  $1 `
 	byValidatorIdForDelegation   = `d.validator_id =  $1 `
-	byDateRangeForDelegation     = `v.created between $1 and $2 `
-	orderByCreated               = `ORDER BY created DESC`
+	byDateRangeForDelegation     = `d.created between $1 and $2 `
+	orderByCreated               = `ORDER BY d.created DESC`
 )
 
 func (d *Driver) saveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
@@ -38,6 +38,7 @@ func (d *Driver) SaveOrUpdateDelegations(ctx context.Context, dls []structs.Dele
 	return nil
 }
 
+// GetDelegations gets delegations by params
 func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
 	var q string
 	var rows *sql.Rows

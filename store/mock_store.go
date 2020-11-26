@@ -121,6 +121,35 @@ func (mr *MockDBDriverMockRecorder) GetValidators(ctx, params interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDBDriver)(nil).GetValidators), ctx, params)
 }
 
+// SaveOrUpdateNodes mocks base method
+func (m *MockDBDriver) SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOrUpdateNodes", ctx, nodes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOrUpdateNodes indicates an expected call of SaveOrUpdateNodes
+func (mr *MockDBDriverMockRecorder) SaveOrUpdateNodes(ctx, nodes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateNodes", reflect.TypeOf((*MockDBDriver)(nil).SaveOrUpdateNodes), ctx, nodes)
+}
+
+// GetNodes mocks base method
+func (m *MockDBDriver) GetNodes(ctx context.Context, params structs.QueryParams) ([]structs.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNodes", ctx, params)
+	ret0, _ := ret[0].([]structs.Node)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNodes indicates an expected call of GetNodes
+func (mr *MockDBDriverMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDBDriver)(nil).GetNodes), ctx, params)
+}
+
 // MockDataStore is a mock of DataStore interface
 type MockDataStore struct {
 	ctrl     *gomock.Controller
@@ -229,6 +258,35 @@ func (m *MockDataStore) GetValidators(ctx context.Context, params structs.QueryP
 func (mr *MockDataStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDataStore)(nil).GetValidators), ctx, params)
+}
+
+// SaveOrUpdateNodes mocks base method
+func (m *MockDataStore) SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOrUpdateNodes", ctx, nodes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOrUpdateNodes indicates an expected call of SaveOrUpdateNodes
+func (mr *MockDataStoreMockRecorder) SaveOrUpdateNodes(ctx, nodes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateNodes", reflect.TypeOf((*MockDataStore)(nil).SaveOrUpdateNodes), ctx, nodes)
+}
+
+// GetNodes mocks base method
+func (m *MockDataStore) GetNodes(ctx context.Context, params structs.QueryParams) ([]structs.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNodes", ctx, params)
+	ret0, _ := ret[0].([]structs.Node)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNodes indicates an expected call of GetNodes
+func (mr *MockDataStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDataStore)(nil).GetNodes), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -385,4 +443,56 @@ func (m *MockValidatorStore) GetValidators(ctx context.Context, params structs.Q
 func (mr *MockValidatorStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockValidatorStore)(nil).GetValidators), ctx, params)
+}
+
+// MockNodeStore is a mock of NodeStore interface
+type MockNodeStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockNodeStoreMockRecorder
+}
+
+// MockNodeStoreMockRecorder is the mock recorder for MockNodeStore
+type MockNodeStoreMockRecorder struct {
+	mock *MockNodeStore
+}
+
+// NewMockNodeStore creates a new mock instance
+func NewMockNodeStore(ctrl *gomock.Controller) *MockNodeStore {
+	mock := &MockNodeStore{ctrl: ctrl}
+	mock.recorder = &MockNodeStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockNodeStore) EXPECT() *MockNodeStoreMockRecorder {
+	return m.recorder
+}
+
+// SaveOrUpdateNodes mocks base method
+func (m *MockNodeStore) SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOrUpdateNodes", ctx, nodes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOrUpdateNodes indicates an expected call of SaveOrUpdateNodes
+func (mr *MockNodeStoreMockRecorder) SaveOrUpdateNodes(ctx, nodes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOrUpdateNodes", reflect.TypeOf((*MockNodeStore)(nil).SaveOrUpdateNodes), ctx, nodes)
+}
+
+// GetNodes mocks base method
+func (m *MockNodeStore) GetNodes(ctx context.Context, params structs.QueryParams) ([]structs.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNodes", ctx, params)
+	ret0, _ := ret[0].([]structs.Node)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNodes indicates an expected call of GetNodes
+func (mr *MockNodeStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockNodeStore)(nil).GetNodes), ctx, params)
 }

@@ -9,12 +9,14 @@ type DBDriver interface {
 	DelegationStore
 	EventStore
 	ValidatorStore
+	NodeStore
 }
 
 type DataStore interface {
 	DelegationStore
 	EventStore
 	ValidatorStore
+	NodeStore
 }
 
 type DelegationStore interface {
@@ -30,6 +32,11 @@ type EventStore interface {
 type ValidatorStore interface {
 	SaveOrUpdateValidators(ctx context.Context, validators []structs.Validator) error
 	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
+}
+
+type NodeStore interface {
+	SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error
+	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
 }
 
 type Store struct {
@@ -62,4 +69,12 @@ func (s *Store) SaveOrUpdateValidators(ctx context.Context, validators []structs
 
 func (s *Store) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
 	return s.driver.GetValidators(ctx, params)
+}
+
+func (s *Store) SaveOrUpdateNodes(ctx context.Context, nodes []structs.Node) error {
+	return s.driver.SaveOrUpdateNodes(ctx, nodes)
+}
+
+func (s *Store) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+	return s.driver.GetNodes(ctx, params)
 }
