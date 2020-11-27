@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const Layout = "2006-01-02T15:04:05.000Z"
+const Layout = time.RFC3339
 
 // Connector is main HTTP connector for manager
 type Connector struct {

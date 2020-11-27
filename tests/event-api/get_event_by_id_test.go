@@ -20,7 +20,7 @@ var eventById structs.Event
 func TestGetEventById(t *testing.T) {
 	eventById = structs.Event{
 		BlockHeight:          int64(100),
-		SmartContractAddress: "smartContractAddress",
+		SmartContractAddress: 1903,
 		TransactionIndex:     int64(15),
 		EventType:            "eventType1",
 		EventName:            "eventName1",

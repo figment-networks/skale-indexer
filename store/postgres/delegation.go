@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	insertStatementForDelegation = `INSERT INTO delegations ("updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info" ) VALUES ( NOW(), $1, $2, $3, $4, $5, $6, $7, $8) `
-	updateStatementForDelegation = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8  WHERE id = $9 `
-	getByStatementForDelegation  = `SELECT d.id, d.created_at, d.updated_at, d.holder, d.validator_id, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info FROM delegations d WHERE `
+	insertStatementForDelegation = `INSERT INTO delegations ("updated_at", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info", "status", "smart_contract_index", "smart_contract_address" ) VALUES ( NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
+	updateStatementForDelegation = `UPDATE delegations SET updated_at = NOW(), holder = $1, validator_id = $2, amount = $3, delegation_period = $4, created = $5, started = $6, finished = $7, info = $8, status = $9, smart_contract_index = $10, smart_contract_address = $11  WHERE id = $12 `
+	getByStatementForDelegation  = `SELECT d.id, d.created_at, d.updated_at, d.holder, d.validator_id, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.status, d.smart_contract_index, d.smart_contract_address FROM delegations d WHERE `
 	byIdForDelegation            = `d.id =  $1 `
 	byHolderForDelegation        = `d.holder =  $1 `
 	byValidatorIdForDelegation   = `d.validator_id =  $1 `
@@ -21,10 +21,10 @@ const (
 
 func (d *Driver) saveOrUpdateDelegation(ctx context.Context, dl structs.Delegation) error {
 	if dl.ID == "" {
-		_, err := d.db.Exec(insertStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info)
+		_, err := d.db.Exec(insertStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, &dl.Status, &dl.SmartContractIndex, &dl.SmartContractAddress)
 		return err
 	}
-	_, err := d.db.Exec(updateStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.ID)
+	_, err := d.db.Exec(updateStatementForDelegation, dl.Holder, dl.ValidatorId, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, &dl.Status, &dl.SmartContractIndex, &dl.SmartContractAddress, dl.ID)
 	return err
 }
 
@@ -48,7 +48,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams)
 	} else if params.ValidatorId > 0 {
 		q = fmt.Sprintf("%s%s%s", getByStatementForDelegation, byValidatorIdForDelegation, orderByCreated)
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
-	} else if params.Holder != "" {
+	} else if params.Holder != 0 {
 		q = fmt.Sprintf("%s%s%s", getByStatementForDelegation, byHolderForDelegation, orderByCreated)
 		rows, err = d.db.QueryContext(ctx, q, params.Holder)
 	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -67,7 +67,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams)
 
 	for rows.Next() {
 		dlg := structs.Delegation{}
-		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info)
+		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.Holder, &dlg.ValidatorId, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.Status, &dlg.SmartContractIndex, &dlg.SmartContractAddress)
 		if err != nil {
 			return nil, err
 		}

@@ -5,15 +5,18 @@ import (
 )
 
 type Delegation struct {
-	ID               string    `json:"id"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
-	Holder           uint64    `json:"holder"`
-	ValidatorId      uint64    `json:"validator_id"`
-	Amount           uint64    `json:"amount"`
-	DelegationPeriod uint64    `json:"delegation_period"`
-	Created          time.Time `json:"created"`
-	Started          time.Time `json:"started"`
-	Finished         time.Time `json:"finished"`
-	Info             string    `json:"info"`
+	ID                   string    `json:"id"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
+	Holder               uint64    `json:"holder"`
+	ValidatorId          uint64    `json:"validator_id"`
+	Amount               uint64    `json:"amount"`
+	DelegationPeriod     uint64    `json:"delegation_period"`
+	Created              time.Time `json:"created"`
+	Started              time.Time `json:"started"`
+	Finished             time.Time `json:"finished"`
+	Info                 string    `json:"info"`
+	Status               uint      `json:"status"`
+	SmartContractIndex   uint64    `json:"smart_contract_index"`
+	SmartContractAddress uint64    `json:"smart_contract_address"`
 }

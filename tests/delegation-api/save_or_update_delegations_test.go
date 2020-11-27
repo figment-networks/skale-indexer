@@ -45,7 +45,10 @@ const (
         "created": "2014-11-12T11:45:26.371Z",
         "started": "2014-11-12T11:45:26.371Z",
         "finished": "2014-11-12T11:45:26.371Z",
-        "info": "info1"
+        "info": "info1",
+        "status": 1,
+        "smart_contract_index": 1903,
+        "smart_contract_address": 1001
     },	
 	{
         "holder": 2,
@@ -55,7 +58,10 @@ const (
         "created": "2014-11-12T11:45:26.371Z",
         "started": "2014-11-12T11:45:26.371Z",
         "finished": "2014-11-12T11:45:26.371Z",
-        "info": "info2"
+        "info": "info2",
+        "status": 2,
+        "smart_contract_index": 1904,
+        "smart_contract_address": 1002
     }	
 	]`
 	// same value should be used in json examples above for valid cases
@@ -65,7 +71,7 @@ const (
 var exampleDelegations []structs.Delegation
 
 func TestSaveOrUpdateDelegations(t *testing.T) {
-	var holder uint64= 1
+	var holder uint64 = 1
 	var validatorId uint64 = 2
 	var amount uint64 = 0
 	var delegationPeriod uint64 = 0
@@ -75,16 +81,19 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var finished = exampleTime
 	info := "info1"
 	exampleDelegation := structs.Delegation{
-		Holder:           holder,
-		ValidatorId:      validatorId,
-		Amount:           amount,
-		DelegationPeriod: delegationPeriod,
-		Created:          created,
-		Started:          started,
-		Finished:         finished,
-		Info:             info,
+		Holder:               holder,
+		ValidatorId:          validatorId,
+		Amount:               amount,
+		DelegationPeriod:     delegationPeriod,
+		Created:              created,
+		Started:              started,
+		Finished:             finished,
+		Info:                 info,
+		Status:               1,
+		SmartContractIndex:   1903,
+		SmartContractAddress: 1001,
 	}
-	var holder2 uint64= 2
+	var holder2 uint64 = 2
 	var validatorId2 uint64 = 2
 	var amount2 uint64 = 0
 	var delegationPeriod2 uint64 = 0
@@ -93,14 +102,17 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	var finished2 = exampleTime
 	info2 := "info2"
 	exampleDelegation2 := structs.Delegation{
-		Holder:           holder2,
-		ValidatorId:      validatorId2,
-		Amount:           amount2,
-		DelegationPeriod: delegationPeriod2,
-		Created:          created2,
-		Started:          started2,
-		Finished:         finished2,
-		Info:             info2,
+		Holder:               holder2,
+		ValidatorId:          validatorId2,
+		Amount:               amount2,
+		DelegationPeriod:     delegationPeriod2,
+		Created:              created2,
+		Started:              started2,
+		Finished:             finished2,
+		Info:                 info2,
+		Status:               2,
+		SmartContractIndex:   1904,
+		SmartContractAddress: 1002,
 	}
 	exampleDelegations = append(exampleDelegations, exampleDelegation)
 	exampleDelegations = append(exampleDelegations, exampleDelegation2)

@@ -29,7 +29,7 @@ const (
 	}]`
 	validJsonForEvents = `[{
 		"block_height": 100,
-		"smart_contract_address": "smart_contract_address1",
+		"smart_contract_address": 1903,
 		"transaction_index": 15,
 		"event_type": "eventType1",
         "event_name": "event_name_test",
@@ -44,7 +44,7 @@ const (
     },	
 	{
 		"block_height": 101,
-		"smart_contract_address": "smart_contract_address2",
+		"smart_contract_address": 1904,
 		"transaction_index": 25,
 		"event_type": "eventType2",        
 		"event_name": "event_name_test",
@@ -66,7 +66,7 @@ var exampleEvents []structs.Event
 
 func TestSaveOrUpdateEvents(t *testing.T) {
 	blockHeight := int64(100)
-	smartContractAddress := "smart_contract_address1"
+	var smartContractAddress uint64 = 1903
 	transactionIndex := int64(15)
 	eventType := "eventType1"
 	eventName := "event_name_test"
@@ -88,7 +88,7 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 		},
 	}
 	blockHeight2 := int64(101)
-	smartContractAddress2 := "smart_contract_address2"
+	var smartContractAddress2 uint64 = 1904
 	transactionIndex2 := int64(25)
 	eventType2 := "eventType2"
 	eventName2 := "event_name_test"

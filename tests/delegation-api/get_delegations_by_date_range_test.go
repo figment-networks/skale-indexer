@@ -19,14 +19,17 @@ var dlgByDateRange structs.Delegation
 
 func TestGetValidatorByDateRange(t *testing.T) {
 	dlgByDateRange = structs.Delegation{
-		Holder:           1,
-		ValidatorId:      uint64(2),
-		Amount:           uint64(0),
-		DelegationPeriod: uint64(0),
-		Created:          time.Now(),
-		Started:          time.Now(),
-		Finished:         time.Now(),
-		Info:             "info1",
+		Holder:               1,
+		ValidatorId:          uint64(2),
+		Amount:               uint64(0),
+		DelegationPeriod:     uint64(0),
+		Created:              time.Now(),
+		Started:              time.Now(),
+		Finished:             time.Now(),
+		Info:                 "info1",
+		Status:               1,
+		SmartContractIndex:   1903,
+		SmartContractAddress: 1001,
 	}
 	from, _ := time.Parse(handler.Layout, "2006-01-02T15:04:05.000Z")
 	to, _ := time.Parse(handler.Layout, "2106-01-02T15:04:05.000Z")
