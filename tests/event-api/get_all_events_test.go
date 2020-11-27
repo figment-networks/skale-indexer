@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-var events = make([]structs.Event, 1)
-
 func TestGetAllEvents(t *testing.T) {
 	dlg := structs.Event{
 		BlockHeight:          int64(100),
@@ -26,6 +24,7 @@ func TestGetAllEvents(t *testing.T) {
 		EventName:            "eventName1",
 		EventTime:            time.Now(),
 	}
+	var events = make([]structs.Event, 1)
 	events = append(events, dlg)
 	tests := []struct {
 		number     int

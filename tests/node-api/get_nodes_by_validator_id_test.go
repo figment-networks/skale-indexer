@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-var nodesByValidatorId = make([]structs.Node, 1)
-
 func TestGetNodesByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	n := structs.Node{
@@ -34,6 +32,7 @@ func TestGetNodesByValidatorId(t *testing.T) {
 		Status:         "",
 		ValidatorId:    validatorId,
 	}
+	var nodesByValidatorId = make([]structs.Node, 1)
 	nodesByValidatorId = append(nodesByValidatorId, n)
 	tests := []struct {
 		number     int

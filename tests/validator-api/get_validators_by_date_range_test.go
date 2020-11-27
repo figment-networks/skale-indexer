@@ -15,10 +15,8 @@ import (
 	"time"
 )
 
-var vldByDateRange structs.Validator
-
 func TestGetValidatorByDateRange(t *testing.T) {
-	vldByDateRange = structs.Validator{
+	vldByDateRange := structs.Validator{
 		Name:        "name_test",
 		Address:     []structs.Address{},
 		Description: "description",

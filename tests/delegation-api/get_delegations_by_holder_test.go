@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-var dlgsByHolder = make([]structs.Delegation, 1)
-
 func TestGetDelegationsByHolder(t *testing.T) {
 	var holder uint64 = 1
 	dlg := structs.Delegation{
@@ -32,6 +30,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 		SmartContractIndex:   1903,
 		SmartContractAddress: 1001,
 	}
+	var dlgsByHolder = make([]structs.Delegation, 1)
 	dlgsByHolder = append(dlgsByHolder, dlg)
 	tests := []struct {
 		number      int

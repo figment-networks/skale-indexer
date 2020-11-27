@@ -14,10 +14,8 @@ import (
 	"testing"
 )
 
-var nodeById structs.Node
-
 func TestGetNodeById(t *testing.T) {
-	nodeById = structs.Node{}
+	nodeById := structs.Node{}
 	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	var invalidId = "id_test"
 	tests := []struct {

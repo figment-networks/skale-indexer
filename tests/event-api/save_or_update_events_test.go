@@ -62,8 +62,6 @@ const (
 	dummyTime = "2014-11-12T11:45:26.371Z"
 )
 
-var exampleEvents []structs.Event
-
 func TestSaveOrUpdateEvents(t *testing.T) {
 	blockHeight := int64(100)
 	var smartContractAddress uint64 = 1903
@@ -107,6 +105,7 @@ func TestSaveOrUpdateEvents(t *testing.T) {
 			Amount:      2,
 		},
 	}
+	var exampleEvents []structs.Event
 	exampleEvents = append(exampleEvents, example1)
 	exampleEvents = append(exampleEvents, example2)
 

@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-var nodes = make([]structs.Node, 1)
-
 func TestGetAllNodes(t *testing.T) {
 	n := structs.Node{
 		CreatedAt:      time.Time{},
@@ -32,6 +30,7 @@ func TestGetAllNodes(t *testing.T) {
 		Status:         "",
 		ValidatorId:    2,
 	}
+	var nodes = make([]structs.Node, 1)
 	nodes = append(nodes, n)
 	tests := []struct {
 		number     int

@@ -14,11 +14,9 @@ import (
 	"testing"
 )
 
-var vldByAddress structs.Validator
-
 func TestGetValidatorByAddress(t *testing.T) {
 	address := []structs.Address{1, 2, 3}
-	vldByAddress = structs.Validator{
+	vldByAddress := structs.Validator{
 		Name:        "name_test",
 		Address:     address,
 		Description: "description",

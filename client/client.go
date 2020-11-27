@@ -47,3 +47,7 @@ func (c *ClientContractor) SaveOrUpdateNodes(ctx context.Context, nodes []struct
 func (c *ClientContractor) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
 	return c.storeEng.GetNodes(ctx, params)
 }
+
+func (c *ClientContractor) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) (delegationStateStatistics []structs.DelegationStateStatistics, err error) {
+	return c.storeEng.GetDelegationStateStatistics(ctx, params)
+}

@@ -15,10 +15,8 @@ import (
 	"time"
 )
 
-var eventById structs.Event
-
 func TestGetEventById(t *testing.T) {
-	eventById = structs.Event{
+	eventById := structs.Event{
 		BlockHeight:          int64(100),
 		SmartContractAddress: 1903,
 		TransactionIndex:     int64(15),

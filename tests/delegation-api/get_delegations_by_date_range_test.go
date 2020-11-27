@@ -15,10 +15,8 @@ import (
 	"time"
 )
 
-var dlgByDateRange structs.Delegation
-
 func TestGetValidatorByDateRange(t *testing.T) {
-	dlgByDateRange = structs.Delegation{
+	dlgByDateRange := structs.Delegation{
 		Holder:               1,
 		ValidatorId:          uint64(2),
 		Amount:               uint64(0),

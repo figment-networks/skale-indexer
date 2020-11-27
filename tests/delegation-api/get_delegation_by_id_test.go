@@ -15,10 +15,8 @@ import (
 	"time"
 )
 
-var dlgById structs.Delegation
-
 func TestGetDelegationById(t *testing.T) {
-	dlgById = structs.Delegation{
+	dlgById := structs.Delegation{
 		Holder:               1,
 		ValidatorId:          uint64(2),
 		Amount:               uint64(0),

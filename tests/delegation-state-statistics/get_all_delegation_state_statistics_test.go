@@ -12,22 +12,25 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-func TestGetValidatorById(t *testing.T) {
-	vldById := structs.Validator{
-		Name:        "name_test",
-		Address:     []structs.Address{},
-		Description: "description",
+func TestGetAllDelegationStateStatistics(t *testing.T) {
+	d := structs.DelegationStateStatistics{
+		CreatedAt:   time.Time{},
+		UpdatedAt:   time.Time{},
+		Status:      1,
+		ValidatorId: 2,
+		Amount:      3,
 	}
-	var id = "41754feb-1278-46da-981e-87a0876eed53"
-	var invalidId = "id_test"
+	var stats = make([]structs.DelegationStateStatistics, 1)
+	stats = append(stats, d)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		validators []structs.Validator
+		stats      []structs.DelegationStateStatistics
 		dbResponse error
 		code       int
 	}{
@@ -41,72 +44,36 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "missing parameter",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 3,
-			name:   "empty id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
-				},
+				URL:    &url.URL{},
 			},
-			params: structs.QueryParams{
-				Id:      id,
-				Address: make([]structs.Address, 0),
-			},
+			params:     structs.QueryParams{},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 3,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=id_test",
-				},
-			},
-			params: structs.QueryParams{
-				Id:      invalidId,
-				Address: make([]structs.Address, 0),
+				URL:    &url.URL{},
 			},
 			dbResponse: errors.New("internal error"),
+			params:     structs.QueryParams{},
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 4,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
-				},
+				URL:    &url.URL{},
 			},
-			params: structs.QueryParams{
-				Id:      id,
-				Address: make([]structs.Address, 0),
-			},
-			validators: []structs.Validator{vldById},
-			code:       http.StatusOK,
+			params: structs.QueryParams{},
+			stats:  stats,
+			code:   http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -114,12 +81,12 @@ func TestGetValidatorById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
+			if tt.number > 1 {
+				mockDB.EXPECT().GetDelegationStateStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidators)
+			res := http.HandlerFunc(connector.GetDelegationStateStatistics)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

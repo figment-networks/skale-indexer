@@ -12,34 +12,20 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
-func TestGetDelegationsByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	dlg := structs.Delegation{
-		Holder:               1,
-		ValidatorId:          validatorId,
-		Amount:               uint64(0),
-		DelegationPeriod:     uint64(0),
-		Created:              time.Now(),
-		Started:              time.Now(),
-		Finished:             time.Now(),
-		Info:                 "info1",
-		Status:               1,
-		SmartContractIndex:   1903,
-		SmartContractAddress: 1001,
-	}
-	var dlgsByValidatorId = make([]structs.Delegation, 1)
-	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
+func TestGetDelegationStateStatisticsById(t *testing.T) {
+	statById := structs.DelegationStateStatistics{}
+	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	var invalidId = "id_test"
 	tests := []struct {
-		number      int
-		name        string
-		req         *http.Request
-		params      structs.QueryParams
-		delegations []structs.Delegation
-		dbResponse  error
-		code        int
+		number     int
+		name       string
+		req        *http.Request
+		params     structs.QueryParams
+		stats      []structs.DelegationStateStatistics
+		dbResponse error
+		code       int
 	}{
 		{
 			number: 1,
@@ -47,73 +33,55 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
+			params: structs.QueryParams{
+				Id: id,
+			},
 			code: http.StatusMethodNotAllowed,
 		},
 		{
 			number: 2,
-			name:   "missing parameter",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 3,
-			name:   "invalid id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "validator_id=test",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: id,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 3,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=id_test",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: invalidId,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 4,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: id,
 			},
-			delegations: dlgsByValidatorId,
-			code:        http.StatusOK,
+			stats: []structs.DelegationStateStatistics{statById},
+			code:  http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -121,12 +89,12 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
+			if tt.number > 1 {
+				mockDB.EXPECT().GetDelegationStateStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegations)
+			res := http.HandlerFunc(connector.GetDelegationStateStatistics)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
