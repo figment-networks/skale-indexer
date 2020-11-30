@@ -22,6 +22,11 @@ func NewClientConnector(cli client.ClientContractor) *Connector {
 	return &Connector{cli}
 }
 
+func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
 func (c *Connector) SaveOrUpdateDelegations(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodPost {
@@ -395,6 +400,8 @@ func (c *Connector) GetDelegationStateStatistics(w http.ResponseWriter, req *htt
 
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
+	mux.HandleFunc("/health", c.HealthCheck)
+
 	mux.HandleFunc("/save-or-update-delegations", c.SaveOrUpdateDelegations)
 	mux.HandleFunc("/delegations", c.GetDelegations)
 
