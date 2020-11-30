@@ -18,19 +18,24 @@ import (
 func TestGetNodesByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	n := structs.Node{
-		ID:             "",
-		CreatedAt:      time.Time{},
-		UpdatedAt:      time.Time{},
-		Name:           "name1",
-		Ip:             "127.0.0.1",
-		PublicIp:       "127.0.0.1",
-		Port:           8080,
-		PublicKey:      "public key",
-		StartBlock:     1000,
-		LastRewardDate: time.Now(),
-		FinishTime:     time.Now(),
-		Status:         "",
-		ValidatorId:    validatorId,
+		ID:                       "",
+		CreatedAt:                time.Time{},
+		UpdatedAt:                time.Time{},
+		Address:                  uint64(1),
+		Name:                     "name1",
+		Ip:                       "127.0.0.1",
+		PublicIp:                 "127.0.0.1",
+		Port:                     8080,
+		PublicKey:                "public key",
+		StartBlock:               1000,
+		LastRewardDate:           time.Now(),
+		FinishTime:               time.Now(),
+		Status:                   "",
+		ValidatorId:              validatorId,
+		RegistrationDate:         time.Now(),
+		LastBountyCall:           time.Now(),
+		CalledGetBountyThisEpoch: true,
+		Balance:                  0.1234,
 	}
 	var nodesByValidatorId = make([]structs.Node, 1)
 	nodesByValidatorId = append(nodesByValidatorId, n)

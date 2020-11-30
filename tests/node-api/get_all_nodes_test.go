@@ -17,18 +17,23 @@ import (
 
 func TestGetAllNodes(t *testing.T) {
 	n := structs.Node{
-		CreatedAt:      time.Time{},
-		UpdatedAt:      time.Time{},
-		Name:           "name1",
-		Ip:             "127.0.0.1",
-		PublicIp:       "127.0.0.1",
-		Port:           8080,
-		PublicKey:      "public key",
-		StartBlock:     1000,
-		LastRewardDate: time.Now(),
-		FinishTime:     time.Now(),
-		Status:         "",
-		ValidatorId:    2,
+		CreatedAt:                time.Time{},
+		UpdatedAt:                time.Time{},
+		Address:                  uint64(1),
+		Name:                     "name1",
+		Ip:                       "127.0.0.1",
+		PublicIp:                 "127.0.0.1",
+		Port:                     8080,
+		PublicKey:                "public key",
+		StartBlock:               1000,
+		LastRewardDate:           time.Now(),
+		FinishTime:               time.Now(),
+		Status:                   "",
+		ValidatorId:              2,
+		RegistrationDate:         time.Now(),
+		LastBountyCall:           time.Now(),
+		CalledGetBountyThisEpoch: true,
+		Balance:                  0.1234,
 	}
 	var nodes = make([]structs.Node, 1)
 	nodes = append(nodes, n)
