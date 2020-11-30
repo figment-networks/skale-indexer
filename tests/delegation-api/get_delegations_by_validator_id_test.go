@@ -30,7 +30,7 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 		SmartContractIndex:   1903,
 		SmartContractAddress: 1001,
 	}
-	var dlgsByValidatorId = make([]structs.Delegation, 1)
+	var dlgsByValidatorId = make([]structs.Delegation, 0)
 	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
 	tests := []struct {
 		number      int

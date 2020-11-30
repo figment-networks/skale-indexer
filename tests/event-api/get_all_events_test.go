@@ -24,7 +24,7 @@ func TestGetAllEvents(t *testing.T) {
 		EventName:            "eventName1",
 		EventTime:            time.Now(),
 	}
-	var events = make([]structs.Event, 1)
+	var events = make([]structs.Event, 0)
 	events = append(events, dlg)
 	tests := []struct {
 		number     int

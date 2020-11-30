@@ -35,7 +35,7 @@ func TestGetAllNodes(t *testing.T) {
 		CalledGetBountyThisEpoch: true,
 		Balance:                  0.1234,
 	}
-	var nodes = make([]structs.Node, 1)
+	var nodes = make([]structs.Node, 0)
 	nodes = append(nodes, n)
 	tests := []struct {
 		number     int

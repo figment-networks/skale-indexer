@@ -150,19 +150,19 @@ func (mr *MockDBDriverMockRecorder) GetNodes(ctx, params interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDBDriver)(nil).GetNodes), ctx, params)
 }
 
-// GetDelegationStateStatistics mocks base method
-func (m *MockDBDriver) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStateStatistics, error) {
+// GetDelegationStatistics mocks base method
+func (m *MockDBDriver) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationStateStatistics", ctx, params)
-	ret0, _ := ret[0].([]structs.DelegationStateStatistics)
+	ret := m.ctrl.Call(m, "GetDelegationStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationStateStatistics indicates an expected call of GetDelegationStateStatistics
-func (mr *MockDBDriverMockRecorder) GetDelegationStateStatistics(ctx, params interface{}) *gomock.Call {
+// GetDelegationStatistics indicates an expected call of GetDelegationStatistics
+func (mr *MockDBDriverMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStateStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationStateStatistics), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationStatistics), ctx, params)
 }
 
 // MockDataStore is a mock of DataStore interface
@@ -304,19 +304,19 @@ func (mr *MockDataStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDataStore)(nil).GetNodes), ctx, params)
 }
 
-// GetDelegationStateStatistics mocks base method
-func (m *MockDataStore) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStateStatistics, error) {
+// GetDelegationStatistics mocks base method
+func (m *MockDataStore) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationStateStatistics", ctx, params)
-	ret0, _ := ret[0].([]structs.DelegationStateStatistics)
+	ret := m.ctrl.Call(m, "GetDelegationStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationStateStatistics indicates an expected call of GetDelegationStateStatistics
-func (mr *MockDataStoreMockRecorder) GetDelegationStateStatistics(ctx, params interface{}) *gomock.Call {
+// GetDelegationStatistics indicates an expected call of GetDelegationStatistics
+func (mr *MockDataStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStateStatistics", reflect.TypeOf((*MockDataStore)(nil).GetDelegationStateStatistics), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDataStore)(nil).GetDelegationStatistics), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -527,40 +527,40 @@ func (mr *MockNodeStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockNodeStore)(nil).GetNodes), ctx, params)
 }
 
-// MockDelegationStateStatisticsStore is a mock of DelegationStateStatisticsStore interface
-type MockDelegationStateStatisticsStore struct {
+// MockDelegationStatisticsStore is a mock of DelegationStatisticsStore interface
+type MockDelegationStatisticsStore struct {
 	ctrl     *gomock.Controller
-	recorder *MockDelegationStateStatisticsStoreMockRecorder
+	recorder *MockDelegationStatisticsStoreMockRecorder
 }
 
-// MockDelegationStateStatisticsStoreMockRecorder is the mock recorder for MockDelegationStateStatisticsStore
-type MockDelegationStateStatisticsStoreMockRecorder struct {
-	mock *MockDelegationStateStatisticsStore
+// MockDelegationStatisticsStoreMockRecorder is the mock recorder for MockDelegationStatisticsStore
+type MockDelegationStatisticsStoreMockRecorder struct {
+	mock *MockDelegationStatisticsStore
 }
 
-// NewMockDelegationStateStatisticsStore creates a new mock instance
-func NewMockDelegationStateStatisticsStore(ctrl *gomock.Controller) *MockDelegationStateStatisticsStore {
-	mock := &MockDelegationStateStatisticsStore{ctrl: ctrl}
-	mock.recorder = &MockDelegationStateStatisticsStoreMockRecorder{mock}
+// NewMockDelegationStatisticsStore creates a new mock instance
+func NewMockDelegationStatisticsStore(ctrl *gomock.Controller) *MockDelegationStatisticsStore {
+	mock := &MockDelegationStatisticsStore{ctrl: ctrl}
+	mock.recorder = &MockDelegationStatisticsStoreMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockDelegationStateStatisticsStore) EXPECT() *MockDelegationStateStatisticsStoreMockRecorder {
+func (m *MockDelegationStatisticsStore) EXPECT() *MockDelegationStatisticsStoreMockRecorder {
 	return m.recorder
 }
 
-// GetDelegationStateStatistics mocks base method
-func (m *MockDelegationStateStatisticsStore) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStateStatistics, error) {
+// GetDelegationStatistics mocks base method
+func (m *MockDelegationStatisticsStore) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDelegationStateStatistics", ctx, params)
-	ret0, _ := ret[0].([]structs.DelegationStateStatistics)
+	ret := m.ctrl.Call(m, "GetDelegationStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDelegationStateStatistics indicates an expected call of GetDelegationStateStatistics
-func (mr *MockDelegationStateStatisticsStoreMockRecorder) GetDelegationStateStatistics(ctx, params interface{}) *gomock.Call {
+// GetDelegationStatistics indicates an expected call of GetDelegationStatistics
+func (mr *MockDelegationStatisticsStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStateStatistics", reflect.TypeOf((*MockDelegationStateStatisticsStore)(nil).GetDelegationStateStatistics), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetDelegationStatistics), ctx, params)
 }

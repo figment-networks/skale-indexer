@@ -30,7 +30,7 @@ func TestGetDelegationsByHolder(t *testing.T) {
 		SmartContractIndex:   1903,
 		SmartContractAddress: 1001,
 	}
-	var dlgsByHolder = make([]structs.Delegation, 1)
+	var dlgsByHolder = make([]structs.Delegation, 0)
 	dlgsByHolder = append(dlgsByHolder, dlg)
 	tests := []struct {
 		number      int

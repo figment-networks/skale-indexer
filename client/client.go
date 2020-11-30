@@ -48,6 +48,6 @@ func (c *ClientContractor) GetNodes(ctx context.Context, params structs.QueryPar
 	return c.storeEng.GetNodes(ctx, params)
 }
 
-func (c *ClientContractor) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) (delegationStateStatistics []structs.DelegationStateStatistics, err error) {
-	return c.storeEng.GetDelegationStateStatistics(ctx, params)
+func (c *ClientContractor) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error) {
+	return c.storeEng.GetDelegationStatistics(ctx, params)
 }

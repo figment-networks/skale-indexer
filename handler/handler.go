@@ -356,7 +356,7 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(res)
 }
 
-func (c *Connector) GetDelegationStateStatistics(w http.ResponseWriter, req *http.Request) {
+func (c *Connector) GetDelegationStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -377,11 +377,25 @@ func (c *Connector) GetDelegationStateStatistics(w http.ResponseWriter, req *htt
 		}
 	}
 
-	params := structs.QueryParams{
-		Id:          id,
-		ValidatorId: validatorId,
+	statisticTypeParam := req.URL.Query().Get("statistic_type")
+	if statisticTypeParam == "" || !(statisticTypeParam == "states" || statisticTypeParam == "next-epoch") {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		return
 	}
-	res, err := c.cli.GetDelegationStateStatistics(req.Context(), params)
+
+	statisticType := structs.StatesStatisticsType
+	if statisticTypeParam != "states" {
+		statisticType = structs.NextEpochStatisticsType
+	}
+
+	params := structs.QueryParams{
+		Id:            id,
+		ValidatorId:   validatorId,
+		StatisticType: statisticType,
+	}
+
+	res, err := c.cli.GetDelegationStatistics(req.Context(), params)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -414,5 +428,5 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/save-or-update-nodes", c.SaveOrUpdateNodes)
 	mux.HandleFunc("/nodes", c.GetNodes)
 
-	mux.HandleFunc("/delegation-state-statistics", c.GetDelegationStateStatistics)
+	mux.HandleFunc("/delegation-statistics", c.GetDelegationStatistics)
 }

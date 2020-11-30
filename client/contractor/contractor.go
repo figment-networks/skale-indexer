@@ -5,5 +5,5 @@ type ClientContractor interface {
 	eventContractor
 	validatorContractor
 	nodeContractor
-	delegationStateStatisticsContractor
+	delegationStatisticsContractor
 }

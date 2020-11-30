@@ -12,39 +12,20 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 )
 
-func TestGetNodesByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	n := structs.Node{
-		ID:                       "",
-		CreatedAt:                time.Time{},
-		UpdatedAt:                time.Time{},
-		Address:                  uint64(1),
-		Name:                     "name1",
-		Ip:                       "127.0.0.1",
-		PublicIp:                 "127.0.0.1",
-		Port:                     8080,
-		PublicKey:                "public key",
-		StartBlock:               1000,
-		LastRewardDate:           time.Now(),
-		FinishTime:               time.Now(),
-		Status:                   "",
-		ValidatorId:              validatorId,
-		RegistrationDate:         time.Now(),
-		LastBountyCall:           time.Now(),
-		CalledGetBountyThisEpoch: true,
-		Balance:                  0.1234,
+func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
+	statById := structs.DelegationStatistics{
+		StatisticType: structs.NextEpochStatisticsType,
 	}
-	var nodesByValidatorId = make([]structs.Node, 0)
-	nodesByValidatorId = append(nodesByValidatorId, n)
+	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	var invalidId = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		nodes      []structs.Node
+		stats      []structs.DelegationStatistics
 		dbResponse error
 		code       int
 	}{
@@ -54,62 +35,57 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
+			params: structs.QueryParams{
+				Id: id,
+			},
 			code: http.StatusMethodNotAllowed,
 		},
 		{
 			number: 2,
-			name:   "invalid id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "validator_id=test",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 3,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c&statistic_type=next-epoch",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id:            id,
+				StatisticType: structs.NextEpochStatisticsType,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 4,
+			number: 3,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=id_test&statistic_type=next-epoch",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id:            invalidId,
+				StatisticType: structs.NextEpochStatisticsType,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 4,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c&statistic_type=next-epoch",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id:            id,
+				StatisticType: structs.NextEpochStatisticsType,
 			},
-			nodes: nodesByValidatorId,
+			stats: []structs.DelegationStatistics{statById},
 			code:  http.StatusOK,
 		},
 	}
@@ -118,15 +94,18 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 2 {
-				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
+			if tt.number > 1 {
+				mockDB.EXPECT().GetDelegationStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetNodes)
+			res := http.HandlerFunc(connector.GetDelegationStatistics)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
+			for _, s := range tt.stats {
+				assert.True(t, s.StatisticType == structs.NextEpochStatisticsType)
+			}
 		})
 	}
 }

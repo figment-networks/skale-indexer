@@ -10,7 +10,7 @@ type DBDriver interface {
 	EventStore
 	ValidatorStore
 	NodeStore
-	DelegationStateStatisticsStore
+	DelegationStatisticsStore
 }
 
 type DataStore interface {
@@ -18,7 +18,7 @@ type DataStore interface {
 	EventStore
 	ValidatorStore
 	NodeStore
-	DelegationStateStatisticsStore
+	DelegationStatisticsStore
 }
 
 type DelegationStore interface {
@@ -41,8 +41,8 @@ type NodeStore interface {
 	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
 }
 
-type DelegationStateStatisticsStore interface {
-	GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) (delegationStateStatistics []structs.DelegationStateStatistics, err error)
+type DelegationStatisticsStore interface {
+	GetDelegationStatistics(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error)
 }
 
 type Store struct {
@@ -85,6 +85,6 @@ func (s *Store) GetNodes(ctx context.Context, params structs.QueryParams) (nodes
 	return s.driver.GetNodes(ctx, params)
 }
 
-func (s *Store) GetDelegationStateStatistics(ctx context.Context, params structs.QueryParams) (delegationStateStatistics []structs.DelegationStateStatistics, err error) {
-	return s.driver.GetDelegationStateStatistics(ctx, params)
+func (s *Store) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error) {
+	return s.driver.GetDelegationStatistics(ctx, params)
 }
