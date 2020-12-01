@@ -240,7 +240,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 		val, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 		a[i] = structs.Address(val)
