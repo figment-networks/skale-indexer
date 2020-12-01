@@ -59,7 +59,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.QueryParams) (node
 
 	for rows.Next() {
 		n := structs.Node{}
-		err = rows.Scan(&n.ID, &n.CreatedAt, &n.UpdatedAt, n.Address, n.Name, n.Ip, n.PublicIp, n.Port, n.PublicKey, n.StartBlock, n.LastRewardDate, n.FinishTime, n.Status, n.ValidatorId, n.RegistrationDate, n.LastBountyCall, n.CalledGetBountyThisEpoch, n.Balance)
+		err = rows.Scan(&n.ID, &n.CreatedAt, &n.UpdatedAt, &n.Address, &n.Name, &n.Ip, &n.PublicIp, &n.Port, &n.PublicKey, &n.StartBlock, &n.LastRewardDate, &n.FinishTime, &n.Status, &n.ValidatorId, &n.RegistrationDate, &n.LastBountyCall, &n.CalledGetBountyThisEpoch, &n.Balance)
 		if err != nil {
 			return nil, err
 		}
