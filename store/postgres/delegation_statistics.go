@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	getByStatementForDS = `SELECT d.id, d.created_at, d.updated_at, d.validator_id, d.status, d.amount, d.statistics_type FROM delegation_state_statistics d WHERE d.statistics_type = $1 `
+	getByStatementForDS = `SELECT d.id, d.created_at, d.updated_at, d.validator_id, d.status, d.amount, d.statistics_type FROM delegation_statistics d WHERE d.statistics_type = $1 `
 	byIdForDS           = `AND d.id = $2 `
 	byValidatorIdForDS  = `AND d.validator_id = $2 `
 )
@@ -35,7 +35,7 @@ func (d *Driver) GetDelegationStatistics(ctx context.Context, params structs.Que
 
 	for rows.Next() {
 		d := structs.DelegationStatistics{}
-		err = rows.Scan(&d.ID, &d.CreatedAt, &d.UpdatedAt, d.ValidatorId, d.Status, d.Amount, d.StatisticType)
+		err = rows.Scan(&d.ID, &d.CreatedAt, &d.UpdatedAt, &d.ValidatorId, &d.Status, &d.Amount, &d.StatisticType)
 		if err != nil {
 			return nil, err
 		}
