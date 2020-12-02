@@ -6,5 +6,11 @@ type EventDelegationAccepted struct {
 }
 
 func (e *EventDelegationAccepted) Trigger() error {
+	/*
+		delegation <- get delegation from 'delegations' table by delegation_id
+	 	validator  <- get validator from 'validators' table by delegation.validator_id
+		stats <- get stats from 'delegation_stats' table by validators.validator_id and status=ACCEPTED and statistics type = states
+		increment stats 1
+	*/
 	return nil
 }
