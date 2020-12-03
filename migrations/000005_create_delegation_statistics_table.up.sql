@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS delegation_statistics
     status                  SMALLINT                 NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     statistics_type         SMALLINT                 NOT NULL,
-    UNIQUE (statistics_type, validator_id, status),
     PRIMARY KEY (id)
 );
 

@@ -51,9 +51,19 @@ func (d *Driver) GetDelegationStatistics(ctx context.Context, params structs.Que
 /*
 update delegation states
 
- INSERT INTO delegation_statistics  (updated_at, validator_id, status, amount, statistics_type)
-(SELECT NOW(), 2404, status, COUNT(*) AS amount, 24 AS statistic_type  FROM delegations
-WHERE validator_id = 2 GROUP BY status)
-ON     CONFLICT (validator_id, status,  statistics_type) DO UPDATE
-SET   amount = EXCLUDED.amount, updated_at = NOW() ;
+INSERT INTO delegation_statistics  (updated_at, validator_id, status, amount, statistics_type)
+(SELECT NOW(), 2 as validator_id, 1 as  status,  24 AS amount, 3 AS statistics_type  FROM delegations
+WHERE validator_id = 2 GROUP BY)
+
+
+fetch latest delegation states
+SELECT DISTINCT ON (statistics_type, validator_id, status) *
+FROM delegation_statistics
+ORDER BY statistics_type, validator_id, status, created_at DESC ;
+
 */
+
+
+/*
+	list proposed ones
+ */
