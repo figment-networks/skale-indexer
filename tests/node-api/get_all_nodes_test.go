@@ -28,7 +28,7 @@ func TestGetAllNodes(t *testing.T) {
 		StartBlock:               1000,
 		LastRewardDate:           time.Now(),
 		FinishTime:               time.Now(),
-		Status:                   "",
+		Status:                   1,
 		ValidatorId:              2,
 		RegistrationDate:         time.Now(),
 		LastBountyCall:           time.Now(),

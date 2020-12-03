@@ -17,6 +17,7 @@ type Validator struct {
 	FeeRate      uint64       `json:"fee_rate"`
 	Active       bool         `json:"active"`
 	ActiveNodes  int          `json:"active_nodes"`
+	LinkedNodes  int          `json:"linked_nodes"`
 	Staked       uint64       `json:"staked"`
 	Pending      uint64       `json:"pending"`
 	Rewards      uint64       `json:"rewards"`

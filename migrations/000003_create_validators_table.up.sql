@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS validators
     fee_rate                    DECIMAL(65, 0)           NOT NULL,
     active                      BOOLEAN                  NOT NULL,
     active_nodes                SMALLINT                 NOT NULL,
+    linked_nodes                SMALLINT                 NOT NULL,
     staked                      DECIMAL(65, 0)           NOT NULL,
     pending                     DECIMAL(65, 0)           NOT NULL,
     rewards                     DECIMAL(65, 0)           NOT NULL,
