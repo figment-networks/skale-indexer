@@ -194,6 +194,21 @@ func (mr *MockDBDriverMockRecorder) GetLatestDelegationStates(ctx, params interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDBDriver)(nil).GetLatestDelegationStates), ctx, params)
 }
 
+// GetValidatorStatistics mocks base method
+func (m *MockDBDriver) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockDBDriverMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorStatistics), ctx, params)
+}
+
 // MockDataStore is a mock of DataStore interface
 type MockDataStore struct {
 	ctrl     *gomock.Controller
@@ -375,6 +390,21 @@ func (m *MockDataStore) GetLatestDelegationStates(ctx context.Context, params st
 func (mr *MockDataStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDataStore)(nil).GetLatestDelegationStates), ctx, params)
+}
+
+// GetValidatorStatistics mocks base method
+func (m *MockDataStore) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockDataStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatistics), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -650,4 +680,42 @@ func (m *MockDelegationStatisticsStore) GetLatestDelegationStates(ctx context.Co
 func (mr *MockDelegationStatisticsStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetLatestDelegationStates), ctx, params)
+}
+
+// MockValidatorStatisticsStore is a mock of ValidatorStatisticsStore interface
+type MockValidatorStatisticsStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockValidatorStatisticsStoreMockRecorder
+}
+
+// MockValidatorStatisticsStoreMockRecorder is the mock recorder for MockValidatorStatisticsStore
+type MockValidatorStatisticsStoreMockRecorder struct {
+	mock *MockValidatorStatisticsStore
+}
+
+// NewMockValidatorStatisticsStore creates a new mock instance
+func NewMockValidatorStatisticsStore(ctrl *gomock.Controller) *MockValidatorStatisticsStore {
+	mock := &MockValidatorStatisticsStore{ctrl: ctrl}
+	mock.recorder = &MockValidatorStatisticsStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockValidatorStatisticsStore) EXPECT() *MockValidatorStatisticsStoreMockRecorder {
+	return m.recorder
+}
+
+// GetValidatorStatistics mocks base method
+func (m *MockValidatorStatisticsStore) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockValidatorStatisticsStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).GetValidatorStatistics), ctx, params)
 }

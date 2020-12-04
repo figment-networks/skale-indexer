@@ -378,15 +378,21 @@ func (c *Connector) GetDelegationStatistics(w http.ResponseWriter, req *http.Req
 	}
 
 	statisticTypeParam := req.URL.Query().Get("statistic_type")
-	if statisticTypeParam == "" || !(statisticTypeParam == "states" || statisticTypeParam == "next-epoch") {
+	if statisticTypeParam == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	statisticType := structs.StatesStatisticsTypeDS
-	if statisticTypeParam != "states" {
+	var statisticType structs.StatisticTypeDS
+	if statisticTypeParam == "states" {
+		statisticType = structs.StatesStatisticsTypeDS
+	} else if statisticTypeParam == "next_epoch" {
 		statisticType = structs.NextEpochStatisticsTypeDS
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		return
 	}
 
 	statusParam := req.URL.Query().Get("status")
@@ -461,6 +467,82 @@ func (c *Connector) GetLatestDelegationStates(w http.ResponseWriter, req *http.R
 	enc.Encode(res)
 }
 
+func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	id := req.URL.Query().Get("id")
+	validatorIdParam := req.URL.Query().Get("validator_id")
+	var validatorId uint64
+	var err error
+	if validatorIdParam != "" {
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+	}
+
+	statisticTypeParam := req.URL.Query().Get("statistic_type")
+	if statisticTypeParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		return
+	}
+
+	var statisticType structs.StatisticTypeVS
+	if statisticTypeParam == "total_stake" {
+		statisticType = structs.TotalStakeStatisticsTypeVS
+	} else if statisticTypeParam == "active_nodes" {
+		statisticType = structs.ActiveNodesStatisticsTypeVS
+	} else if statisticTypeParam == "linked_nodes" {
+		statisticType = structs.LinkedNodesStatisticsTypeVS
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		return
+	}
+
+	statusParam := req.URL.Query().Get("status")
+	var status uint64
+	if statusParam != "" {
+		status, err = strconv.ParseUint(statusParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+	}
+
+	params := structs.QueryParams{
+		Id:              id,
+		ValidatorId:     validatorId,
+		StatisticTypeVS: statisticType,
+		Status:          status,
+	}
+
+	res, err := c.cli.GetValidatorStatistics(req.Context(), params)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
@@ -480,4 +562,5 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegation-statistics", c.GetDelegationStatistics)
 	mux.HandleFunc("/latest-delegation-states-statistics", c.GetLatestDelegationStates)
 
+	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
 }

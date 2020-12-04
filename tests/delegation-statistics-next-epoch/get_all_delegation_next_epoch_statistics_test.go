@@ -45,11 +45,32 @@ func TestGetAllDelegationNextEpochStatistics(t *testing.T) {
 		},
 		{
 			number: 2,
+			name:   "missing parameter",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 3,
+			name:   "unknown type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "statistic_type=unkown",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "statistic_type=next-epoch",
+					RawQuery: "statistic_type=next_epoch",
 				},
 			},
 			params: structs.QueryParams{
@@ -59,12 +80,12 @@ func TestGetAllDelegationNextEpochStatistics(t *testing.T) {
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 3,
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "statistic_type=next-epoch",
+					RawQuery: "statistic_type=next_epoch",
 				},
 			},
 			dbResponse: errors.New("internal error"),
@@ -74,12 +95,12 @@ func TestGetAllDelegationNextEpochStatistics(t *testing.T) {
 			code: http.StatusInternalServerError,
 		},
 		{
-			number: 4,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "statistic_type=next-epoch",
+					RawQuery: "statistic_type=next_epoch",
 				},
 			},
 			params: structs.QueryParams{
@@ -94,7 +115,7 @@ func TestGetAllDelegationNextEpochStatistics(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 1 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetDelegationStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)

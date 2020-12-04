@@ -8,6 +8,7 @@ type QueryParams struct {
 	Holder          uint64
 	Address         []Address
 	StatisticTypeDS StatisticTypeDS
+	StatisticTypeVS StatisticTypeVS
 	Status          uint64
 	TimeFrom        time.Time
 	TimeTo          time.Time

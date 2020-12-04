@@ -13,7 +13,7 @@ const (
 	byIdForDS                  = `AND d.id = $2 `
 	byValidatorIdForDS         = `AND d.validator_id = $2 `
 	byStatusForDS              = `AND d.status = $3 `
-	orderByCreatedAt           = `ORDER BY d.created_at DESC `
+	orderByCreatedAtDS         = `ORDER BY d.created_at DESC `
 	calculateLatestStatesForDS = `INSERT INTO delegation_statistics (updated_at, validator_id, status, amount, statistics_type) 
 									(SELECT NOW(), $1 as validator_id, status, sum(amount) AS amount, $2 AS statistics_type FROM delegations
 									WHERE validator_id = $3 GROUP BY status)`
@@ -28,13 +28,13 @@ func (d *Driver) GetDelegationStatistics(ctx context.Context, params structs.Que
 		q = fmt.Sprintf("%s%s", getByStatementForDS, byIdForDS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeDS, params.Id)
 	} else if params.ValidatorId > 0 && params.Status == 0 {
-		q = fmt.Sprintf("%s%s%s", getByStatementForDS, byValidatorIdForDS, orderByCreatedAt)
+		q = fmt.Sprintf("%s%s%s", getByStatementForDS, byValidatorIdForDS, orderByCreatedAtDS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeDS, params.ValidatorId)
 	} else if params.ValidatorId > 0 && params.Status > 0 {
-		q = fmt.Sprintf("%s%s%s%s", getByStatementForDS, byValidatorIdForDS, byStatusForDS, orderByCreatedAt)
+		q = fmt.Sprintf("%s%s%s%s", getByStatementForDS, byValidatorIdForDS, byStatusForDS, orderByCreatedAtDS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeDS, params.ValidatorId, params.Status)
 	} else if params.StatisticTypeDS != 0 && params.Id == "" && params.ValidatorId == 0 && params.Status == 0 {
-		q = fmt.Sprintf("%s%s", getByStatementForDS, orderByCreatedAt)
+		q = fmt.Sprintf("%s%s", getByStatementForDS, orderByCreatedAtDS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeDS)
 	} else {
 		return delegationStatistics, handler.ErrMissingParameter
