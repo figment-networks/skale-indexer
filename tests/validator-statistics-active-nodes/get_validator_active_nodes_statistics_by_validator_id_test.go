@@ -20,7 +20,6 @@ func TestGetValidatorActiveNodesStatisticsByValidatorId(t *testing.T) {
 	s := structs.ValidatorStatistics{
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
-		Status:        1,
 		ValidatorId:   2,
 		Amount:        3,
 		StatisticType: structs.ActiveNodesStatisticsTypeVS,

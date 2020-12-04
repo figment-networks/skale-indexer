@@ -6,11 +6,10 @@ CREATE TABLE IF NOT EXISTS validator_statistics
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     validator_id            DECIMAL(65, 0)           NOT NULL,
-    status                  SMALLINT                 NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     statistics_type         SMALLINT                 NOT NULL,
     PRIMARY KEY (id)
 );
 
 -- Indexes
-CREATE index idx_validator_statistics_statistics_type_and_validator_id_and_status on validator_statistics (statistics_type, validator_id, status);
+CREATE index idx_validator_statistics_statistics_type_and_validator_id on validator_statistics (statistics_type, validator_id);

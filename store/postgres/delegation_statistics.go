@@ -15,8 +15,8 @@ const (
 	byStatusForDS              = `AND d.status = $3 `
 	orderByCreatedAtDS         = `ORDER BY d.created_at DESC `
 	calculateLatestStatesForDS = `INSERT INTO delegation_statistics (updated_at, validator_id, status, amount, statistics_type) 
-									(SELECT NOW(), $1 as validator_id, status, sum(amount) AS amount, $2 AS statistics_type FROM delegations
-									WHERE validator_id = $3 GROUP BY status)`
+									(SELECT NOW(), validator_id, status, sum(amount) AS amount, $1 AS statistics_type FROM delegations
+									WHERE validator_id = $2 GROUP BY status)`
 	getLatestDelegationStatesByValidatorForDS = `SELECT DISTINCT ON (statistics_type, validator_id, status) d.id, d.created_at, d.updated_at, validator_id, status, amount, statistics_type FROM delegation_statistics 
 										WHERE statistics_type = $1 and validator_id = $2 ORDER BY statistics_type, validator_id, status, created_at DESC`
 )
@@ -62,7 +62,7 @@ func (d *Driver) GetDelegationStatistics(ctx context.Context, params structs.Que
 
 // update "DELEGATION STATES"
 func (d *Driver) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
-	_, err := d.db.Exec(calculateLatestStatesForDS, params.ValidatorId, structs.StatesStatisticsTypeDS, params.ValidatorId)
+	_, err := d.db.Exec(calculateLatestStatesForDS, structs.StatesStatisticsTypeDS, params.ValidatorId)
 	return err
 }
 

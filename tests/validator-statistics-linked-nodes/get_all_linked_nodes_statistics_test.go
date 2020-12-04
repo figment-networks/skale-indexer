@@ -19,7 +19,6 @@ func TestGetAllValidatorLinkedNodesStatistics(t *testing.T) {
 	d := structs.ValidatorStatistics{
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
-		Status:        1,
 		ValidatorId:   2,
 		Amount:        3,
 		StatisticType: structs.LinkedNodesStatisticsTypeVS,

@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	insertStatementForValidator = `INSERT INTO validators ("updated_at", "name", "address", "description", "fee_rate", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "data") VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
-	updateStatementForValidator = `UPDATE validators SET updated_at = NOW(), name = $1,ForValidator  address = $2, description = $3, fee_rate = $4, active = $5, active_nodes = $6, active_nodes = $7, staked = $8, pending = $9, rewards = $10, data = $11  WHERE id = $12 `
-	getByStatementForValidator  = `SELECT v.id, v.created_at, v.updated_at, v.name, v.address, v.description, v.fee_rate, v.active, v.active_nodes, v.staked, v.pending, v.rewards, v.data FROM validators v WHERE `
+	insertStatementForValidator = `INSERT INTO validators ("updated_at", "name", "validator_id", "address", "description", "fee_rate", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "data") VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) `
+	updateStatementForValidator = `UPDATE validators SET updated_at = NOW(), name = $1, validator_id = $2, address = $3, description = $4, fee_rate = $5, active = $6, active_nodes = $7, active_nodes = $8, staked = $9, pending = $10, rewards = $11, data = $12  WHERE id = $13 `
+	getByStatementForValidator  = `SELECT v.id, v.created_at, v.updated_at, v.name, v.validator_id, v.address, v.description, v.fee_rate, v.active, v.active_nodes, v.staked, v.pending, v.rewards, v.data FROM validators v WHERE `
 	byIdForValidator            = `v.id =  $1 `
 	byDateRangeForValidator     = `v.created_at between $1 and $2 `
 	byAddressForValidator       = `v.address =  $1 `
@@ -20,10 +20,10 @@ const (
 
 func (d *Driver) saveOrUpdateValidator(ctx context.Context, v structs.Validator) error {
 	if v.ID == "" {
-		_, err := d.db.Exec(insertStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo)
+		_, err := d.db.Exec(insertStatementForValidator, v.Name, v.ValidatorId, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo)
 		return err
 	}
-	_, err := d.db.Exec(updateStatementForValidator, v.Name, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo, v.ID)
+	_, err := d.db.Exec(updateStatementForValidator, v.Name, v.ValidatorId, pq.Array(v.Address), v.Description, v.FeeRate, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, &v.OptionalInfo, v.ID)
 	return err
 }
 
@@ -63,7 +63,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 
 	for rows.Next() {
 		vld := structs.Validator{}
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, pq.Array(&vld.Address), &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.Name, &vld.ValidatorId, pq.Array(&vld.Address), &vld.Description, &vld.FeeRate, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.OptionalInfo)
 		if err != nil {
 			return nil, err
 		}

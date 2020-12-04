@@ -51,6 +51,9 @@ type DelegationStatisticsStore interface {
 
 type ValidatorStatisticsStore interface {
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
 }
 
 type Store struct {
@@ -107,4 +110,16 @@ func (s *Store) GetLatestDelegationStates(ctx context.Context, params structs.Qu
 
 func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return s.driver.GetValidatorStatistics(ctx, params)
+}
+
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateTotalStake(ctx, params)
+}
+
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateActiveNodes(ctx, params)
+}
+
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateLinkedNodes(ctx, params)
 }
