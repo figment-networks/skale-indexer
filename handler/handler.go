@@ -384,18 +384,67 @@ func (c *Connector) GetDelegationStatistics(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	statisticType := structs.StatesStatisticsType
+	statisticType := structs.StatesStatisticsTypeDS
 	if statisticTypeParam != "states" {
-		statisticType = structs.NextEpochStatisticsType
+		statisticType = structs.NextEpochStatisticsTypeDS
+	}
+
+	statusParam := req.URL.Query().Get("status")
+	var status uint64
+	if statusParam != "" {
+		status, err = strconv.ParseUint(statusParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 
 	params := structs.QueryParams{
-		Id:            id,
-		ValidatorId:   validatorId,
-		StatisticType: statisticType,
+		Id:              id,
+		ValidatorId:     validatorId,
+		StatisticTypeDS: statisticType,
+		Status:          status,
 	}
 
 	res, err := c.cli.GetDelegationStatistics(req.Context(), params)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(newApiError(err, http.StatusNotFound))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(res)
+}
+
+func (c *Connector) GetLatestDelegationStates(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	validatorIdParam := req.URL.Query().Get("validator_id")
+	validatorId, err := strconv.ParseUint(validatorIdParam, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(err, http.StatusBadRequest))
+		return
+	}
+
+	params := structs.QueryParams{
+		ValidatorId: validatorId,
+	}
+
+	res, err := c.cli.GetLatestDelegationStates(req.Context(), params)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -429,4 +478,6 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/nodes", c.GetNodes)
 
 	mux.HandleFunc("/delegation-statistics", c.GetDelegationStatistics)
+	mux.HandleFunc("/latest-delegation-states-statistics", c.GetLatestDelegationStates)
+
 }

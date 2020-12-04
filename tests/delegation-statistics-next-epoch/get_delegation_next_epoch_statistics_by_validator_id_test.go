@@ -23,7 +23,7 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 		Status:        1,
 		ValidatorId:   2,
 		Amount:        3,
-		StatisticType: structs.NextEpochStatisticsType,
+		StatisticType: structs.NextEpochStatisticsTypeDS,
 	}
 	var statsByValidatorId = make([]structs.DelegationStatistics, 0)
 	statsByValidatorId = append(statsByValidatorId, s)
@@ -65,8 +65,8 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:   validatorId,
-				StatisticType: structs.NextEpochStatisticsType,
+				ValidatorId:     validatorId,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -81,8 +81,8 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:   validatorId,
-				StatisticType: structs.NextEpochStatisticsType,
+				ValidatorId:     validatorId,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -97,8 +97,8 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:   validatorId,
-				StatisticType: structs.NextEpochStatisticsType,
+				ValidatorId:     validatorId,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			stats: statsByValidatorId,
 			code:  http.StatusOK,
@@ -119,7 +119,7 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
 			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.NextEpochStatisticsType)
+				assert.True(t, s.StatisticType == structs.NextEpochStatisticsTypeDS)
 			}
 		})
 	}

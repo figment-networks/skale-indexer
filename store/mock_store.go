@@ -165,6 +165,35 @@ func (mr *MockDBDriverMockRecorder) GetDelegationStatistics(ctx, params interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationStatistics), ctx, params)
 }
 
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDBDriver) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDBDriverMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDBDriver)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDBDriver) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDBDriverMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDBDriver)(nil).GetLatestDelegationStates), ctx, params)
+}
+
 // MockDataStore is a mock of DataStore interface
 type MockDataStore struct {
 	ctrl     *gomock.Controller
@@ -317,6 +346,35 @@ func (m *MockDataStore) GetDelegationStatistics(ctx context.Context, params stru
 func (mr *MockDataStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDataStore)(nil).GetDelegationStatistics), ctx, params)
+}
+
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDataStore) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDataStoreMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDataStore)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDataStore) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDataStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDataStore)(nil).GetLatestDelegationStates), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -563,4 +621,33 @@ func (m *MockDelegationStatisticsStore) GetDelegationStatistics(ctx context.Cont
 func (mr *MockDelegationStatisticsStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetDelegationStatistics), ctx, params)
+}
+
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDelegationStatisticsStore) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDelegationStatisticsStoreMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDelegationStatisticsStore) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDelegationStatisticsStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetLatestDelegationStates), ctx, params)
 }

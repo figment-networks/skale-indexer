@@ -11,21 +11,21 @@ type DelegationStatistics struct {
 	Status        DelegationStatus `json:"status"`
 	ValidatorId   uint64           `json:"validator_id"`
 	Amount        uint64           `json:"amount"`
-	StatisticType StatisticType    `json:"statistics_type"`
+	StatisticType StatisticTypeDS  `json:"statistics_type"`
 }
 
-type StatisticType int
+type StatisticTypeDS int
 
 const (
-	StatesStatisticsType StatisticType = iota + 1
-	NextEpochStatisticsType
+	StatesStatisticsTypeDS StatisticTypeDS = iota + 1
+	NextEpochStatisticsTypeDS
 )
 
-func (k StatisticType) String() string {
+func (k StatisticTypeDS) String() string {
 	switch k {
-	case StatesStatisticsType:
+	case StatesStatisticsTypeDS:
 		return "STATE_STATISTICS"
-	case NextEpochStatisticsType:
+	case NextEpochStatisticsTypeDS:
 		return "NEXT_EPOCH_STATISTICS"
 	default:
 		return "unknown"

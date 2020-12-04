@@ -16,7 +16,7 @@ import (
 
 func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
 	statById := structs.DelegationStatistics{
-		StatisticType: structs.NextEpochStatisticsType,
+		StatisticType: structs.NextEpochStatisticsTypeDS,
 	}
 	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	var invalidId = "id_test"
@@ -50,8 +50,8 @@ func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            id,
-				StatisticType: structs.NextEpochStatisticsType,
+				Id:              id,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -66,8 +66,8 @@ func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            invalidId,
-				StatisticType: structs.NextEpochStatisticsType,
+				Id:              invalidId,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -82,8 +82,8 @@ func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            id,
-				StatisticType: structs.NextEpochStatisticsType,
+				Id:              id,
+				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
 			},
 			stats: []structs.DelegationStatistics{statById},
 			code:  http.StatusOK,
@@ -104,7 +104,7 @@ func TestGetDelegationNextEpochStatisticsById(t *testing.T) {
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
 			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.NextEpochStatisticsType)
+				assert.True(t, s.StatisticType == structs.NextEpochStatisticsTypeDS)
 			}
 		})
 	}
