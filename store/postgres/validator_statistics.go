@@ -16,16 +16,16 @@ const (
 	orderByCreatedAtVS  = `ORDER BY d.created_at DESC `
 	calculateTotalStake = `INSERT INTO validator_statistics (updated_at, validator_id, amount, statistics_type) 
 									(SELECT NOW(), validator_id, sum(amount) AS amount, $1 AS statistics_type FROM delegations
-									WHERE validator_id = $2 and status IN ($3 ,$4))`
+									WHERE validator_id = $2 AND status IN ($3 ,$4) GROUP BY validator_id)`
 	calculateActiveNodes = `INSERT INTO validator_statistics (updated_at, validator_id, amount, statistics_type) 
 									(SELECT NOW(), validator_id, count(*) AS amount, $1 AS statistics_type FROM nodes
-									WHERE validator_id = $2 and status = $3)`
+									WHERE validator_id = $2 AND status = $3 GROUP BY validator_id)`
 	calculateLinkedNodes = `INSERT INTO validator_statistics (updated_at, validator_id, amount, statistics_type) 
 									(SELECT NOW(), validator_id, count(*) AS amount, $1 AS statistics_type FROM nodes
-									WHERE validator_id = $2)`
+									WHERE validator_id = $2 GROUP BY validator_id)`
 	updateTotalStake  = `UPDATE validators SET updated_at = NOW(), staked = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY created_at DESC LIMIT 1) WHERE validator_id = $3`
-	updateActiveNodes = `UPDATE validators SET updated_at = NOW(), active_nodes = (SELECT active_nodes FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY created_at DESC LIMIT 1) WHERE validator_id = $3`
-	updateLinkedNodes = `UPDATE validators SET updated_at = NOW(), linked_nodes = (SELECT linked_nodes FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY created_at DESC LIMIT 1) WHERE validator_id = $3`
+	updateActiveNodes = `UPDATE validators SET updated_at = NOW(), active_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY created_at DESC LIMIT 1) WHERE validator_id = $3`
+	updateLinkedNodes = `UPDATE validators SET updated_at = NOW(), linked_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY created_at DESC LIMIT 1) WHERE validator_id = $3`
 )
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
@@ -89,7 +89,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.QueryP
 func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
 	_, err := d.db.Exec(calculateLinkedNodes, structs.LinkedNodesStatisticsTypeVS, params.ValidatorId)
 	if err == nil {
-		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.ActiveNodesStatisticsTypeVS, params.ValidatorId)
+		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.LinkedNodesStatisticsTypeVS, params.ValidatorId)
 	}
 	return err
 }
