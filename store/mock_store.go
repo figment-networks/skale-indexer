@@ -165,6 +165,92 @@ func (mr *MockDBDriverMockRecorder) GetDelegationStatistics(ctx, params interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetDelegationStatistics), ctx, params)
 }
 
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDBDriver) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDBDriverMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDBDriver)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDBDriver) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDBDriverMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDBDriver)(nil).GetLatestDelegationStates), ctx, params)
+}
+
+// GetValidatorStatistics mocks base method
+func (m *MockDBDriver) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockDBDriverMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateTotalStake mocks base method
+func (m *MockDBDriver) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateTotalStake", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateTotalStake indicates an expected call of CalculateTotalStake
+func (mr *MockDBDriverMockRecorder) CalculateTotalStake(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateTotalStake", reflect.TypeOf((*MockDBDriver)(nil).CalculateTotalStake), ctx, params)
+}
+
+// CalculateActiveNodes mocks base method
+func (m *MockDBDriver) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateActiveNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateActiveNodes indicates an expected call of CalculateActiveNodes
+func (mr *MockDBDriverMockRecorder) CalculateActiveNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateActiveNodes", reflect.TypeOf((*MockDBDriver)(nil).CalculateActiveNodes), ctx, params)
+}
+
+// CalculateLinkedNodes mocks base method
+func (m *MockDBDriver) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLinkedNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLinkedNodes indicates an expected call of CalculateLinkedNodes
+func (mr *MockDBDriverMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockDBDriver)(nil).CalculateLinkedNodes), ctx, params)
+}
+
 // MockDataStore is a mock of DataStore interface
 type MockDataStore struct {
 	ctrl     *gomock.Controller
@@ -317,6 +403,92 @@ func (m *MockDataStore) GetDelegationStatistics(ctx context.Context, params stru
 func (mr *MockDataStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDataStore)(nil).GetDelegationStatistics), ctx, params)
+}
+
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDataStore) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDataStoreMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDataStore)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDataStore) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDataStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDataStore)(nil).GetLatestDelegationStates), ctx, params)
+}
+
+// GetValidatorStatistics mocks base method
+func (m *MockDataStore) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockDataStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateTotalStake mocks base method
+func (m *MockDataStore) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateTotalStake", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateTotalStake indicates an expected call of CalculateTotalStake
+func (mr *MockDataStoreMockRecorder) CalculateTotalStake(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateTotalStake", reflect.TypeOf((*MockDataStore)(nil).CalculateTotalStake), ctx, params)
+}
+
+// CalculateActiveNodes mocks base method
+func (m *MockDataStore) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateActiveNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateActiveNodes indicates an expected call of CalculateActiveNodes
+func (mr *MockDataStoreMockRecorder) CalculateActiveNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateActiveNodes", reflect.TypeOf((*MockDataStore)(nil).CalculateActiveNodes), ctx, params)
+}
+
+// CalculateLinkedNodes mocks base method
+func (m *MockDataStore) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLinkedNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLinkedNodes indicates an expected call of CalculateLinkedNodes
+func (mr *MockDataStoreMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockDataStore)(nil).CalculateLinkedNodes), ctx, params)
 }
 
 // MockDelegationStore is a mock of DelegationStore interface
@@ -563,4 +735,113 @@ func (m *MockDelegationStatisticsStore) GetDelegationStatistics(ctx context.Cont
 func (mr *MockDelegationStatisticsStoreMockRecorder) GetDelegationStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDelegationStatistics", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetDelegationStatistics), ctx, params)
+}
+
+// CalculateLatestDelegationStatesStatistics mocks base method
+func (m *MockDelegationStatisticsStore) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLatestDelegationStatesStatistics", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLatestDelegationStatesStatistics indicates an expected call of CalculateLatestDelegationStatesStatistics
+func (mr *MockDelegationStatisticsStoreMockRecorder) CalculateLatestDelegationStatesStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLatestDelegationStatesStatistics", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).CalculateLatestDelegationStatesStatistics), ctx, params)
+}
+
+// GetLatestDelegationStates mocks base method
+func (m *MockDelegationStatisticsStore) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) ([]structs.DelegationStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLatestDelegationStates", ctx, params)
+	ret0, _ := ret[0].([]structs.DelegationStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLatestDelegationStates indicates an expected call of GetLatestDelegationStates
+func (mr *MockDelegationStatisticsStoreMockRecorder) GetLatestDelegationStates(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLatestDelegationStates", reflect.TypeOf((*MockDelegationStatisticsStore)(nil).GetLatestDelegationStates), ctx, params)
+}
+
+// MockValidatorStatisticsStore is a mock of ValidatorStatisticsStore interface
+type MockValidatorStatisticsStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockValidatorStatisticsStoreMockRecorder
+}
+
+// MockValidatorStatisticsStoreMockRecorder is the mock recorder for MockValidatorStatisticsStore
+type MockValidatorStatisticsStoreMockRecorder struct {
+	mock *MockValidatorStatisticsStore
+}
+
+// NewMockValidatorStatisticsStore creates a new mock instance
+func NewMockValidatorStatisticsStore(ctrl *gomock.Controller) *MockValidatorStatisticsStore {
+	mock := &MockValidatorStatisticsStore{ctrl: ctrl}
+	mock.recorder = &MockValidatorStatisticsStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockValidatorStatisticsStore) EXPECT() *MockValidatorStatisticsStoreMockRecorder {
+	return m.recorder
+}
+
+// GetValidatorStatistics mocks base method
+func (m *MockValidatorStatisticsStore) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) ([]structs.ValidatorStatistics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidatorStatistics", ctx, params)
+	ret0, _ := ret[0].([]structs.ValidatorStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidatorStatistics indicates an expected call of GetValidatorStatistics
+func (mr *MockValidatorStatisticsStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateTotalStake mocks base method
+func (m *MockValidatorStatisticsStore) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateTotalStake", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateTotalStake indicates an expected call of CalculateTotalStake
+func (mr *MockValidatorStatisticsStoreMockRecorder) CalculateTotalStake(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateTotalStake", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).CalculateTotalStake), ctx, params)
+}
+
+// CalculateActiveNodes mocks base method
+func (m *MockValidatorStatisticsStore) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateActiveNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateActiveNodes indicates an expected call of CalculateActiveNodes
+func (mr *MockValidatorStatisticsStoreMockRecorder) CalculateActiveNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateActiveNodes", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).CalculateActiveNodes), ctx, params)
+}
+
+// CalculateLinkedNodes mocks base method
+func (m *MockValidatorStatisticsStore) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateLinkedNodes", ctx, params)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateLinkedNodes indicates an expected call of CalculateLinkedNodes
+func (mr *MockValidatorStatisticsStoreMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).CalculateLinkedNodes), ctx, params)
 }

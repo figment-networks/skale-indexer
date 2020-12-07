@@ -22,7 +22,7 @@ func TestGetAllDelegationStateStatistics(t *testing.T) {
 		Status:        1,
 		ValidatorId:   2,
 		Amount:        3,
-		StatisticType: structs.StatesStatisticsType,
+		StatisticType: structs.StatesStatisticsTypeDS,
 	}
 	var stats = make([]structs.DelegationStatistics, 0)
 	stats = append(stats, d)
@@ -53,7 +53,7 @@ func TestGetAllDelegationStateStatistics(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				StatisticType: structs.StatesStatisticsType,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -69,7 +69,7 @@ func TestGetAllDelegationStateStatistics(t *testing.T) {
 			},
 			dbResponse: errors.New("internal error"),
 			params: structs.QueryParams{
-				StatisticType: structs.StatesStatisticsType,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			code: http.StatusInternalServerError,
 		},
@@ -83,7 +83,7 @@ func TestGetAllDelegationStateStatistics(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				StatisticType: structs.StatesStatisticsType,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			stats: stats,
 			code:  http.StatusOK,
@@ -104,7 +104,7 @@ func TestGetAllDelegationStateStatistics(t *testing.T) {
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
 			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.StatesStatisticsType)
+				assert.True(t, s.StatisticType == structs.StatesStatisticsTypeDS)
 			}
 		})
 	}

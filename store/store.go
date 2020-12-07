@@ -11,6 +11,7 @@ type DBDriver interface {
 	ValidatorStore
 	NodeStore
 	DelegationStatisticsStore
+	ValidatorStatisticsStore
 }
 
 type DataStore interface {
@@ -19,6 +20,7 @@ type DataStore interface {
 	ValidatorStore
 	NodeStore
 	DelegationStatisticsStore
+	ValidatorStatisticsStore
 }
 
 type DelegationStore interface {
@@ -43,6 +45,15 @@ type NodeStore interface {
 
 type DelegationStatisticsStore interface {
 	GetDelegationStatistics(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error)
+	CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error
+	GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error)
+}
+
+type ValidatorStatisticsStore interface {
+	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
 }
 
 type Store struct {
@@ -87,4 +98,28 @@ func (s *Store) GetNodes(ctx context.Context, params structs.QueryParams) (nodes
 
 func (s *Store) GetDelegationStatistics(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error) {
 	return s.driver.GetDelegationStatistics(ctx, params)
+}
+
+func (s *Store) CalculateLatestDelegationStatesStatistics(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateLatestDelegationStatesStatistics(ctx, params)
+}
+
+func (s *Store) GetLatestDelegationStates(ctx context.Context, params structs.QueryParams) (delegationStatistics []structs.DelegationStatistics, err error) {
+	return s.driver.GetLatestDelegationStates(ctx, params)
+}
+
+func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return s.driver.GetValidatorStatistics(ctx, params)
+}
+
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateTotalStake(ctx, params)
+}
+
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateActiveNodes(ctx, params)
+}
+
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateLinkedNodes(ctx, params)
 }

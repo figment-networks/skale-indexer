@@ -15,24 +15,22 @@ import (
 	"time"
 )
 
-func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	s := structs.DelegationStatistics{
+func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
+	d := structs.ValidatorStatistics{
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
-		Status:        1,
 		ValidatorId:   2,
 		Amount:        3,
-		StatisticType: structs.NextEpochStatisticsTypeDS,
+		StatisticType: structs.ActiveNodesStatisticsTypeVS,
 	}
-	var statsByValidatorId = make([]structs.DelegationStatistics, 0)
-	statsByValidatorId = append(statsByValidatorId, s)
+	var stats = make([]structs.ValidatorStatistics, 0)
+	stats = append(stats, d)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		stats      []structs.DelegationStatistics
+		stats      []structs.ValidatorStatistics
 		dbResponse error
 		code       int
 	}{
@@ -67,61 +65,47 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 4,
-			name:   "invalid id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "validator_id=test&statistic_type=next_epoch",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&statistic_type=next_epoch",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:     validatorId,
-				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
+				StatisticTypeVS: structs.ActiveNodesStatisticsTypeVS,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 6,
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&statistic_type=next_epoch",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
-			params: structs.QueryParams{
-				ValidatorId:     validatorId,
-				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
-			},
 			dbResponse: errors.New("internal error"),
-			code:       http.StatusInternalServerError,
+			params: structs.QueryParams{
+				StatisticTypeVS: structs.ActiveNodesStatisticsTypeVS,
+			},
+			code: http.StatusInternalServerError,
 		},
 		{
-			number: 7,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&statistic_type=next_epoch",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:     validatorId,
-				StatisticTypeDS: structs.NextEpochStatisticsTypeDS,
+				StatisticTypeVS: structs.ActiveNodesStatisticsTypeVS,
 			},
-			stats: statsByValidatorId,
+			stats: stats,
 			code:  http.StatusOK,
 		},
 	}
@@ -130,17 +114,17 @@ func TestGetDelegationNextEpochStatisticsByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 4 {
-				mockDB.EXPECT().GetDelegationStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
+			if tt.number > 3 {
+				mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegationStatistics)
+			res := http.HandlerFunc(connector.GetValidatorStatistics)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
 			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.NextEpochStatisticsTypeDS)
+				assert.True(t, s.StatisticType == structs.ActiveNodesStatisticsTypeVS)
 			}
 		})
 	}

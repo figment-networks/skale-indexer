@@ -16,7 +16,7 @@ import (
 
 func TestGetDelegationStateStatisticsById(t *testing.T) {
 	statById := structs.DelegationStatistics{
-		StatisticType: structs.StatesStatisticsType,
+		StatisticType: structs.StatesStatisticsTypeDS,
 	}
 	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
 	var invalidId = "id_test"
@@ -50,8 +50,8 @@ func TestGetDelegationStateStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            id,
-				StatisticType: structs.StatesStatisticsType,
+				Id:              id,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -66,8 +66,8 @@ func TestGetDelegationStateStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            invalidId,
-				StatisticType: structs.StatesStatisticsType,
+				Id:              invalidId,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -82,8 +82,8 @@ func TestGetDelegationStateStatisticsById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:            id,
-				StatisticType: structs.StatesStatisticsType,
+				Id:              id,
+				StatisticTypeDS: structs.StatesStatisticsTypeDS,
 			},
 			stats: []structs.DelegationStatistics{statById},
 			code:  http.StatusOK,
@@ -104,7 +104,7 @@ func TestGetDelegationStateStatisticsById(t *testing.T) {
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
 			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.StatesStatisticsType)
+				assert.True(t, s.StatisticType == structs.StatesStatisticsTypeDS)
 			}
 		})
 	}

@@ -29,7 +29,7 @@ const (
 	Canceled
 	Rejected
 	Delegated
-	UndelegatedRequested
+	UndelegationRequested
 	Completed
 	Pending     // not available in the source code
 	UnDelegated // not available in the source code
@@ -47,7 +47,7 @@ func (k DelegationStatus) String() string {
 		return "REJECTED"
 	case Delegated:
 		return "DELEGATED"
-	case UndelegatedRequested:
+	case UndelegationRequested:
 		return "UNDELEGATION_REQUESTED"
 	case Completed:
 		return "COMPLETED"

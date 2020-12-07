@@ -4,15 +4,18 @@ CREATE TABLE IF NOT EXISTS validators
     created_at                  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL,
     name                        TEXT                     NOT NULL,
+    validator_id                DECIMAL(65, 0)           NOT NULL,
     address                     NUMERIC(78)[]            NOT NULL,
     description                 TEXT                     NOT NULL,
     fee_rate                    DECIMAL(65, 0)           NOT NULL,
     active                      BOOLEAN                  NOT NULL,
     active_nodes                SMALLINT                 NOT NULL,
+    linked_nodes                SMALLINT                 NOT NULL,
     staked                      DECIMAL(65, 0)           NOT NULL,
     pending                     DECIMAL(65, 0)           NOT NULL,
     rewards                     DECIMAL(65, 0)           NOT NULL,
     data                        JSONB                    NOT NULL,
+    UNIQUE(validator_id),
     PRIMARY KEY (id)
 );
 -- Indexes

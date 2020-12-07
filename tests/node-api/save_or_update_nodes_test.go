@@ -42,7 +42,7 @@ const (
         "start_block": 1000,
         "last_reward_date": "2014-11-12T11:45:26.371Z",
         "finish_time": "2014-11-12T11:45:26.371Z",
-        "status": "Active",
+        "status": 1,
         "validator_id": 2
 	},	
 	{
@@ -54,7 +54,7 @@ const (
         "start_block": 1001,
         "last_reward_date": "2014-11-12T11:45:26.371Z",
         "finish_time": "2014-11-12T11:45:26.371Z",
-        "status": "Pending",
+        "status": 1,
         "validator_id": 3
 	}
 	]`
@@ -75,7 +75,7 @@ func TestSaveOrUpdateNodes(t *testing.T) {
 		StartBlock:     1000,
 		LastRewardDate: exampleTime,
 		FinishTime:     exampleTime,
-		Status:         "Active",
+		Status:         1,
 		ValidatorId:    2,
 	}
 
@@ -88,7 +88,7 @@ func TestSaveOrUpdateNodes(t *testing.T) {
 		StartBlock:     1001,
 		LastRewardDate: exampleTime,
 		FinishTime:     exampleTime,
-		Status:         "Pending",
+		Status:         1,
 		ValidatorId:    3,
 	}
 	exampleNodes = append(exampleNodes, example1)
