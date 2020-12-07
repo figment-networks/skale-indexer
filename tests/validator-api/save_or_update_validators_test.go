@@ -30,6 +30,7 @@ const (
     }]`
 	validJsonForValidators = `[{
         "name": "name_test",
+		"validator_id": 4,
         "address": [1,2],
         "description": "description_test",
         "fee_rate": 1,
@@ -52,6 +53,7 @@ const (
     },	
 	{
      	"name": "name_test",
+		"validator_id": 2,
         "address": [1, 2],
         "description": "description_test",
         "fee_rate": 1,
