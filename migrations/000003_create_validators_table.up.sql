@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS validators
     pending                     DECIMAL(65, 0)           NOT NULL,
     rewards                     DECIMAL(65, 0)           NOT NULL,
     data                        JSONB                    NOT NULL,
-    UNIQUE(validator_id)
+    UNIQUE(validator_id),
     PRIMARY KEY (id)
 );
 -- Indexes
