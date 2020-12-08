@@ -24,6 +24,15 @@ const (
 
 type Config struct {
 	DatabaseDSN string
+	AppEnv      string `json:"app_env" envconfig:"APP_ENV" default:"development"`
+
+	Address  string `json:"address" envconfig:"ADDRESS" default:"0.0.0.0"`
+	Port     string `json:"port" envconfig:"PORT" default:"3000"`
+	HTTPPort string `json:"http_port" envconfig:"HTTP_PORT" default:"8087"`
+
+	// Rollbar
+	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
+	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
 }
 
 // IdentityString returns the full app version string
