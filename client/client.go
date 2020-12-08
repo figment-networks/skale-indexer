@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
-	"github.com/figment-networks/skale-indexer/cmd/skale-indexer/logger"
 	"go.uber.org/zap"
 )
 
@@ -28,39 +27,31 @@ type EthereumAPI struct {
 	AM        *actions.Manager
 }
 
-/*
-	m := NewManager()
-	if err := m.LoadContractsFromDir("./testFiles"); err != nil {
-		t.Error(err)
+func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, cm *contract.Manager, am *actions.Manager) *EthereumAPI {
+	return &EthereumAPI{
+		log:       log,
+		transport: transport,
+		CM:        cm,
+		AM:        am,
 	}
-*/
+}
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, from, to big.Int) error {
-
-	err := eAPI.transport.Dial(ctx)
-	if err != nil {
-		return fmt.Errorf("error dialing ethereum in ParseLogs: %w", err)
-	}
-	defer eAPI.transport.Close(ctx)
-
-	ccs := eAPI.CM.GetContractsByNames([]string{"delegation_controller", // get it from somewhere else
-		"validator_service",
-		"nodes",
-		"distributor",
-		"punisher",
-		"skale_manager",
-		"bounty",
-		"bounty_v2"})
+	ccs := eAPI.CM.GetContractsByNames(eAPI.AM.GetImplementedEventsNames())
 	var addr []common.Address
 	for k := range ccs {
 		addr = append(addr, k)
 	}
-	logs, err := eAPI.transport.GetLogs(ctx, from, to)
+	logs, err := eAPI.transport.GetLogs(ctx, from, to, addr)
 	if err != nil {
 		return fmt.Errorf("error in GetLogs request: %w", err)
 	}
 
 	eAPI.log.Debug("[EthTransport] GetLogs  ", zap.Int("len", len(logs)), zap.Any("request", logs))
+
+	if len(logs) == 0 {
+		return nil
+	}
 
 	// TODO(lukanus): Make it configurable
 	input := make(chan ProcInput, workerCount)
@@ -69,11 +60,12 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, from, to big.Int) error 
 	go populateToWokers(logs, input)
 
 	for i := 0; i < workerCount; i++ {
-		go processLogAsync(ctx, eAPI.log, ccs, input, output)
+		go eAPI.processLogAsync(ctx, ccs, input, output)
 	}
 
 	processed := make(map[uint64][]ProcOutput, len(logs))
 
+	var gotResponses int
 	// Process it first, but calculate
 OutputLoop:
 	for {
@@ -81,7 +73,7 @@ OutputLoop:
 		case <-ctx.Done():
 			break OutputLoop
 		case o := <-output:
-			logger.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
+			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
 			eAPI.AM.StoreEvent(ctx, o.CE)
 			p, ok := processed[o.CE.Height]
 			if !ok {
@@ -89,6 +81,10 @@ OutputLoop:
 			}
 			p = append(p, o)
 			processed[o.CE.Height] = p
+			gotResponses++
+			if gotResponses == len(logs) {
+				break OutputLoop
+			}
 		}
 	}
 
@@ -106,8 +102,6 @@ type ProcOutput struct {
 	Error error
 }
 
-//caller ContractCaller // to be changed to interface in future
-
 func populateToWokers(logs []types.Log, populateCh chan ProcInput) {
 	for i, l := range logs {
 		populateCh <- ProcInput{i, l}
@@ -116,7 +110,9 @@ func populateToWokers(logs []types.Log, populateCh chan ProcInput) {
 	close(populateCh)
 }
 
-func processLogAsync(ctx context.Context, logger *zap.Logger, t transport.EthereumTransport, ccs map[common.Address]contract.ContractsContents, in chan ProcInput, out chan ProcOutput) {
+func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Address]contract.ContractsContents, in chan ProcInput, out chan ProcOutput) {
+	defer eAPI.log.Sync()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -125,19 +121,18 @@ func processLogAsync(ctx context.Context, logger *zap.Logger, t transport.Ethere
 			if !ok {
 				return
 			}
-			ce, err := processLog(logger, inp.Log, ccs)
+			h, err := eAPI.transport.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.Log.BlockNumber))
+			ce, err := processLog(eAPI.log, inp.Log, h, ccs)
 
 			c, ok := ccs[inp.Log.Address]
-			bc := bind.NewBoundContract(c.Addr, c.Abi, t, nil, nil)
-
-			eAPI.AM.AfterEventLog(ctx, bc, ce)
+			eAPI.AM.AfterEventLog(ctx, eAPI.transport.GetBoundContractCaller(ctx, c.Addr, c.Abi), ce)
 
 			out <- ProcOutput{inp.InID, ce, err}
 		}
 	}
 }
 
-func processLog(logger *zap.Logger, l types.Log, ccs map[common.Address]contract.ContractsContents) (ce structures.ContractEvent, err error) {
+func processLog(logger *zap.Logger, l types.Log, h *types.Header, ccs map[common.Address]contract.ContractsContents) (ce structures.ContractEvent, err error) {
 	c, ok := ccs[l.Address]
 	if !ok {
 		logger.Error("[EthTransport] GetLogs contract not found ", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
@@ -169,7 +164,9 @@ func processLog(logger *zap.Logger, l types.Log, ccs map[common.Address]contract
 		Type:         event.Name,
 		Address:      c.Addr,
 		Height:       l.BlockNumber,
+		Time:         time.Unix(int64(h.Time), 0),
 		TxHash:       l.TxHash,
 		Params:       mapped,
+		Removed:      l.Removed,
 	}, nil
 }

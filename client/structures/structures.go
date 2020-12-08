@@ -10,9 +10,11 @@ import (
 type ContractEvent struct {
 	Type         string
 	ContractName string
+	Time         time.Time
 	Address      common.Address
 	Height       uint64
 	TxHash       common.Hash
+	Removed      bool
 	Params       map[string]interface{}
 }
 
