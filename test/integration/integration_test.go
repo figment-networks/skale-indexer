@@ -73,21 +73,6 @@ func TestGetLogs(t *testing.T) {
 			}
 			caller := &skale.Caller{}
 
-			type Store interface {
-				StoreEvent(ctx context.Context, v structures.ContractEvent) error
-
-				StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error
-				StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error
-
-				StoreNode(ctx context.Context, height uint64, t time.Time, v structures.Node) error
-				StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structures.Node) error
-			}
-
-			type Calculator interface {
-				ValidatorParams(ctx context.Context, height uint64, vID *big.Int) error
-				DelegationParams(ctx context.Context, height uint64, dID *big.Int) error
-			}
-
 			slm := &StoreLogMock{zl}
 			clm := &CalculatorLogMock{zl}
 			am := actions.NewManager(caller, slm, clm)
