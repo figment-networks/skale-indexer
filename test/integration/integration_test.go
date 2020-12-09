@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/figment-networks/skale-indexer/api/skale"
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
-	"github.com/figment-networks/skale-indexer/client/transport/eth/skale"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
