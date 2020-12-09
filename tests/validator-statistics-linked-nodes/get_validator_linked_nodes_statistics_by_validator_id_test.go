@@ -18,11 +18,12 @@ import (
 func TestGetValidatorLinkedNodesStatisticsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
 	s := structs.ValidatorStatistics{
-		CreatedAt:     time.Time{},
-		UpdatedAt:     time.Time{},
-		ValidatorId:   2,
-		Amount:        3,
-		StatisticType: structs.LinkedNodesStatisticsTypeVS,
+		CreatedAt:      time.Time{},
+		UpdatedAt:      time.Time{},
+		ValidatorId:    2,
+		Amount:         3,
+		ETHBlockHeight: 1000,
+		StatisticType:  structs.LinkedNodesStatisticsTypeVS,
 	}
 	var statsByValidatorId = make([]structs.ValidatorStatistics, 0)
 	statsByValidatorId = append(statsByValidatorId, s)

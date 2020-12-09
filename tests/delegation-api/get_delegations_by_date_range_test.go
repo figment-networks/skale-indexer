@@ -19,6 +19,8 @@ func TestGetValidatorByDateRange(t *testing.T) {
 	dlgByDateRange := structs.Delegation{
 		Holder:               1,
 		ValidatorId:          uint64(2),
+		SkaleId:              uint64(11),
+		ETHBlockHeight:       uint64(1000),
 		Amount:               uint64(0),
 		DelegationPeriod:     uint64(0),
 		Created:              time.Now(),

@@ -5,12 +5,13 @@ import (
 )
 
 type ValidatorStatistics struct {
-	ID            string          `json:"id"`
-	CreatedAt     time.Time       `json:"created_at"`
-	UpdatedAt     time.Time       `json:"updated_at"`
-	ValidatorId   uint64          `json:"validator_id"`
-	Amount        uint64          `json:"amount"`
-	StatisticType StatisticTypeVS `json:"statistics_type"`
+	ID             string          `json:"id"`
+	CreatedAt      time.Time       `json:"created_at"`
+	UpdatedAt      time.Time       `json:"updated_at"`
+	ValidatorId    uint64          `json:"validator_id"`
+	Amount         uint64          `json:"amount"`
+	ETHBlockHeight uint64          `json:"eth_block_height"`
+	StatisticType  StatisticTypeVS `json:"statistics_type"`
 }
 
 type StatisticTypeVS int

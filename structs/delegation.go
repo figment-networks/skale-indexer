@@ -10,6 +10,8 @@ type Delegation struct {
 	UpdatedAt            time.Time        `json:"updated_at"`
 	Holder               uint64           `json:"holder"`
 	ValidatorId          uint64           `json:"validator_id"`
+	SkaleId              uint64           `json:"skale_id"`
+	ETHBlockHeight       uint64           `json:"eth_block_height"`
 	Amount               uint64           `json:"amount"`
 	DelegationPeriod     uint64           `json:"delegation_period"`
 	Created              time.Time        `json:"created"`

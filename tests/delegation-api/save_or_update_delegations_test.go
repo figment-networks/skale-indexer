@@ -40,6 +40,8 @@ const (
 	validJsonForDelegations = `[{
         "holder": 1,
         "validator_id": 2,
+		"skale_id": 11,
+		"eth_block_height": 1000,
         "amount": 0,
         "delegation_period": 0,
         "created": "2014-11-12T11:45:26.371Z",
@@ -53,6 +55,8 @@ const (
 	{
         "holder": 2,
         "validator_id": 2,
+		"skale_id": 12,
+		"eth_block_height": 1001,
         "amount": 0,
         "delegation_period": 0,
         "created": "2014-11-12T11:45:26.371Z",
@@ -83,6 +87,8 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	exampleDelegation := structs.Delegation{
 		Holder:               holder,
 		ValidatorId:          validatorId,
+		SkaleId:              uint64(11),
+		ETHBlockHeight:       uint64(1000),
 		Amount:               amount,
 		DelegationPeriod:     delegationPeriod,
 		Created:              created,
@@ -104,6 +110,8 @@ func TestSaveOrUpdateDelegations(t *testing.T) {
 	exampleDelegation2 := structs.Delegation{
 		Holder:               holder2,
 		ValidatorId:          validatorId2,
+		SkaleId:              uint64(12),
+		ETHBlockHeight:       uint64(1001),
 		Amount:               amount2,
 		DelegationPeriod:     delegationPeriod2,
 		Created:              created2,
