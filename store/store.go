@@ -69,12 +69,6 @@ func (s *Store) SaveOrUpdateDelegations(ctx context.Context, delegations []struc
 }
 
 func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
-	params2 := structs.QueryParams{
-		ValidatorId:    1,
-		ETHBlockHeight: 1004,
-	}
-	s.driver.CalculateTotalStake(ctx, params2)
-
 	return s.driver.GetDelegations(ctx, params)
 }
 
