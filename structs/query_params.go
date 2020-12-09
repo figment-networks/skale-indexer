@@ -7,6 +7,7 @@ type QueryParams struct {
 	ValidatorId     uint64
 	Holder          uint64
 	Address         []Address
+	ETHBlockHeight  uint64
 	StatisticTypeDS StatisticTypeDS
 	StatisticTypeVS StatisticTypeVS
 	Status          uint64

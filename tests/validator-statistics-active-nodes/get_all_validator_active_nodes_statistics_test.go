@@ -17,11 +17,12 @@ import (
 
 func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
 	d := structs.ValidatorStatistics{
-		CreatedAt:     time.Time{},
-		UpdatedAt:     time.Time{},
-		ValidatorId:   2,
-		Amount:        3,
-		StatisticType: structs.ActiveNodesStatisticsTypeVS,
+		CreatedAt:      time.Time{},
+		UpdatedAt:      time.Time{},
+		ValidatorId:    2,
+		Amount:         3,
+		ETHBlockHeight: 1000,
+		StatisticType:  structs.ActiveNodesStatisticsTypeVS,
 	}
 	var stats = make([]structs.ValidatorStatistics, 0)
 	stats = append(stats, d)

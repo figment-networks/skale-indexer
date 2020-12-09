@@ -20,6 +20,8 @@ func TestGetDelegationsByHolder(t *testing.T) {
 	dlg := structs.Delegation{
 		Holder:               holder,
 		ValidatorId:          uint64(2),
+		SkaleId:              uint64(11),
+		ETHBlockHeight:       uint64(1000),
 		Amount:               uint64(0),
 		DelegationPeriod:     uint64(0),
 		Created:              time.Now(),

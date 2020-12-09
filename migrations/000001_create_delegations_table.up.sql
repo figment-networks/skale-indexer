@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS delegations
     updated_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     holder                  NUMERIC(78)              NOT NULL,
     validator_id            DECIMAL(65, 0)           NOT NULL,
+    skale_id                DECIMAL(65, 0)           NOT NULL,
+    eth_block_height        DECIMAL(65, 0)           NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     delegation_period       DECIMAL(65, 0)           NOT NULL,
     created                 TIMESTAMP WITH TIME ZONE NOT NULL,

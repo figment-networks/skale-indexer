@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS validator_statistics
     updated_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     validator_id            DECIMAL(65, 0)           NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
+    eth_block_height        DECIMAL(65, 0)           NOT NULL,
     statistics_type         SMALLINT                 NOT NULL,
     PRIMARY KEY (id)
 );
