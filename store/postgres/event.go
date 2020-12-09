@@ -4,12 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/structs"
 )
 
 const (
-	insertStatementForEvent = `INSERT INTO events ("updated_at", "block_height", "smart_contract_address", "transaction_index", "event_type", "event_name", "event_time", "event_info") VALUES ( NOW(), $1, $2, $3, $4, $5, $6) `
+	insertStatementForEvent = `INSERT INTO events ("block_height", "smart_contract_address", "transaction_index", "event_type", "event_name", "event_time", "event_info") VALUES ($1, $2, $3, $4, $5, $6) `
 	updateStatementForEvent = `UPDATE events SET updated_at = NOW(), block_height = $1, smart_contract_address = $2, transaction_index = $3, event_type = $4, event_name = $5, event_time = $6, event_info = $7 WHERE id = $8 `
 	getByStatementForEvent  = `SELECT e.id, e.created_at, e.updated_at, e.block_height, e.smart_contract_address, e.transaction_index, e.event_type, e.event_name, e.event_time, e.event_info FROM events e `
 	byIdForEvent            = `WHERE e.id =  $1 `
@@ -65,4 +68,20 @@ func (d *Driver) GetEvents(ctx context.Context, params structs.QueryParams) (eve
 		return nil, handler.ErrNotFound
 	}
 	return events, nil
+}
+
+func (d *Driver) StoreEvent(ctx context.Context, boundAddress common.Address, boundType string, ev structures.ContractEvent) error {
+
+	_, err := d.db.Exec(`INSERT INTO events("block_height", "event_time", "smart_contract_address", "event_type", "event_name", "transaction_hash", "bound_address", "bound_type", "event_info") VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		ev.Height,
+		ev.Time,
+		ev.Address,
+		ev.Type,
+		ev.ContractName,
+		ev.TxHash,
+		boundAddress,
+		boundType,
+		ev.Params)
+
+	return err
 }

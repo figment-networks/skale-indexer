@@ -2,6 +2,9 @@ package store
 
 import (
 	"context"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/structs"
 )
 
@@ -29,6 +32,8 @@ type DelegationStore interface {
 }
 
 type EventStore interface {
+	StoreEvent(ctx context.Context, boundAddress common.Address, boundType string, ev structures.ContractEvent) error
+
 	SaveOrUpdateEvents(ctx context.Context, events []structs.Event) error
 	GetEvents(ctx context.Context, params structs.QueryParams) (events []structs.Event, err error)
 }
@@ -122,4 +127,8 @@ func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryPa
 
 func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
+}
+
+func (s *Store) StoreEvent(ctx context.Context, boundAddress common.Address, boundType string, ev structures.ContractEvent) error {
+	return s.driver.StoreEvent(ctx, boundAddress, boundType, ev)
 }
