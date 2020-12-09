@@ -23,21 +23,19 @@ type EthereumClient interface {
 type EthereumAPI struct {
 	transport transport.EthereumTransport
 	log       *zap.Logger
-	CM        *contract.Manager
 	AM        *actions.Manager
 }
 
-func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, cm *contract.Manager, am *actions.Manager) *EthereumAPI {
+func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am *actions.Manager) *EthereumAPI {
 	return &EthereumAPI{
 		log:       log,
 		transport: transport,
-		CM:        cm,
 		AM:        am,
 	}
 }
 
-func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, from, to big.Int) error {
-	ccs := eAPI.CM.GetContractsByNames(eAPI.AM.GetImplementedEventsNames())
+func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
+
 	var addr []common.Address
 	for k := range ccs {
 		addr = append(addr, k)
@@ -73,6 +71,11 @@ OutputLoop:
 		case <-ctx.Done():
 			break OutputLoop
 		case o := <-output:
+			gotResponses++
+			if o.Error != nil {
+				eAPI.log.Error("Error", zap.Error(o.Error))
+				continue
+			}
 			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
 			eAPI.AM.StoreEvent(ctx, o.CE)
 			p, ok := processed[o.CE.Height]
@@ -81,7 +84,6 @@ OutputLoop:
 			}
 			p = append(p, o)
 			processed[o.CE.Height] = p
-			gotResponses++
 			if gotResponses == len(logs) {
 				break OutputLoop
 			}
@@ -121,12 +123,24 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			if !ok {
 				return
 			}
-			h, err := eAPI.transport.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.Log.BlockNumber))
+
+			h, err := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.Log.BlockNumber))
+			if err != nil {
+				out <- ProcOutput{Error: err}
+				continue
+			}
+
 			ce, err := processLog(eAPI.log, inp.Log, h, ccs)
-
+			if err != nil {
+				out <- ProcOutput{Error: err}
+				continue
+			}
 			c, ok := ccs[inp.Log.Address]
-			eAPI.AM.AfterEventLog(ctx, eAPI.transport.GetBoundContractCaller(ctx, c.Addr, c.Abi), ce)
-
+			err = eAPI.AM.AfterEventLog(ctx, c, ce)
+			if err != nil {
+				out <- ProcOutput{Error: err}
+				continue
+			}
 			out <- ProcOutput{inp.InID, ce, err}
 		}
 	}

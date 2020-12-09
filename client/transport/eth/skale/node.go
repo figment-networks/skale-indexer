@@ -17,12 +17,12 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 	results := []interface{}{}
 
@@ -61,12 +61,12 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 	results := []interface{}{}
 
@@ -91,12 +91,12 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	err = bc.Call(co, &results, "nodes", nodeID)

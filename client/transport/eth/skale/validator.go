@@ -21,12 +21,12 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	err = bc.Call(co, &results, "getValidator", validatorID)
@@ -49,7 +49,7 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 		RequestedAddress:        vraw.RequestedAddress,
 		Description:             vraw.Description,
 		FeeRate:                 vraw.FeeRate,
-		RegistrationTime:        vraw.RegistrationTime,
+		RegistrationTime:        time.Unix(vraw.RegistrationTime.Int64(), 0),
 		MinimumDelegationAmount: vraw.MinimumDelegationAmount,
 		AcceptNewRequests:       vraw.AcceptNewRequests,
 	}, nil
@@ -62,12 +62,12 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	err = bc.Call(&bind.CallOpts{

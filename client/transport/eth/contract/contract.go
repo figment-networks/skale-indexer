@@ -24,20 +24,27 @@ type Manager struct {
 	filterLock sync.RWMutex
 	// subset of contracts by names fnv64 hash
 	addressFilter map[uint64]map[common.Address]ContractsContents
+	nvIndex       map[NV]ContractsContents
+}
+type NV struct {
+	Name    string
+	Version string
 }
 
 func NewManager() *Manager {
 	return &Manager{
 		contractsTable: make(map[common.Address]ContractsContents),
 		addressFilter:  make(map[uint64]map[common.Address]ContractsContents),
+		nvIndex:        make(map[NV]ContractsContents),
 	}
 }
 
 type ContractsContents struct {
-	Name  string
-	Addr  common.Address
-	Abi   abi.ABI
-	Bound *bind.BoundContract
+	Name    string
+	Addr    common.Address
+	Abi     abi.ABI
+	Bound   *bind.BoundContract
+	Version string
 }
 
 func (m *Manager) GetContractsByNames(names []string) (ccs map[common.Address]ContractsContents) {
@@ -130,11 +137,12 @@ func (m *Manager) getContracts(abiF io.Reader, version string) error {
 }
 
 func (m *Manager) LoadContract(name, addr, version string, abiContents abi.ABI) error {
-	cc := ContractsContents{Name: name, Abi: abiContents}
+	cc := ContractsContents{Name: name, Abi: abiContents, Version: version}
 	cc.Addr = common.HexToAddress(addr)
 
 	m.lookupLock.Lock()
 	m.contractsTable[cc.Addr] = cc
+	m.nvIndex[NV{name, version}] = cc
 	m.lookupLock.Unlock()
 	return nil
 }
@@ -143,6 +151,13 @@ func (m *Manager) GetContract(addr common.Address) (ContractsContents, bool) {
 	m.lookupLock.RLock()
 	defer m.lookupLock.RUnlock()
 	cc, ok := m.contractsTable[addr]
+	return cc, ok
+}
+
+func (m *Manager) GetContractByNameVersion(name, version string) (ContractsContents, bool) {
+	m.lookupLock.RLock()
+	defer m.lookupLock.RUnlock()
+	cc, ok := m.nvIndex[NV{name, version}]
 	return cc, ok
 }
 

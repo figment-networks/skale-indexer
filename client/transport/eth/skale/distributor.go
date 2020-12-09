@@ -16,12 +16,12 @@ func (c *Caller) GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContrac
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	results := []interface{}{}

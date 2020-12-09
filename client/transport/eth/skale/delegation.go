@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"time"
 
@@ -31,12 +30,12 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctx,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	err = bc.Call(co, &results, "delegations", delegationID)
@@ -63,7 +62,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		State:            structures.DelegationStateUNKNOWN,
 	}
 
-	log.Printf("gotDelegations %+v", dg)
+	//log.Printf("gotDelegations %+v", dg)
 
 	// BUG(lukanus): recover from panic after format update!
 	return dg, nil
@@ -74,12 +73,12 @@ func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract,
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	results := []interface{}{}
@@ -102,12 +101,12 @@ func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.Bound
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
 		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
 	}
 
 	results := []interface{}{}
@@ -136,7 +135,6 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 	defer cancel()
 
 	co := &bind.CallOpts{
-		Pending: false,
 		Context: ctxT,
 	}
 
@@ -166,12 +164,12 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 
 		ctxTA, cancelA := context.WithTimeout(ctx, time.Second*30)
 		co := &bind.CallOpts{
-			Pending: false,
 			Context: ctxTA,
 		}
 
 		if blockNumber > 0 { // (lukanus): 0 = latest
 			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+			co.Pending = true
 		}
 		resultsA := []interface{}{}
 

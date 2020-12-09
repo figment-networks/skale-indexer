@@ -7,9 +7,13 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/client/transport"
+	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 )
 
 var implementedEvents = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
@@ -49,18 +53,23 @@ type Calculator interface {
 	DelegationParams(ctx context.Context, height uint64, dID *big.Int) error
 }
 
+type BCGetter interface {
+	GetBoundContractCaller(ctx context.Context, addr common.Address, a abi.ABI) *bind.BoundContract
+}
+
 type Manager struct {
 	s    Store
 	c    Call
 	calc Calculator
+	tr   transport.EthereumTransport
+	cm   *contract.Manager
 }
 
-func NewManager(c Call, s Store, calc Calculator) *Manager {
-	return &Manager{c: c, s: s, calc: calc}
+func NewManager(c Call, s Store, calc Calculator, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
+	return &Manager{c: c, s: s, calc: calc, tr: tr, cm: cm}
 }
 
 func (m *Manager) StoreEvent(ctx context.Context, ev structures.ContractEvent) error {
-
 	// some more magic in will be here in future
 	return m.s.StoreEvent(ctx, ev)
 }
@@ -69,22 +78,16 @@ func (m *Manager) GetImplementedEventsNames() []string {
 	return implementedEvents
 }
 
-func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structures.Validator, error) {
-
-	validator, err := m.c.GetValidator(ctx, bc, blockNumber, validatorID)
-	if err != nil {
-		return validator, fmt.Errorf("error calling getValidator function %w", err)
-	}
-
-	validator.Authorized, err = m.c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
-	if err != nil {
-		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)
-	}
-
-	return validator, nil
+func (m *Manager) GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error) {
+	// add cache
+	h, err = m.tr.GetBlockHeader(ctx, height)
+	return h, err
 }
 
-func (m *Manager) AfterEventLog(ctx context.Context, bc *bind.BoundContract, ce structures.ContractEvent) error {
+func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structures.ContractEvent) error {
+
+	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
+
 	switch ce.ContractName {
 	case "validator_service":
 		/*
@@ -124,18 +127,22 @@ func (m *Manager) AfterEventLog(ctx context.Context, bc *bind.BoundContract, ce 
 
 		v, err := m.validatorChanged(ctx, bc, ce.Height, vID.(*big.Int))
 		if err != nil {
-			return errors.New("Structure is not a validator")
+			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
 
 		if err = m.s.StoreValidator(ctx, ce.Height, ce.Time, v); err != nil {
-			return fmt.Errorf("error storing delegation %w", err)
+			return fmt.Errorf("error storing validator %w", err)
 		}
 
 		if ce.Type == "NodeAddressWasAdded" || ce.Type == "NodeAddressWasRemoved" {
+			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
+			if !ok {
+				return errors.New("Node contract is not found for version :" + c.Version)
 
-			nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.Height, vID.(*big.Int))
+			}
+			nodes, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.Height, vID.(*big.Int))
 			if err != nil {
-				return errors.New("Error getting validator nodes")
+				return fmt.Errorf("error getting validator nodes %w", err)
 			}
 
 			if err := m.s.StoreValidatorNodes(ctx, ce.Height, ce.Time, nodes); err != nil {
@@ -183,7 +190,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, bc *bind.BoundContract, ce 
 		}
 		n, err := m.c.GetNode(ctx, bc, ce.Height, vID.(*big.Int))
 		if err != nil {
-			return errors.New("Structure is not a validator")
+			return errors.New("Structure is not a node")
 		}
 
 		if err = m.s.StoreNode(ctx, ce.Height, ce.Time, n); err != nil {
@@ -259,9 +266,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, bc *bind.BoundContract, ce 
 			return errors.New("Structure is not a delegation")
 		}
 
-		d, err := m.c.GetDelegation(ctx, bc, ce.Height, dID.(*big.Int))
+		d, err := m.delegationChanged(ctx, bc, ce.Height, dID.(*big.Int))
 		if err != nil {
-			return fmt.Errorf("error calling getDelegation function %w", err)
+			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
 
 		if err := m.s.StoreDelegation(ctx, ce.Height, ce.Time, d); err != nil {
@@ -300,4 +307,34 @@ func (m *Manager) AfterEventLog(ctx context.Context, bc *bind.BoundContract, ce 
 	}
 	return nil
 
+}
+
+func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structures.Validator, error) {
+
+	validator, err := m.c.GetValidator(ctx, bc, blockNumber, validatorID)
+	if err != nil {
+		return validator, fmt.Errorf("error calling getValidator function %w", err)
+	}
+
+	validator.Authorized, err = m.c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
+	if err != nil {
+		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)
+	}
+
+	return validator, nil
+}
+
+func (m *Manager) delegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structures.Delegation, error) {
+
+	delegation, err := m.c.GetDelegation(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, fmt.Errorf("error calling GetDelegation %w", err)
+	}
+
+	delegation.State, err = m.c.GetDelegationState(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, fmt.Errorf("error calling GetDelegationState %w", err)
+	}
+
+	return delegation, nil
 }

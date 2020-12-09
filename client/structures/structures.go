@@ -29,7 +29,7 @@ type Validator struct {
 	RequestedAddress        common.Address `json:"requestedAddress"`
 	Description             string         `json:"description"`
 	FeeRate                 *big.Int       `json:"feeRate"`
-	RegistrationTime        *big.Int       `json:"registrationTime"`
+	RegistrationTime        time.Time      `json:"registrationTime"`
 	MinimumDelegationAmount *big.Int       `json:"minimumDelegationAmount"`
 	AcceptNewRequests       bool           `json:"acceptNewRequests"`
 	Authorized              bool           `json:"authorized"`

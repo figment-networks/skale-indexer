@@ -52,6 +52,14 @@ func TestGetLogs(t *testing.T) {
 				to:      *big.NewInt(11020000),
 			},
 		},
+		{
+			name: "test4",
+			args: args{
+				address: "http://localhost:8545",
+				from:    *big.NewInt(11110000),
+				to:      *big.NewInt(11120000),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,12 +80,13 @@ func TestGetLogs(t *testing.T) {
 				return
 			}
 			caller := &skale.Caller{}
-
 			slm := &StoreLogMock{zl}
 			clm := &CalculatorLogMock{zl}
-			am := actions.NewManager(caller, slm, clm)
-			eAPI := client.NewEthereumAPI(zl, tr, cm, am)
-			if err := eAPI.ParseLogs(ctx, tt.args.from, tt.args.to); err != nil {
+			am := actions.NewManager(caller, slm, clm, tr, cm)
+			eAPI := client.NewEthereumAPI(zl, tr, am)
+
+			ccs := cm.GetContractsByNames(am.GetImplementedEventsNames())
+			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
 				t.Error(err)
 				return
 			}
@@ -91,26 +100,31 @@ type StoreLogMock struct {
 
 func (slm *StoreLogMock) StoreEvent(ctx context.Context, v structures.ContractEvent) error {
 	slm.logger.Info("Storing event: ", zap.Any("event", v))
+	slm.logger.Sync()
 	return nil
 }
 
 func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error {
-	slm.logger.Info("Storing velidator: ", zap.Any("validator", v))
+	slm.logger.Info("Storing validator: ", zap.Any("validator", v))
+	slm.logger.Sync()
 	return nil
 }
 
 func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error {
 	slm.logger.Info("Storing delegation: ", zap.Any("delegation", d))
+	slm.logger.Sync()
 	return nil
 }
 
 func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v structures.Node) error {
 	slm.logger.Info("Storing node: ", zap.Any("node", v))
+	slm.logger.Sync()
 	return nil
 }
 
 func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structures.Node) error {
 	slm.logger.Info("Storing validator nodes: ", zap.Any("nodes", nodes))
+	slm.logger.Sync()
 	return nil
 }
 
@@ -120,10 +134,12 @@ type CalculatorLogMock struct {
 
 func (clm *CalculatorLogMock) ValidatorParams(ctx context.Context, height uint64, vID *big.Int) error {
 	clm.logger.Info("Calculating validator params: ", zap.Any("validatorID", vID))
+	clm.logger.Sync()
 	return nil
 }
 
 func (clm *CalculatorLogMock) DelegationParams(ctx context.Context, height uint64, dID *big.Int) error {
 	clm.logger.Info("Calculating delegation params: ", zap.Any("delegationID", dID))
+	clm.logger.Sync()
 	return nil
 }
