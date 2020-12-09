@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/api/structures"
 )
 
 // Delegation structure - abi.Convert Types is dumb as f****

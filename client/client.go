@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
@@ -17,16 +16,21 @@ import (
 
 const workerCount = 5
 
-type EthereumClient interface {
+type ActionManager interface {
+	StoreEvent(ctx context.Context, ev structures.ContractEvent) error
+	GetImplementedEventsNames() []string
+	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
+	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structures.ContractEvent) error
 }
 
 type EthereumAPI struct {
+	log *zap.Logger
+
 	transport transport.EthereumTransport
-	log       *zap.Logger
-	AM        *actions.Manager
+	AM        ActionManager
 }
 
-func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am *actions.Manager) *EthereumAPI {
+func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am ActionManager) *EthereumAPI {
 	return &EthereumAPI{
 		log:       log,
 		transport: transport,

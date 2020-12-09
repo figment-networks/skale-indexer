@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/figment-networks/skale-indexer/api/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
+	"github.com/figment-networks/skale-indexer/api/structures"
 	"github.com/figment-networks/skale-indexer/client"
-	"github.com/figment-networks/skale-indexer/client/actions"
-	"github.com/figment-networks/skale-indexer/client/structures"
+	clientStructures "github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 	"go.uber.org/zap"
@@ -98,7 +99,7 @@ type StoreLogMock struct {
 	logger *zap.Logger
 }
 
-func (slm *StoreLogMock) StoreEvent(ctx context.Context, v structures.ContractEvent) error {
+func (slm *StoreLogMock) StoreEvent(ctx context.Context, v clientStructures.ContractEvent) error {
 	slm.logger.Info("Storing event: ", zap.Any("event", v))
 	slm.logger.Sync()
 	return nil

@@ -11,7 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/api/structures"
+	clientStructures "github.com/figment-networks/skale-indexer/client/structures"
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 )
@@ -39,7 +40,7 @@ type Call interface {
 }
 
 type Store interface {
-	StoreEvent(ctx context.Context, v structures.ContractEvent) error
+	StoreEvent(ctx context.Context, v clientStructures.ContractEvent) error
 
 	StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error
 	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error
@@ -69,7 +70,7 @@ func NewManager(c Call, s Store, calc Calculator, tr transport.EthereumTransport
 	return &Manager{c: c, s: s, calc: calc, tr: tr, cm: cm}
 }
 
-func (m *Manager) StoreEvent(ctx context.Context, ev structures.ContractEvent) error {
+func (m *Manager) StoreEvent(ctx context.Context, ev clientStructures.ContractEvent) error {
 	// some more magic in will be here in future
 	return m.s.StoreEvent(ctx, ev)
 }
@@ -84,7 +85,7 @@ func (m *Manager) GetBlockHeader(ctx context.Context, height *big.Int) (h *types
 	return h, err
 }
 
-func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structures.ContractEvent) error {
+func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContents, ce clientStructures.ContractEvent) error {
 
 	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
 

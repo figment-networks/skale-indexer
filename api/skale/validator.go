@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/api/structures"
 )
 
 func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structures.Validator, err error) {
