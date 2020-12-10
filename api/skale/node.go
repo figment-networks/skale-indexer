@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/figment-networks/skale-indexer/api/structures"
 )
 
-func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structures.Node, err error) {
+func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -35,7 +35,7 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 	if len(results) == 0 {
 		return nil, errors.New("empty result")
 	}
-	nodes = []structures.Node{}
+	nodes = []structs.Node{}
 
 	r := results[0].([]*big.Int)
 	for _, id := range r {
@@ -84,7 +84,7 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 	return time.Unix(nrDate.Int64(), 0), nil
 }
 
-func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structures.Node, err error) {
+func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -110,8 +110,8 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	}
 
 	lrDate := results[5].(*big.Int)
-	return structures.Node{
-		ID:             nodeID,
+	return structs.Node{
+		NodeID:             nodeID,
 		Name:           results[0].(string),
 		IP:             results[1].([4]byte),
 		PublicIP:       results[2].([4]byte),
@@ -119,7 +119,7 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 		StartBlock:     results[4].(*big.Int),
 		LastRewardDate: time.Unix(lrDate.Int64(), 0),
 		FinishTime:     results[6].(*big.Int),
-		Status:         structures.NodeStatus(results[7].(uint8)),
+		Status:         structs.NodeStatus(results[7].(uint8)),
 		ValidatorID:    results[8].(*big.Int),
 	}, nil
 }

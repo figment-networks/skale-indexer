@@ -20,30 +20,6 @@ type Validator struct {
 	Authorized              bool           `json:"authorized"`
 }
 
-type NodeStatus uint
-
-const (
-	NodeStatusActive NodeStatus = iota
-	NodeStatusLeaving
-	NodeStatusLeft
-	NodeStatusInMaintenance
-)
-
-type Node struct {
-	ID             *big.Int   `json:"id"`
-	Name           string     `json:"name"`
-	IP             [4]byte    `json:"ip"`
-	PublicIP       [4]byte    `json:"publicIP"`
-	Port           uint16     `json:"port"`
-	PublicKey      *big.Int   `json:"publicKey"`
-	StartBlock     *big.Int   `json:"startBlock"`
-	NextRewardDate time.Time  `json:"nextRewardDate"`
-	LastRewardDate time.Time  `json:"lastRewardDate"`
-	FinishTime     *big.Int   `json:"finishTime"`
-	Status         NodeStatus `json:"nodeStatus"`
-	ValidatorID    *big.Int   `json:"validatorID"`
-}
-
 type Delegation struct {
 	ID               *big.Int        `json:"id"`
 	Holder           common.Address  `json:"holder"`

@@ -1,4 +1,5 @@
-package contract_events
+package nodes
+
 
 import (
 	"errors"
@@ -14,15 +15,15 @@ import (
 	"testing"
 )
 
-func TestGetAllEvents(t *testing.T) {
-	var events = make([]structs.ContractEvent, 0)
-	events = append(events, structs.ContractEvent{})
+func TestGetAllNodes(t *testing.T) {
+	var nodes = make([]structs.Node, 0)
+	nodes = append(nodes, structs.Node{})
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		events     []structs.ContractEvent
+		nodes      []structs.Node
 		dbResponse error
 		code       int
 	}{
@@ -64,7 +65,7 @@ func TestGetAllEvents(t *testing.T) {
 				URL:    &url.URL{},
 			},
 			params: structs.QueryParams{},
-			events: events,
+			nodes:  nodes,
 			code:   http.StatusOK,
 		},
 	}
@@ -74,11 +75,11 @@ func TestGetAllEvents(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 1 {
-				mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.params).Return(tt.events, tt.dbResponse)
+				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetContractEvents)
+			res := http.HandlerFunc(connector.GetNodes)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

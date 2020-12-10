@@ -19,3 +19,7 @@ func NewClientContractor(storeEng store.DataStore) *ClientContractor {
 func (c *ClientContractor) GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error) {
 	return c.storeEng.GetContractEvents(ctx, params)
 }
+
+func (c *ClientContractor) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+	return c.storeEng.GetNodes(ctx, params)
+}

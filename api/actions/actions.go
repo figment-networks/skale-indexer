@@ -26,8 +26,8 @@ type Call interface {
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structures.Validator, err error)
 
 	// Nodes
-	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structures.Node, err error)
-	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structures.Node, err error)
+	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
+	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
 	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
 
 	// Distributor
@@ -46,8 +46,8 @@ type Store interface {
 	StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error
 	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error
 
-	StoreNode(ctx context.Context, height uint64, t time.Time, v structures.Node) error
-	StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structures.Node) error
+	StoreNode(ctx context.Context, height uint64, t time.Time, v structs.Node) error
+	StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structs.Node) error
 }
 
 type Calculator interface {

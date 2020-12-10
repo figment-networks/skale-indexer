@@ -1,4 +1,5 @@
-package contract_events
+package nodes
+
 
 import (
 	"errors"
@@ -14,15 +15,18 @@ import (
 	"testing"
 )
 
-func TestGetAllEvents(t *testing.T) {
-	var events = make([]structs.ContractEvent, 0)
-	events = append(events, structs.ContractEvent{})
+func TestGetNodesByValidatorId(t *testing.T) {
+	var validatorId uint64 = 2
+	n := structs.Node{
+	}
+	var nodesByValidatorId = make([]structs.Node, 0)
+	nodesByValidatorId = append(nodesByValidatorId, n)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		events     []structs.ContractEvent
+		nodes      []structs.Node
 		dbResponse error
 		code       int
 	}{
@@ -36,36 +40,59 @@ func TestGetAllEvents(t *testing.T) {
 		},
 		{
 			number: 2,
+			name:   "invalid id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=test",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 3,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL:    &url.URL{},
+				URL: &url.URL{
+					RawQuery: "validator_id=2",
+				},
 			},
-			params:     structs.QueryParams{},
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
+			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 3,
+			number: 4,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL:    &url.URL{},
+				URL: &url.URL{
+					RawQuery: "validator_id=2",
+				},
+			},
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
 			},
 			dbResponse: errors.New("internal error"),
-			params:     structs.QueryParams{},
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 4,
+			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL:    &url.URL{},
+				URL: &url.URL{
+					RawQuery: "validator_id=2",
+				},
 			},
-			params: structs.QueryParams{},
-			events: events,
-			code:   http.StatusOK,
+			params: structs.QueryParams{
+				ValidatorId: validatorId,
+			},
+			nodes: nodesByValidatorId,
+			code:  http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -73,12 +100,12 @@ func TestGetAllEvents(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 1 {
-				mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.params).Return(tt.events, tt.dbResponse)
+			if tt.number > 2 {
+				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetContractEvents)
+			res := http.HandlerFunc(connector.GetNodes)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

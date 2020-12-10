@@ -12,11 +12,17 @@ type DBDriver interface {
 
 type DataStore interface {
 	ContractEventStore
+	NodeStore
 }
 
 type ContractEventStore interface {
 	SaveContractEvent(ctx context.Context, contractEvent structs.ContractEvent) error
 	GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error)
+}
+
+type NodeStore interface {
+	SaveNode(ctx context.Context, node structs.Node) error
+	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
 }
 
 type Store struct {

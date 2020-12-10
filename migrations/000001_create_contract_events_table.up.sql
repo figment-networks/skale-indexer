@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS contract_events
     event_name              VARCHAR(50)              NOT NULL,
     contract_address        NUMERIC(78)              NOT NULL,
     block_height            DECIMAL(65, 0)           NOT NULL,
-    time              TIMESTAMP WITH TIME ZONE NOT NULL,
+    time                    TIMESTAMP WITH TIME ZONE NOT NULL,
     transaction_hash        NUMERIC(125)             NOT NULL,
     params                  JSONB                    NOT NULL,
     removed                 BOOLEAN                  NOT NULL,

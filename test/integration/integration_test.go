@@ -117,13 +117,13 @@ func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t t
 	return nil
 }
 
-func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v structures.Node) error {
+func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v clientStructures.Node) error {
 	slm.logger.Info("Storing node: ", zap.Any("node", v))
 	slm.logger.Sync()
 	return nil
 }
 
-func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structures.Node) error {
+func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []clientStructures.Node) error {
 	slm.logger.Info("Storing validator nodes: ", zap.Any("nodes", nodes))
 	slm.logger.Sync()
 	return nil
