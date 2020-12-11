@@ -3,8 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/figment-networks/skale-indexer/client"
-	"github.com/figment-networks/skale-indexer/structs"
+	"github.com/figment-networks/skale-indexer/api/structs"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,11 +13,11 @@ const Layout = time.RFC3339
 
 // Connector is main HTTP connector for manager
 type Connector struct {
-	cli client.ClientContractor
+	cli ClientContractor
 }
 
 // NewConnector is  Connector constructor
-func NewClientConnector(cli client.ClientContractor) *Connector {
+func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
 

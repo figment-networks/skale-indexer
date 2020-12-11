@@ -2,10 +2,9 @@ package validator_statistics
 
 import (
 	"errors"
-	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/api/structs"
 	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
-	"github.com/figment-networks/skale-indexer/structs"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -118,7 +117,7 @@ func TestGetValidatorActiveNodesStatisticsById(t *testing.T) {
 			if tt.number > 3 {
 				mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
-			contractor := *client.NewClientContractor(mockDB)
+			contractor := *handler.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
 			res := http.HandlerFunc(connector.GetValidatorStatistics)
 			rr := httptest.NewRecorder()

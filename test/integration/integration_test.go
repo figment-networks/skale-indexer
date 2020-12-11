@@ -8,10 +8,10 @@ import (
 
 	"github.com/figment-networks/skale-indexer/api/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
+	clientStructures "github.com/figment-networks/skale-indexer/api/structs"
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
-	clientStructures "github.com/figment-networks/skale-indexer/structs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )

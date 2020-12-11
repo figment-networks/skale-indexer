@@ -1,9 +1,9 @@
-package client
+package handler
 
 import (
 	"context"
+	"github.com/figment-networks/skale-indexer/api/structs"
 	"github.com/figment-networks/skale-indexer/store"
-	"github.com/figment-networks/skale-indexer/structs"
 )
 
 type ClientContractor struct {
