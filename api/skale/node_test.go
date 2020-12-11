@@ -2,7 +2,6 @@ package skale
 
 import (
 	"context"
-	"github.com/figment-networks/skale-indexer/api/structures"
 	"math/big"
 	"testing"
 
@@ -68,7 +67,7 @@ func TestGetValidatorNodes(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []structs.Delegation
 		wantErr         bool
 	}{
 		{

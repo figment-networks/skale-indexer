@@ -12,8 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/api/structures"
-
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 )
@@ -35,16 +33,16 @@ type Call interface {
 
 	// Delegation
 	GetPendingDelegationsTokens(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holderAddress common.Address) (amount *big.Int, err error)
-	GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structures.Delegation, err error)
-	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structures.DelegationState, err error)
-	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structures.Delegation, err error)
+	GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
+	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
+	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 }
 
 type Store interface {
 	StoreEvent(ctx context.Context, v structs.ContractEvent) error
 
 	StoreValidator(ctx context.Context, height uint64, t time.Time, v structs.Validator) error
-	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error
+	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structs.Delegation) error
 
 	StoreNode(ctx context.Context, height uint64, t time.Time, v structs.Node) error
 	StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structs.Node) error
@@ -326,7 +324,7 @@ func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, 
 	return validator, nil
 }
 
-func (m *Manager) delegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structures.Delegation, error) {
+func (m *Manager) delegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structs.Delegation, error) {
 
 	delegation, err := m.c.GetDelegation(ctx, bc, blockNumber, delegationID)
 	if err != nil {

@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/figment-networks/skale-indexer/api/structures"
 )
 
 // Delegation structure - abi.Convert Types is dumb as f****
@@ -26,7 +26,7 @@ type DelegationRaw struct {
 	Info             string         `json:"info"`
 }
 
-func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structures.Delegation, err error) {
+func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
@@ -49,8 +49,8 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	}
 
 	createT := results[4].(*big.Int)
-	dg := structures.Delegation{
-		ID:               delegationID,
+	dg := structs.Delegation{
+		DelegationID:     delegationID,
 		Holder:           results[0].(common.Address),
 		ValidatorID:      results[1].(*big.Int),
 		Amount:           results[2].(*big.Int),
@@ -59,7 +59,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		Started:          results[5].(*big.Int),
 		Finished:         results[6].(*big.Int),
 		Info:             results[7].(string),
-		State:            structures.DelegationStateUNKNOWN,
+		State:            structs.DelegationStateUNKNOWN,
 	}
 
 	//log.Printf("gotDelegations %+v", dg)
@@ -68,7 +68,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	return dg, nil
 }
 
-func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structures.DelegationState, err error) {
+func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -93,7 +93,7 @@ func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract,
 	}
 
 	state := *abi.ConvertType(results[0], new(uint8)).(*uint8)
-	return structures.DelegationState(state), nil
+	return structs.DelegationState(state), nil
 }
 
 func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holderAddress common.Address) (amount *big.Int, err error) {
@@ -129,7 +129,7 @@ func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.Bound
 	return amount, nil
 }
 
-func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structures.Delegation, err error) {
+func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -158,7 +158,7 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 		return nil, errors.New("count is not *big.Int type ")
 	}
 
-	delegations = []structures.Delegation{}
+	delegations = []structs.Delegation{}
 
 	for i := uint64(0); i < count.Uint64(); i++ {
 

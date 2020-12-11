@@ -20,4 +20,4 @@ CREATE TABLE IF NOT EXISTS validators
     PRIMARY KEY (id)
 );
 -- Indexes
-CREATE index idx_validators_address on validators  (address);
+CREATE index idx_validators_validator_id on validators  (validator_id);

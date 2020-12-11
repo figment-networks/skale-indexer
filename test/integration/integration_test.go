@@ -8,7 +8,6 @@ import (
 
 	"github.com/figment-networks/skale-indexer/api/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
-	"github.com/figment-networks/skale-indexer/api/structures"
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
@@ -26,7 +25,7 @@ func TestGetLogs(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []clientStructures.Delegation
 		wantErr         bool
 	}{
 		{
@@ -111,7 +110,7 @@ func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t ti
 	return nil
 }
 
-func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error {
+func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d clientStructures.Delegation) error {
 	slm.logger.Info("Storing delegation: ", zap.Any("delegation", d))
 	slm.logger.Sync()
 	return nil

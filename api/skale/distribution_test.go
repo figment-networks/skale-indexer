@@ -2,13 +2,13 @@ package skale
 
 import (
 	"context"
+	"github.com/figment-networks/skale-indexer/structs"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/figment-networks/skale-indexer/client/structures"
 )
 
 func TestGetEarnedFeeAmountOf(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetEarnedFeeAmountOf(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []structs.Delegation
 		wantErr         bool
 	}{
 		{

@@ -1,4 +1,4 @@
-package structures
+package structs
 
 import (
 	"math/big"
@@ -8,7 +8,10 @@ import (
 )
 
 type Delegation struct {
-	ID               *big.Int        `json:"id"`
+	ID               string          `json:"id"`
+	CreatedAt        time.Time       `json:"created_at"`
+	UpdatedAt        time.Time       `json:"updated_at"`
+	DelegationID     *big.Int        `json:"delegation_id"`
 	Holder           common.Address  `json:"holder"`
 	ValidatorID      *big.Int        `json:"validatorId"`
 	Amount           *big.Int        `json:"amount"`
@@ -33,3 +36,24 @@ const (
 
 	DelegationStateUNKNOWN DelegationState = 666
 )
+
+func (k DelegationState) String() string {
+	switch k {
+	case DelegationStatePROPOSED:
+		return "PROPOSED"
+	case DelegationStateACCEPTED:
+		return "ACCEPTED"
+	case DelegationStateCANCELED:
+		return "CANCELED"
+	case DelegationStateREJECTED:
+		return "REJECTED"
+	case DelegationStateDELEGATED:
+		return "DELEGATED"
+	case DelegationStateUNDELEGATION_REQUESTED:
+		return "UNDELEGATION_REQUESTED"
+	case DelegationStateCOMPLETED:
+		return "COMPLETED"
+	default:
+		return "unknown"
+	}
+}

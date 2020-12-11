@@ -2,13 +2,13 @@ package skale
 
 import (
 	"context"
+	"github.com/figment-networks/skale-indexer/structs"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/figment-networks/skale-indexer/client/structures"
 )
 
 func TestGetValidatorDelegations(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetValidatorDelegations(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []structs.Delegation
 		wantErr         bool
 	}{
 		{
@@ -58,7 +58,7 @@ func TestGetValidatorDelegations(t *testing.T) {
 
 			totalStake := big.NewInt(0)
 			for _, d := range gotDelegations {
-				if d.State == structures.DelegationStateUNDELEGATION_REQUESTED || d.State == structures.DelegationStateDELEGATED {
+				if d.State == structs.DelegationStateUNDELEGATION_REQUESTED || d.State == structs.DelegationStateDELEGATED {
 					totalStake.Add(totalStake, d.Amount)
 				}
 			}
