@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	insertStatementD = `INSERT INTO delegations ("updated_at", "delegation_id", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info", "state" ) VALUES ( NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) `
+	insertStatementD = `INSERT INTO delegations ("delegation_id", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info", "state" ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) `
 	getByStatementD  = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.holder, d.validator_id, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.state FROM delegations d WHERE `
 	byIdD            = `d.id =  $1 `
 	byValidatorIdD   = `d.validator_id =  $1 `

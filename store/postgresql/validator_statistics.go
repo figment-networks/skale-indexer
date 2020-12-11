@@ -13,16 +13,16 @@ const (
 	byIdVS              = `AND d.id = $2 `
 	byValidatorIdVS     = `AND d.validator_id = $2 `
 	orderByCreatedAtVS  = `ORDER BY d.created_at DESC `
-	calculateTotalStake = `INSERT INTO validator_statistics (updated_at, validator_id, amount, eth_block_height, statistics_type) 
- 								SELECT NOW(), t1.validator_id, sum(t1.amount) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM
+	calculateTotalStake = `INSERT INTO validator_statistics (validator_id, amount, eth_block_height, statistics_type) 
+ 								SELECT t1.validator_id, sum(t1.amount) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM
  									(SELECT  DISTINCT ON (validator_id, skale_id) validator_id, skale_id, eth_block_height , status, amount FROM delegations 
  											WHERE validator_id = $3 AND eth_block_height <=$4 ORDER BY validator_id, skale_id, eth_block_height DESC)  t1 
  								WHERE  t1.status IN ($5, $6) GROUP BY t1.validator_id`
-	calculateActiveNodes = `INSERT INTO validator_statistics (updated_at, validator_id, amount, eth_block_height, statistics_type) 
-									(SELECT NOW(), validator_id, count(*) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM nodes
+	calculateActiveNodes = `INSERT INTO validator_statistics (validator_id, amount, eth_block_height, statistics_type) 
+									(SELECT validator_id, count(*) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM nodes
 									WHERE validator_id = $3 AND status = $4 GROUP BY validator_id, skale_id ORDER BY eth_block_height DESC)`
-	calculateLinkedNodes = `INSERT INTO validator_statistics (updated_at, validator_id, amount, eth_block_height, statistics_type) 
-									(SELECT NOW(), validator_id, count(*) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM nodes
+	calculateLinkedNodes = `INSERT INTO validator_statistics (validator_id, amount, eth_block_height, statistics_type) 
+									(SELECT validator_id, count(*) AS amount, $1 AS eth_block_height, $2 AS statistics_type FROM nodes
 									WHERE validator_id = $3 GROUP BY validator_id, skale_id ORDER BY eth_block_height DESC)`
 	updateTotalStake  = `UPDATE validators SET updated_at = NOW(), staked = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND eth_block_height <=$3 ORDER BY eth_block_height DESC LIMIT 1) WHERE validator_id = $3`
 	updateActiveNodes = `UPDATE validators SET updated_at = NOW(), active_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND eth_block_height <=$3 ORDER BY eth_block_height DESC LIMIT 1) WHERE validator_id = $3`

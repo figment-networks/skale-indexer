@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	insertStatementN = `INSERT INTO nodes ("updated_at", "node_id", "name", "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id") VALUES ( NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
+	insertStatementN = `INSERT INTO nodes ("node_id", "name", "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
 	getByStatementN  = `SELECT n.id, n.created_at, n.updated_at, n.node_id, n.name, n.ip, n.public_ip, n.port, n.start_block, n.next_reward_date, n.last_reward_date, n.finish_time, n.status, n.validator_id FROM nodes n `
 	byIdN            = `WHERE n.id =  $1 `
 	byValidatorIdN   = `WHERE n.validator_id =  $1 `

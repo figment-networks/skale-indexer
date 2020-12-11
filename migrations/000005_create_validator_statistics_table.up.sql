@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS validator_statistics
 (
     id                      UUID DEFAULT   uuid_generate_v4(),
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at              TIMESTAMP WITH TIME ZONE,
     validator_id            DECIMAL(65, 0)           NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     eth_block_height        DECIMAL(65, 0)           NOT NULL,
