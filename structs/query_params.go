@@ -6,9 +6,11 @@ import (
 )
 
 type QueryParams struct {
-	Id          string
-	ValidatorId uint64
-	Holder      common.Address
-	TimeFrom    time.Time
-	TimeTo      time.Time
+	Id              string
+	ValidatorId     uint64
+	Holder          common.Address
+	ETHBlockHeight  uint64
+	StatisticTypeVS StatisticTypeVS
+	TimeFrom        time.Time
+	TimeTo          time.Time
 }

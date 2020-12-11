@@ -11,6 +11,7 @@ type DBDriver interface {
 	NodeStore
 	ValidatorStore
 	DelegationStore
+	ValidatorStatisticsStore
 }
 
 type DataStore interface {
@@ -18,6 +19,7 @@ type DataStore interface {
 	NodeStore
 	ValidatorStore
 	DelegationStore
+	ValidatorStatisticsStore
 }
 
 type ContractEventStore interface {
@@ -38,6 +40,13 @@ type ValidatorStore interface {
 type DelegationStore interface {
 	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
 	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+}
+
+type ValidatorStatisticsStore interface {
+	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
 }
 
 type Store struct {
@@ -78,4 +87,20 @@ func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegatio
 
 func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegations(ctx, params)
+}
+
+func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return s.driver.GetValidatorStatistics(ctx, params)
+}
+
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateTotalStake(ctx, params)
+}
+
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateActiveNodes(ctx, params)
+}
+
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+	return s.driver.CalculateLinkedNodes(ctx, params)
 }

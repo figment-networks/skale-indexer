@@ -31,3 +31,7 @@ func (c *ClientContractor) GetValidators(ctx context.Context, params structs.Que
 func (c *ClientContractor) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
 	return c.storeEng.GetDelegations(ctx, params)
 }
+
+func (c *ClientContractor) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return c.storeEng.GetValidatorStatistics(ctx, params)
+}
