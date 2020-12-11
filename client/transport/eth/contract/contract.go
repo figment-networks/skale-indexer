@@ -80,21 +80,21 @@ func (m *Manager) GetContractsByNames(names []string) (ccs map[common.Address]Co
 
 // LoadContractsFromDir loads abi contracts specifically from skale-network repo path
 func (m *Manager) LoadContractsFromDir(inputFolder string) error {
-	files, err := ioutil.ReadDir(inputFolder)
+	directories, err := ioutil.ReadDir(inputFolder)
 	if err != nil {
 		return fmt.Errorf("error reading directory (%s) %w ", inputFolder, err)
 	}
 
-	for _, f := range files {
-		if f.IsDir() {
-			internalDir := path.Join(inputFolder, f.Name())
+	for _, d := range directories {
+		if d.IsDir() {
+			internalDir := path.Join(inputFolder, d.Name())
 			internalFiles, err := ioutil.ReadDir(internalDir)
 			if err != nil {
 				return fmt.Errorf("error reading directory internal (%s) %w ", internalDir, err)
 			}
-			for _, iF := range internalFiles {
-				if strings.Contains(iF.Name(), "abi") && !strings.Contains(iF.Name(), "token") {
-					filePath := path.Join(inputFolder, f.Name(), iF.Name())
+			for _, f := range internalFiles {
+				if strings.Contains(f.Name(), "abi") && !strings.Contains(f.Name(), "token") {
+					filePath := path.Join(inputFolder, d.Name(), f.Name())
 					abiF, err := os.Open(filePath)
 					if err != nil {
 						abiF.Close()

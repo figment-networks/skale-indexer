@@ -40,9 +40,11 @@ func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am A
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
 
-	var addr []common.Address
+	addr := make([]common.Address, len(ccs))
+	var i int
 	for k := range ccs {
-		addr = append(addr, k)
+		addr[i] = k
+		i++
 	}
 	logs, err := eAPI.transport.GetLogs(ctx, from, to, addr)
 	if err != nil {
@@ -98,8 +100,8 @@ OutputLoop:
 }
 
 type ProcInput struct {
-	InID int
-	Log  types.Log
+	Order int
+	Log   types.Log
 }
 
 type ProcOutput struct {
@@ -145,7 +147,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				out <- ProcOutput{Error: err}
 				continue
 			}
-			out <- ProcOutput{inp.InID, ce, err}
+			out <- ProcOutput{inp.Order, ce, err}
 		}
 	}
 }
