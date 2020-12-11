@@ -7,18 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type Validator struct {
-	ID                      *big.Int       `json:"id"`
-	Name                    string         `json:"name"`
-	ValidatorAddress        common.Address `json:"validatorAddress"`
-	RequestedAddress        common.Address `json:"requestedAddress"`
-	Description             string         `json:"description"`
-	FeeRate                 *big.Int       `json:"feeRate"`
-	RegistrationTime        time.Time      `json:"registrationTime"`
-	MinimumDelegationAmount *big.Int       `json:"minimumDelegationAmount"`
-	AcceptNewRequests       bool           `json:"acceptNewRequests"`
-	Authorized              bool           `json:"authorized"`
-}
+
 
 type Delegation struct {
 	ID               *big.Int        `json:"id"`

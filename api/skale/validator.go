@@ -4,17 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/figment-networks/skale-indexer/structs"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/figment-networks/skale-indexer/api/structures"
 )
 
-func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structures.Validator, err error) {
+func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -42,8 +41,8 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 	vr := &ValidatorRaw{}
 	vraw := *abi.ConvertType(results[0], vr).(*ValidatorRaw)
 
-	return structures.Validator{
-		ID:                      validatorID,
+	return structs.Validator{
+		ValidatorID:                      validatorID,
 		Name:                    vraw.Name,
 		ValidatorAddress:        vraw.ValidatorAddress,
 		RequestedAddress:        vraw.RequestedAddress,

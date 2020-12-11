@@ -105,7 +105,7 @@ func (slm *StoreLogMock) StoreEvent(ctx context.Context, v clientStructures.Cont
 	return nil
 }
 
-func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error {
+func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v clientStructures.Validator) error {
 	slm.logger.Info("Storing validator: ", zap.Any("validator", v))
 	slm.logger.Sync()
 	return nil

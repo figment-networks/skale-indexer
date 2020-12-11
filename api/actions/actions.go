@@ -23,7 +23,7 @@ var implementedEvents = []string{"delegation_controller", "validator_service", "
 type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
-	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structures.Validator, err error)
+	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
@@ -43,7 +43,7 @@ type Call interface {
 type Store interface {
 	StoreEvent(ctx context.Context, v structs.ContractEvent) error
 
-	StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error
+	StoreValidator(ctx context.Context, height uint64, t time.Time, v structs.Validator) error
 	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error
 
 	StoreNode(ctx context.Context, height uint64, t time.Time, v structs.Node) error
@@ -311,7 +311,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 }
 
-func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structures.Validator, error) {
+func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structs.Validator, error) {
 
 	validator, err := m.c.GetValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
