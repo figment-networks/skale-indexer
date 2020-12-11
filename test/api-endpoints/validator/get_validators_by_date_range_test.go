@@ -1,4 +1,4 @@
-package nodes
+package validator
 
 import (
 	"errors"
@@ -12,20 +12,22 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-func TestGetNodesByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	n := structs.Node{
+func TestGetValidatorByDateRange(t *testing.T) {
+	vldByDateRange := structs.Validator{
+		Name:        "name_test",
+		Description: "description",
 	}
-	var nodesByValidatorId = make([]structs.Node, 0)
-	nodesByValidatorId = append(nodesByValidatorId, n)
+	from, _ := time.Parse(handler.Layout, "2006-01-02T15:04:05.000Z")
+	to, _ := time.Parse(handler.Layout, "2106-01-02T15:04:05.000Z")
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		nodes      []structs.Node
+		validators []structs.Validator
 		dbResponse error
 		code       int
 	}{
@@ -39,59 +41,83 @@ func TestGetNodesByValidatorId(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "invalid id",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=test",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 3,
+			name:   "empty from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=&to=",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 4,
+			name:   "invalid date from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2020&to=2100",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 4,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			nodes: nodesByValidatorId,
-			code:  http.StatusOK,
+			validators: []structs.Validator{vldByDateRange},
+			code:       http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -99,12 +125,12 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 2 {
-				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
+			if tt.number > 4 {
+				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetNodes)
+			res := http.HandlerFunc(connector.GetValidators)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

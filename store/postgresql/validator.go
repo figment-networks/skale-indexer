@@ -13,7 +13,7 @@ const (
 	getByStatementForValidator  = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.authorized, v.active, v.active_nodes, v.linked_nodes, v.staked, v.pending, v.rewards FROM validators v WHERE `
 	byIdForValidator            = `v.id =  $1 `
 	byDateRangeForValidator     = `v.created_at between $1 and $2 `
-	byAddressForValidator       = `v.validator_address =  $1 `
+	byAddressForValidator       = `v.validator_id =  $1 `
 )
 
 // SaveValidator saves validator
@@ -29,9 +29,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 	if params.Id != "" {
 		q = fmt.Sprintf("%s%s", getByStatementForValidator, byIdForValidator)
 		rows, err = d.db.QueryContext(ctx, q, params.Id)
-	//} else if params.ValidatorAddress > 0 {
-	//	q = fmt.Sprintf("%s%s", getByStatementForValidator, byAddressForValidator)
-	//	rows, err = d.db.QueryContext(ctx, q, params.ValidatorAddress)
+	} else if params.ValidatorId != 0 {
+		q = fmt.Sprintf("%s%s", getByStatementForValidator, byAddressForValidator)
+		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		q = fmt.Sprintf("%s%s", getByStatementForValidator, byDateRangeForValidator)
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)

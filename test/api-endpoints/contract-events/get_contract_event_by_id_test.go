@@ -1,6 +1,5 @@
 package contract_events
 
-
 import (
 	"errors"
 	"github.com/figment-networks/skale-indexer/client"

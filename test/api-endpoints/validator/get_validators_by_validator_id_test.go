@@ -1,4 +1,4 @@
-package nodes
+package validator
 
 import (
 	"errors"
@@ -14,18 +14,18 @@ import (
 	"testing"
 )
 
-func TestGetNodesByValidatorId(t *testing.T) {
+func TestGetValidatorsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
-	n := structs.Node{
+	n := structs.Validator{
 	}
-	var nodesByValidatorId = make([]structs.Node, 0)
-	nodesByValidatorId = append(nodesByValidatorId, n)
+	var validatorsByValidatorId = make([]structs.Validator, 0)
+	validatorsByValidatorId = append(validatorsByValidatorId, n)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		nodes      []structs.Node
+		validators []structs.Validator
 		dbResponse error
 		code       int
 	}{
@@ -90,8 +90,8 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			params: structs.QueryParams{
 				ValidatorId: validatorId,
 			},
-			nodes: nodesByValidatorId,
-			code:  http.StatusOK,
+			validators: validatorsByValidatorId,
+			code:       http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -100,11 +100,11 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 2 {
-				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
+				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetNodes)
+			res := http.HandlerFunc(connector.GetValidators)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

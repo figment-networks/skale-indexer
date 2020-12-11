@@ -1,4 +1,4 @@
-package nodes
+package validator
 
 import (
 	"errors"
@@ -14,18 +14,19 @@ import (
 	"testing"
 )
 
-func TestGetNodesByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	n := structs.Node{
+func TestGetValidatorById(t *testing.T) {
+	vldById := structs.Validator{
+		Name:        "name_test",
+		Description: "description",
 	}
-	var nodesByValidatorId = make([]structs.Node, 0)
-	nodesByValidatorId = append(nodesByValidatorId, n)
+	var id = "41754feb-1278-46da-981e-87a0876eed53"
+	var invalidId = "id_test"
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		nodes      []structs.Node
+		validators []structs.Validator
 		dbResponse error
 		code       int
 	}{
@@ -39,59 +40,69 @@ func TestGetNodesByValidatorId(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "invalid id",
+			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=test",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 3,
+			name:   "empty id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "id=",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: id,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 4,
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=id_test",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: invalidId,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				Id: id,
 			},
-			nodes: nodesByValidatorId,
-			code:  http.StatusOK,
+			validators: []structs.Validator{vldById},
+			code:       http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -99,12 +110,12 @@ func TestGetNodesByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 2 {
-				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
+			if tt.number > 3 {
+				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
 			}
 			contractor := *client.NewClientContractor(mockDB)
 			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetNodes)
+			res := http.HandlerFunc(connector.GetValidators)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

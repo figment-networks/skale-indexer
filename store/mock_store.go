@@ -63,6 +63,64 @@ func (mr *MockDBDriverMockRecorder) GetContractEvents(ctx, params interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockDBDriver)(nil).GetContractEvents), ctx, params)
 }
 
+// SaveNode mocks base method
+func (m *MockDBDriver) SaveNode(ctx context.Context, node structs.Node) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveNode", ctx, node)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveNode indicates an expected call of SaveNode
+func (mr *MockDBDriverMockRecorder) SaveNode(ctx, node interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNode", reflect.TypeOf((*MockDBDriver)(nil).SaveNode), ctx, node)
+}
+
+// GetNodes mocks base method
+func (m *MockDBDriver) GetNodes(ctx context.Context, params structs.QueryParams) ([]structs.Node, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNodes", ctx, params)
+	ret0, _ := ret[0].([]structs.Node)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNodes indicates an expected call of GetNodes
+func (mr *MockDBDriverMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDBDriver)(nil).GetNodes), ctx, params)
+}
+
+// SaveValidator mocks base method
+func (m *MockDBDriver) SaveValidator(ctx context.Context, validator structs.Validator) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockDBDriverMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockDBDriver)(nil).SaveValidator), ctx, validator)
+}
+
+// GetValidators mocks base method
+func (m *MockDBDriver) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
+	ret0, _ := ret[0].([]structs.Validator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockDBDriverMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDBDriver)(nil).GetValidators), ctx, params)
+}
+
 // MockDataStore is a mock of DataStore interface
 type MockDataStore struct {
 	ctrl     *gomock.Controller
@@ -142,6 +200,35 @@ func (m *MockDataStore) GetNodes(ctx context.Context, params structs.QueryParams
 func (mr *MockDataStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDataStore)(nil).GetNodes), ctx, params)
+}
+
+// SaveValidator mocks base method
+func (m *MockDataStore) SaveValidator(ctx context.Context, validator structs.Validator) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockDataStoreMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockDataStore)(nil).SaveValidator), ctx, validator)
+}
+
+// GetValidators mocks base method
+func (m *MockDataStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
+	ret0, _ := ret[0].([]structs.Validator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockDataStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDataStore)(nil).GetValidators), ctx, params)
 }
 
 // MockContractEventStore is a mock of ContractEventStore interface
@@ -246,4 +333,56 @@ func (m *MockNodeStore) GetNodes(ctx context.Context, params structs.QueryParams
 func (mr *MockNodeStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockNodeStore)(nil).GetNodes), ctx, params)
+}
+
+// MockValidatorStore is a mock of ValidatorStore interface
+type MockValidatorStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockValidatorStoreMockRecorder
+}
+
+// MockValidatorStoreMockRecorder is the mock recorder for MockValidatorStore
+type MockValidatorStoreMockRecorder struct {
+	mock *MockValidatorStore
+}
+
+// NewMockValidatorStore creates a new mock instance
+func NewMockValidatorStore(ctrl *gomock.Controller) *MockValidatorStore {
+	mock := &MockValidatorStore{ctrl: ctrl}
+	mock.recorder = &MockValidatorStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockValidatorStore) EXPECT() *MockValidatorStoreMockRecorder {
+	return m.recorder
+}
+
+// SaveValidator mocks base method
+func (m *MockValidatorStore) SaveValidator(ctx context.Context, validator structs.Validator) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockValidatorStoreMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockValidatorStore)(nil).SaveValidator), ctx, validator)
+}
+
+// GetValidators mocks base method
+func (m *MockValidatorStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
+	ret0, _ := ret[0].([]structs.Validator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetValidators indicates an expected call of GetValidators
+func (mr *MockValidatorStoreMockRecorder) GetValidators(ctx, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockValidatorStore)(nil).GetValidators), ctx, params)
 }

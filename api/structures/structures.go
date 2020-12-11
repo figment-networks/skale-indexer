@@ -7,8 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-
-
 type Delegation struct {
 	ID               *big.Int        `json:"id"`
 	Holder           common.Address  `json:"holder"`

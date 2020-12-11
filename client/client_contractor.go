@@ -23,3 +23,7 @@ func (c *ClientContractor) GetContractEvents(ctx context.Context, params structs
 func (c *ClientContractor) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
 	return c.storeEng.GetNodes(ctx, params)
 }
+
+func (c *ClientContractor) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+	return c.storeEng.GetValidators(ctx, params)
+}

@@ -1,6 +1,5 @@
 package nodes
 
-
 import (
 	"errors"
 	"github.com/figment-networks/skale-indexer/client"
