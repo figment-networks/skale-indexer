@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	insertStatementD = `INSERT INTO delegations ("delegation_id", "holder", "validator_id", "amount", "delegation_period", "created", "started",  "finished", "info", "state" ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) `
-	getByStatementD  = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.holder, d.validator_id, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.state FROM delegations d WHERE `
+	insertStatementD = `INSERT INTO delegations ("delegation_id", "holder", "validator_id", "eth_block_height", "amount", "delegation_period", "created", "started",  "finished", "info", "state" ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
+	getByStatementD  = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.holder, d.validator_id, d.eth_block_height, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.state FROM delegations d WHERE `
 	byIdD            = `d.id =  $1 `
 	byValidatorIdD   = `d.validator_id =  $1 `
 	byDateRangeD     = `d.created between $1 and $2 `
@@ -19,7 +19,7 @@ const (
 
 // SaveDelegation saves delegation
 func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
-	_, err := d.db.Exec(insertStatementD, dl.DelegationID, dl.Holder, dl.ValidatorID, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.State)
+	_, err := d.db.Exec(insertStatementD, dl.DelegationID, dl.Holder, dl.ValidatorID, dl.ETHBlockHeight, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.State)
 	return err
 }
 
@@ -49,7 +49,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams)
 
 	for rows.Next() {
 		dlg := structs.Delegation{}
-		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.DelegationID, &dlg.Holder, &dlg.ValidatorID, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.State)
+		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.DelegationID, &dlg.Holder, &dlg.ValidatorID, &dlg.ETHBlockHeight, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.State)
 		if err != nil {
 			return nil, err
 		}
