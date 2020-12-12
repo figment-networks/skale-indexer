@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"math/big"
 	"time"
 

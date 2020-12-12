@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/handler"
 )
 

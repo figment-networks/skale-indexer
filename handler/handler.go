@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"net/http"
 	"strconv"
 	"time"

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/store"
 )
 

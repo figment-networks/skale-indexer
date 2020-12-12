@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 	"go.uber.org/zap"

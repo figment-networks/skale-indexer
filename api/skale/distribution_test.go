@@ -2,7 +2,7 @@ package skale
 
 import (
 	"context"
-	"github.com/figment-networks/skale-indexer/api/structs"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"math/big"
 	"testing"
 
