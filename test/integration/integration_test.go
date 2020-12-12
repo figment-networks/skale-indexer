@@ -8,9 +8,8 @@ import (
 
 	"github.com/figment-networks/skale-indexer/api/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
-	"github.com/figment-networks/skale-indexer/api/structures"
 	"github.com/figment-networks/skale-indexer/client"
-	clientStructures "github.com/figment-networks/skale-indexer/client/structures"
+	clientStructures "github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 	"go.uber.org/zap"
@@ -26,7 +25,7 @@ func TestGetLogs(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []clientStructures.Delegation
 		wantErr         bool
 	}{
 		{
@@ -105,25 +104,25 @@ func (slm *StoreLogMock) StoreEvent(ctx context.Context, v clientStructures.Cont
 	return nil
 }
 
-func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v structures.Validator) error {
+func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v clientStructures.Validator) error {
 	slm.logger.Info("Storing validator: ", zap.Any("validator", v))
 	slm.logger.Sync()
 	return nil
 }
 
-func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d structures.Delegation) error {
+func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d clientStructures.Delegation) error {
 	slm.logger.Info("Storing delegation: ", zap.Any("delegation", d))
 	slm.logger.Sync()
 	return nil
 }
 
-func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v structures.Node) error {
+func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v clientStructures.Node) error {
 	slm.logger.Info("Storing node: ", zap.Any("node", v))
 	slm.logger.Sync()
 	return nil
 }
 
-func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structures.Node) error {
+func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []clientStructures.Node) error {
 	slm.logger.Info("Storing validator nodes: ", zap.Any("nodes", nodes))
 	slm.logger.Sync()
 	return nil

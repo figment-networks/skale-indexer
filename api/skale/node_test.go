@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/client/structs"
 )
 
 func TestGetNode(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetNode(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []structs.Delegation
 		wantErr         bool
 	}{
 		{
@@ -67,7 +67,7 @@ func TestGetValidatorNodes(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		wantDelegations []structures.Delegation
+		wantDelegations []structs.Delegation
 		wantErr         bool
 	}{
 		{

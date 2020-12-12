@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/client/structures"
+	"github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/client/transport"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 	"go.uber.org/zap"
@@ -17,10 +17,10 @@ import (
 const workerCount = 5
 
 type ActionManager interface {
-	StoreEvent(ctx context.Context, ev structures.ContractEvent) error
+	StoreEvent(ctx context.Context, ev structs.ContractEvent) error
 	GetImplementedEventsNames() []string
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
-	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structures.ContractEvent) error
+	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error
 }
 
 type EthereumAPI struct {
@@ -84,12 +84,12 @@ OutputLoop:
 			}
 			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
 			eAPI.AM.StoreEvent(ctx, o.CE)
-			p, ok := processed[o.CE.Height]
+			p, ok := processed[o.CE.BlockHeight]
 			if !ok {
 				p = []ProcOutput{}
 			}
 			p = append(p, o)
-			processed[o.CE.Height] = p
+			processed[o.CE.BlockHeight] = p
 			if gotResponses == len(logs) {
 				break OutputLoop
 			}
@@ -106,7 +106,7 @@ type ProcInput struct {
 
 type ProcOutput struct {
 	InID  int
-	CE    structures.ContractEvent
+	CE    structs.ContractEvent
 	Error error
 }
 
@@ -152,7 +152,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 	}
 }
 
-func processLog(logger *zap.Logger, l types.Log, h *types.Header, ccs map[common.Address]contract.ContractsContents) (ce structures.ContractEvent, err error) {
+func processLog(logger *zap.Logger, l types.Log, h *types.Header, ccs map[common.Address]contract.ContractsContents) (ce structs.ContractEvent, err error) {
 	c, ok := ccs[l.Address]
 	if !ok {
 		logger.Error("[EthTransport] GetLogs contract not found ", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
@@ -179,14 +179,14 @@ func processLog(logger *zap.Logger, l types.Log, h *types.Header, ccs map[common
 		return ce, fmt.Errorf("error unpacking into map %w", err)
 	}
 
-	return structures.ContractEvent{
-		ContractName: c.Name,
-		Type:         event.Name,
-		Address:      c.Addr,
-		Height:       l.BlockNumber,
-		Time:         time.Unix(int64(h.Time), 0),
-		TxHash:       l.TxHash,
-		Params:       mapped,
-		Removed:      l.Removed,
+	return structs.ContractEvent{
+		ContractName:    c.Name,
+		EventName:       event.Name,
+		ContractAddress: c.Addr,
+		BlockHeight:     l.BlockNumber,
+		Time:            time.Unix(int64(h.Time), 0),
+		TransactionHash: l.TxHash,
+		Params:          mapped,
+		Removed:         l.Removed,
 	}, nil
 }
