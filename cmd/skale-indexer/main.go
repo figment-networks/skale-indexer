@@ -2,20 +2,43 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"database/sql"
+	"flag"
 	"log"
+	"net/http"
 
 	"github.com/figment-networks/indexing-engine/metrics"
 	"github.com/figment-networks/indexing-engine/metrics/prometheusmetrics"
+
+	"github.com/figment-networks/skale-indexer/api/skale"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/actions"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/cmd/skale-indexer/config"
 	"github.com/figment-networks/skale-indexer/cmd/skale-indexer/logger"
+	"github.com/figment-networks/skale-indexer/scraper"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
+	"github.com/figment-networks/skale-indexer/store"
+	"github.com/figment-networks/skale-indexer/store/postgresql"
+
+	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
-func main() {
+var configPath string
 
+func init() {
+	flag.StringVar(&configPath, "config", "", "Path to config")
+	flag.Parse()
+}
+
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// Initialize configuration
-	cfg, err := initConfig(configFlags.configPath)
+	cfg, err := initConfig(configPath)
 	if err != nil {
 		log.Fatalf("error initializing config [ERR: %v]", err.Error())
 	}
@@ -28,7 +51,6 @@ func main() {
 		RollbarAccessToken: cfg.RollbarAccessToken,
 		RollbarServerRoot:  cfg.RollbarServerRoot,
 		Version:            config.GitSHA,
-		ChainIDs:           []string{cfg.ChainID},
 	}
 
 	if cfg.AppEnv == "development" || cfg.AppEnv == "local" {
@@ -50,17 +72,68 @@ func main() {
 	if err != nil {
 		logger.Error(err)
 	}
-}
 
-func initPostgres(cfg *config.Config) (*psql.Store, error) {
-	db, err := psql.New(cfg.DatabaseDSN)
+	// connect to database
+	logger.Info("[DB] Connecting to database...")
+	db, err := sql.Open("postgres", cfg.DatabaseURL)
 	if err != nil {
-		return nil, err
+		logger.Error(err)
+		return
 	}
 
-	db.SetDebugMode(cfg.Debug)
+	if err := db.PingContext(ctx); err != nil {
+		logger.Error(err)
+		return
+	}
+	logger.Info("[DB] Ping successfull...")
+	defer db.Close()
 
-	return db, nil
+	pgsqlDriver := postgresql.NewDriver(ctx, db, logger.GetLogger())
+	storeDB := store.New(pgsqlDriver)
+
+	tr := eth.NewEthTransport(cfg.EthereumAddress)
+	if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
+		logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
+		return
+	}
+	defer tr.Close(ctx)
+
+	cm := contract.NewManager()
+	if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
+		logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
+		return
+	}
+
+	caller := &skale.Caller{}
+	am := actions.NewManager(caller, storeDB, tr, cm)
+	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
+	/*
+		ccs := cm.GetContractsByNames(am.GetImplementedEventsNames())
+		if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
+			logger.GetLogger().Error(err)
+			return
+		}
+	*/
+	eAPI.AM.GetImplementedContractNames()
+	mux := http.NewServeMux()
+
+	cli := client.NewClient(storeDB)
+	hCli := webapi.NewClientConnector(cli)
+
+	hCli.AttachToHandler(mux)
+	mux.Handle("/metrics", metrics.Handler())
+
+	s := &http.Server{
+		Addr:    cfg.Address,
+		Handler: mux,
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	if err := s.ListenAndServe(); err != nil {
+		logger.GetLogger().Error("[HTTP] failed to listen", zap.Error(err))
+	}
+
 }
 
 func initConfig(path string) (*config.Config, error) {

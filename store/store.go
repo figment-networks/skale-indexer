@@ -2,9 +2,8 @@ package store
 
 import (
 	"context"
-	"math/big"
 
-	"github.com/figment-networks/skale-indexer/client/structs"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 type DBDriver interface {
@@ -45,10 +44,10 @@ type DelegationStore interface {
 
 type ValidatorStatisticsStore interface {
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
-	CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
-	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
-	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
+	//	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
+	//  CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
+	//	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
+	//	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
 }
 
 type Store struct {
@@ -95,12 +94,13 @@ func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.Query
 	return s.driver.GetValidatorStatistics(ctx, params)
 }
 
+/*
 func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validatorId *big.Int) error {
 	params := structs.QueryParams{
 		ValidatorId:    validatorId.Uint64(),
 		ETHBlockHeight: blockHeight,
 	}
-	// TODO: add transactional commit-rollback
+	//TODO: add transactional commit-rollback
 	if err := s.driver.CalculateTotalStake(ctx, params); err != nil {
 		return err
 	}
@@ -125,3 +125,4 @@ func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryPa
 func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
 }
+*/

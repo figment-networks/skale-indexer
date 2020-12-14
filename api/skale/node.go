@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/client/structs"
 	"math/big"
 	"time"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )

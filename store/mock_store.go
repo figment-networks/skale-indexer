@@ -6,7 +6,7 @@ package store
 
 import (
 	context "context"
-	structs "github.com/figment-networks/skale-indexer/client/structs"
+	structs "github.com/figment-networks/skale-indexer/scraper/structs"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"

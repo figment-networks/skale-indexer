@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/client/structs"
-	"github.com/figment-networks/skale-indexer/handler"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 const (
@@ -42,7 +42,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
 	} else {
 		// unexpected select query
-		return validators, handler.ErrMissingParameter
+		return validators, ErrMissingParameter
 	}
 
 	if err != nil {
@@ -60,7 +60,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 		validators = append(validators, vld)
 	}
 	if len(validators) == 0 {
-		return nil, handler.ErrNotFound
+		return nil, ErrNotFound
 	}
 	return validators, nil
 }

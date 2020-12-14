@@ -25,17 +25,6 @@ const (
 type Config struct {
 	DatabaseURL string `json:"database_url" envconfig:"DATABASE_URL" required:"true"`
 	AppEnv      string `json:"app_env" envconfig:"APP_ENV" default:"development"`
-
-	Address  string `json:"address" envconfig:"ADDRESS" default:"0.0.0.0"`
-	Port     string `json:"port" envconfig:"PORT" default:"3000"`
-	HTTPPort string `json:"http_port" envconfig:"HTTP_PORT" default:"8087"`
-
-	EthereumAddress string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"0.0.0.0:8545"`
-	SkaleABIDir     string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
-
-	// Rollbar
-	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
-	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
 }
 
 // IdentityString returns the full app version string

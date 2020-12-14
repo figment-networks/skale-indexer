@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/client/structs"
-	"github.com/figment-networks/skale-indexer/handler"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 const (
@@ -56,7 +56,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.QueryParams) (node
 		nodes = append(nodes, n)
 	}
 	if len(nodes) == 0 {
-		return nil, handler.ErrNotFound
+		return nil, ErrNotFound
 	}
 	return nodes, nil
 }
