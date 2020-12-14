@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/figment-networks/skale-indexer/client/structs"
+	"github.com/figment-networks/skale-indexer/store"
 	"math/big"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
 )
 
-var implementedEvents = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
+var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
 
 type Call interface {
 	// Validator
@@ -38,44 +39,28 @@ type Call interface {
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 }
 
-type Store interface {
-	StoreEvent(ctx context.Context, v structs.ContractEvent) error
-
-	StoreValidator(ctx context.Context, height uint64, t time.Time, v structs.Validator) error
-	StoreDelegation(ctx context.Context, height uint64, t time.Time, d structs.Delegation) error
-
-	StoreNode(ctx context.Context, height uint64, t time.Time, v structs.Node) error
-	StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []structs.Node) error
-}
-
-type Calculator interface {
-	ValidatorParams(ctx context.Context, height uint64, vID *big.Int) error
-	DelegationParams(ctx context.Context, height uint64, dID *big.Int) error
-}
-
 type BCGetter interface {
 	GetBoundContractCaller(ctx context.Context, addr common.Address, a abi.ABI) *bind.BoundContract
 }
 
 type Manager struct {
-	s    Store
-	c    Call
-	calc Calculator
-	tr   transport.EthereumTransport
-	cm   *contract.Manager
+	dataStore store.DataStore
+	c         Call
+	tr        transport.EthereumTransport
+	cm        *contract.Manager
 }
 
-func NewManager(c Call, s Store, calc Calculator, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
-	return &Manager{c: c, s: s, calc: calc, tr: tr, cm: cm}
+func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
+	return &Manager{c: c, dataStore: dataStore, tr: tr, cm: cm}
 }
 
 func (m *Manager) StoreEvent(ctx context.Context, ev structs.ContractEvent) error {
 	// some more magic in will be here in future
-	return m.s.StoreEvent(ctx, ev)
+	return m.dataStore.SaveContractEvent(ctx, ev)
 }
 
-func (m *Manager) GetImplementedEventsNames() []string {
-	return implementedEvents
+func (m *Manager) GetImplementedContractNames() []string {
+	return implementedContractNames
 }
 
 func (m *Manager) GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error) {
@@ -125,12 +110,14 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Structure is not a validator")
 		}
 
-		v, err := m.validatorChanged(ctx, bc, ce.BlockHeight, vID.(*big.Int))
+		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID.(*big.Int))
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
 
-		if err = m.s.StoreValidator(ctx, ce.BlockHeight, ce.Time, v); err != nil {
+		v.ETHBlockHeight = ce.BlockHeight
+		v.EventTime = ce.Time
+		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
 			return fmt.Errorf("error storing validator %w", err)
 		}
 
@@ -145,12 +132,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
 
-			if err := m.s.StoreValidatorNodes(ctx, ce.BlockHeight, ce.Time, nodes); err != nil {
-				return fmt.Errorf("error storing validator nodes %w", err)
+			// TODO: batch insert
+			for _, node := range nodes {
+				node.ETHBlockHeight = ce.BlockHeight
+				node.EventTime = ce.Time
+				if err := m.dataStore.SaveNode(ctx, node); err != nil {
+					return fmt.Errorf("error storing validator nodes %w", err)
+				}
 			}
 		}
 
-		if err = m.calc.ValidatorParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
+		if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
 			return fmt.Errorf("error calculating validator params %w", err)
 		}
 	case "nodes":
@@ -190,12 +182,16 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, vID.(*big.Int))
 		if err != nil {
+			// TODO: change err message from line 203
 			return errors.New("Structure is not a node")
 		}
 
-		if err = m.s.StoreNode(ctx, ce.BlockHeight, ce.Time, n); err != nil {
+		n.ETHBlockHeight = ce.BlockHeight
+		n.EventTime = ce.Time
+		if err = m.dataStore.SaveNode(ctx, n); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
+
 		// TODO(lukanus): Get Validator Nodes maybe?
 	case "punisher":
 		/*
@@ -266,19 +262,16 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Structure is not a delegation")
 		}
 
-		d, err := m.delegationChanged(ctx, bc, ce.BlockHeight, dID.(*big.Int))
+		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID.(*big.Int))
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
 
-		if err := m.s.StoreDelegation(ctx, ce.BlockHeight, ce.Time, d); err != nil {
+		d.ETHBlockHeight = ce.BlockHeight
+		d.EventTime = ce.Time
+		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
-
-		if err := m.calc.DelegationParams(ctx, ce.BlockHeight, dID.(*big.Int)); err != nil {
-			return fmt.Errorf("error calculating delegation params %w", err)
-		}
-
 	case "skale_manager":
 		/*
 			@dev Emitted when bounty is received.
@@ -309,7 +302,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 }
 
-func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structs.Validator, error) {
+func (m *Manager) getValidatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structs.Validator, error) {
 
 	validator, err := m.c.GetValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
@@ -324,7 +317,7 @@ func (m *Manager) validatorChanged(ctx context.Context, bc *bind.BoundContract, 
 	return validator, nil
 }
 
-func (m *Manager) delegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structs.Delegation, error) {
+func (m *Manager) getDelegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structs.Delegation, error) {
 
 	delegation, err := m.c.GetDelegation(ctx, bc, blockNumber, delegationID)
 	if err != nil {

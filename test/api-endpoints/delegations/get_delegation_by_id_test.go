@@ -7,6 +7,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -68,7 +69,8 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				Id:          id,
+				ValidatorId: big.NewInt(0),
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -83,7 +85,8 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id: invalidId,
+				Id:          invalidId,
+				ValidatorId: big.NewInt(0),
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -98,7 +101,8 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				Id:          id,
+				ValidatorId: big.NewInt(0),
 			},
 			delegations: []structs.Delegation{dlgById},
 			code:        http.StatusOK,

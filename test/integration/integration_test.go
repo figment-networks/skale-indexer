@@ -2,18 +2,17 @@ package integration
 
 import (
 	"context"
-	"math/big"
-	"testing"
-	"time"
-
 	"github.com/figment-networks/skale-indexer/api/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
 	"github.com/figment-networks/skale-indexer/client"
 	clientStructures "github.com/figment-networks/skale-indexer/client/structs"
 	"github.com/figment-networks/skale-indexer/client/transport/eth"
 	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
-	"go.uber.org/zap"
+	"github.com/figment-networks/skale-indexer/store"
+	"github.com/golang/mock/gomock"
 	"go.uber.org/zap/zaptest"
+	"math/big"
+	"testing"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -80,66 +79,17 @@ func TestGetLogs(t *testing.T) {
 				return
 			}
 			caller := &skale.Caller{}
-			slm := &StoreLogMock{zl}
-			clm := &CalculatorLogMock{zl}
-			am := actions.NewManager(caller, slm, clm, tr, cm)
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+			mockDB := store.NewMockDataStore(mockCtrl)
+			am := actions.NewManager(caller, mockDB, tr, cm)
 			eAPI := client.NewEthereumAPI(zl, tr, am)
 
-			ccs := cm.GetContractsByNames(am.GetImplementedEventsNames())
+			ccs := cm.GetContractsByContractNames(am.GetImplementedContractNames())
 			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
 				t.Error(err)
 				return
 			}
 		})
 	}
-}
-
-type StoreLogMock struct {
-	logger *zap.Logger
-}
-
-func (slm *StoreLogMock) StoreEvent(ctx context.Context, v clientStructures.ContractEvent) error {
-	slm.logger.Info("Storing event: ", zap.Any("event", v))
-	slm.logger.Sync()
-	return nil
-}
-
-func (slm *StoreLogMock) StoreValidator(ctx context.Context, height uint64, t time.Time, v clientStructures.Validator) error {
-	slm.logger.Info("Storing validator: ", zap.Any("validator", v))
-	slm.logger.Sync()
-	return nil
-}
-
-func (slm *StoreLogMock) StoreDelegation(ctx context.Context, height uint64, t time.Time, d clientStructures.Delegation) error {
-	slm.logger.Info("Storing delegation: ", zap.Any("delegation", d))
-	slm.logger.Sync()
-	return nil
-}
-
-func (slm *StoreLogMock) StoreNode(ctx context.Context, height uint64, t time.Time, v clientStructures.Node) error {
-	slm.logger.Info("Storing node: ", zap.Any("node", v))
-	slm.logger.Sync()
-	return nil
-}
-
-func (slm *StoreLogMock) StoreValidatorNodes(ctx context.Context, height uint64, t time.Time, nodes []clientStructures.Node) error {
-	slm.logger.Info("Storing validator nodes: ", zap.Any("nodes", nodes))
-	slm.logger.Sync()
-	return nil
-}
-
-type CalculatorLogMock struct {
-	logger *zap.Logger
-}
-
-func (clm *CalculatorLogMock) ValidatorParams(ctx context.Context, height uint64, vID *big.Int) error {
-	clm.logger.Info("Calculating validator params: ", zap.Any("validatorID", vID))
-	clm.logger.Sync()
-	return nil
-}
-
-func (clm *CalculatorLogMock) DelegationParams(ctx context.Context, height uint64, dID *big.Int) error {
-	clm.logger.Info("Calculating delegation params: ", zap.Any("delegationID", dID))
-	clm.logger.Sync()
-	return nil
 }

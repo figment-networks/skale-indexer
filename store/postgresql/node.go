@@ -9,16 +9,17 @@ import (
 )
 
 const (
-	insertStatementN = `INSERT INTO nodes ("node_id", "name", "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
-	getByStatementN  = `SELECT n.id, n.created_at, n.updated_at, n.node_id, n.name, n.ip, n.public_ip, n.port, n.start_block, n.next_reward_date, n.last_reward_date, n.finish_time, n.status, n.validator_id FROM nodes n `
-	byIdN            = `WHERE n.id =  $1 `
-	byValidatorIdN   = `WHERE n.validator_id =  $1 `
-	orderByNameN     = `ORDER BY n.name DESC`
+	insertStatementN        = `INSERT INTO nodes ("node_id", "name", "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "eth_block_height", "event_time") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) `
+	getByStatementN         = `SELECT n.id, n.created_at, n.updated_at, n.node_id, n.name, n.ip, n.public_ip, n.port, n.start_block, n.next_reward_date, n.last_reward_date, n.finish_time, n.status, n.validator_id, n.eth_block_height, n.event_time FROM nodes n `
+	byIdN                   = `WHERE n.id =  $1 `
+	byValidatorIdN          = `WHERE n.validator_id =  $1 `
+	byRecentEthBlockHeightN = `AND n.eth_block_height =  (SELECT n2.eth_block_height FROM nodes n2 WHERE n2.validator_id = $2 ORDER BY n2.eth_block_height DESC LIMIT 1) `
+	orderByNameN            = `ORDER BY n.name DESC `
 )
 
 // SaveNode saves node
 func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
-	_, err := d.db.Exec(insertStatementN, n.NodeID, n.Name, n.IP, n.PublicIP, n.Port, n.StartBlock, n.NextRewardDate, n.LastRewardDate, n.FinishTime, n.Status, n.ValidatorID)
+	_, err := d.db.Exec(insertStatementN, n.NodeID, n.Name, n.IP, n.PublicIP, n.Port, n.StartBlock, n.NextRewardDate, n.LastRewardDate, n.FinishTime, n.Status, n.ValidatorID, n.ETHBlockHeight, n.EventTime)
 	return err
 }
 
@@ -29,9 +30,12 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.QueryParams) (node
 	if params.Id != "" {
 		q = fmt.Sprintf("%s%s", getByStatementN, byIdN)
 		rows, err = d.db.QueryContext(ctx, q, params.Id)
-	} else if params.ValidatorId > 0 {
-		q = fmt.Sprintf("%s%s", getByStatementN, byValidatorIdN)
+	} else if params.ValidatorId != nil && !params.Recent {
+		q = fmt.Sprintf("%s%s%s", getByStatementN, byValidatorIdN, orderByNameN)
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
+	} else if params.ValidatorId != nil && params.Recent {
+		q = fmt.Sprintf("%s%s%s%s", getByStatementN, byValidatorIdN, byRecentEthBlockHeightN, orderByNameN)
+		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId, params.ValidatorId)
 	} else {
 		q = fmt.Sprintf("%s%s", getByStatementN, orderByNameN)
 		rows, err = d.db.QueryContext(ctx, q)
@@ -45,7 +49,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.QueryParams) (node
 
 	for rows.Next() {
 		n := structs.Node{}
-		err = rows.Scan(&n.ID, &n.CreatedAt, &n.UpdatedAt, &n.NodeID, &n.Name, &n.IP, &n.PublicIP, &n.Port, &n.StartBlock, &n.NextRewardDate, &n.LastRewardDate, &n.FinishTime, &n.Status, &n.ValidatorID)
+		err = rows.Scan(&n.ID, &n.CreatedAt, &n.UpdatedAt, &n.NodeID, &n.Name, &n.IP, &n.PublicIP, &n.Port, &n.StartBlock, &n.NextRewardDate, &n.LastRewardDate, &n.FinishTime, &n.Status, &n.ValidatorID, &n.ETHBlockHeight, &n.EventTime)
 		if err != nil {
 			return nil, err
 		}

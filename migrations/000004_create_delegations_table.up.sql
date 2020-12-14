@@ -14,9 +14,10 @@ CREATE TABLE IF NOT EXISTS delegations
     finished                TIMESTAMP WITH TIME ZONE NOT NULL,
     info                    TEXT                     NOT NULL,
     state                   SMALLINT                 NOT NULL,
+    event_time              TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (id)
 );
 
 -- Indexes
 CREATE index idx_delegations_holder on delegations (holder);
-CREATE index idx_delegations_validator_id on delegations (validator_id);
+CREATE index idx_delegations_validator_id_and_eth_block_height on delegations (validator_id, eth_block_height);

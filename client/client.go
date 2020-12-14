@@ -18,7 +18,7 @@ const workerCount = 5
 
 type ActionManager interface {
 	StoreEvent(ctx context.Context, ev structs.ContractEvent) error
-	GetImplementedEventsNames() []string
+	GetImplementedContractNames() []string
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
 	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error
 }

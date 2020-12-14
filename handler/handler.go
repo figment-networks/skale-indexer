@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/figment-networks/skale-indexer/client/structs"
+	"math/big"
 	"net/http"
 	"strconv"
 	"time"
@@ -65,20 +66,22 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
+	var validatorId int64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
 	}
-
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: validatorId,
+		ValidatorId: big.NewInt(validatorId),
+		Recent:      recent,
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {
@@ -107,10 +110,10 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
+	var validatorId int64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -122,7 +125,8 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	timeFrom, errFrom := time.Parse(Layout, from)
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
-
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 	if id == "" && validatorIdParam == "" && ((errFrom != nil || errTo != nil) || (from == "" && to == "")) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
@@ -131,9 +135,10 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: validatorId,
+		ValidatorId: big.NewInt(validatorId),
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
+		Recent:      recent,
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), params)
@@ -163,10 +168,10 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
+	var validatorId int64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -178,6 +183,8 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	timeFrom, errFrom := time.Parse(Layout, from)
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 
 	if id == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -187,9 +194,10 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: validatorId,
+		ValidatorId: big.NewInt(validatorId),
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
+		Recent:      recent,
 	}
 
 	res, err := c.cli.GetDelegations(req.Context(), params)
@@ -219,10 +227,10 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
+	var validatorId int64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -252,7 +260,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	params := structs.QueryParams{
 		Id:              id,
-		ValidatorId:     validatorId,
+		ValidatorId:     big.NewInt(validatorId),
 		StatisticTypeVS: statisticType,
 	}
 

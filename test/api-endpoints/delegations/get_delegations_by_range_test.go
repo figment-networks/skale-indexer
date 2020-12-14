@@ -7,6 +7,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -77,8 +78,9 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				TimeFrom: from,
-				TimeTo:   to,
+				TimeFrom:    from,
+				TimeTo:      to,
+				ValidatorId: big.NewInt(0),
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -93,8 +95,9 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				TimeFrom: from,
-				TimeTo:   to,
+				TimeFrom:    from,
+				TimeTo:      to,
+				ValidatorId: big.NewInt(0),
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -109,8 +112,9 @@ func TestGetValidatorByDateRange(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				TimeFrom: from,
-				TimeTo:   to,
+				TimeFrom:    from,
+				TimeTo:      to,
+				ValidatorId: big.NewInt(0),
 			},
 			delegations: []structs.Delegation{dlgByDateRange},
 			code:        http.StatusOK,

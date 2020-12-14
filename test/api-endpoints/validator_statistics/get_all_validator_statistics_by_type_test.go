@@ -7,6 +7,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -74,6 +75,7 @@ func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
 			},
 			params: structs.QueryParams{
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				ValidatorId:     big.NewInt(0),
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -90,6 +92,7 @@ func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
 			dbResponse: errors.New("internal error"),
 			params: structs.QueryParams{
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				ValidatorId:     big.NewInt(0),
 			},
 			code: http.StatusInternalServerError,
 		},
@@ -104,6 +107,7 @@ func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
 			},
 			params: structs.QueryParams{
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				ValidatorId:     big.NewInt(0),
 			},
 			stats: stats,
 			code:  http.StatusOK,

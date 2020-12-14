@@ -26,4 +26,6 @@ type Validator struct {
 	Staked                  uint64         `json:"staked"`
 	Pending                 uint64         `json:"pending"`
 	Rewards                 uint64         `json:"rewards"`
+	ETHBlockHeight          uint64         `json:"eth_block_height"`
+	EventTime               time.Time      `json:"event_time"`
 }
