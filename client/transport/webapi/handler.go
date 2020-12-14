@@ -1,13 +1,23 @@
-package handler
+package webapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/figment-networks/skale-indexer/client/structs"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
+
+type ClientContractor interface {
+	GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error)
+	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
+	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
+	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+}
 
 const Layout = time.RFC3339
 

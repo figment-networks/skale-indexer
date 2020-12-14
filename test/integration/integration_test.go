@@ -2,17 +2,18 @@ package integration
 
 import (
 	"context"
-	"github.com/figment-networks/skale-indexer/api/actions"
+	"math/big"
+	"testing"
+
+	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/api/skale"
-	"github.com/figment-networks/skale-indexer/client"
-	clientStructures "github.com/figment-networks/skale-indexer/client/structs"
-	"github.com/figment-networks/skale-indexer/client/transport/eth"
-	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
+	"github.com/figment-networks/skale-indexer/scraper"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
+	clientStructures "github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap/zaptest"
-	"math/big"
-	"testing"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -83,7 +84,7 @@ func TestGetLogs(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			am := actions.NewManager(caller, mockDB, tr, cm)
-			eAPI := client.NewEthereumAPI(zl, tr, am)
+			eAPI := scraper.NewEthereumAPI(zl, tr, am)
 
 			ccs := cm.GetContractsByContractNames(am.GetImplementedContractNames())
 			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {

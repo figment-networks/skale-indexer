@@ -28,6 +28,11 @@ build:
 	go build -o indexer -ldflags '$(LDFLAGS)' ./cmd/skale-indexer
 
 
+.PHONY: build-migration
+build-migration:
+	$(info building migration binary as ./migration)
+	go build -o migration ./cmd/skale-indexer-migration
+
 .PHONY: pack-release
 pack-release:
 	$(info preparing release)
@@ -35,9 +40,6 @@ pack-release:
 	@make build
 	@zip -r indexer ./release
 	@rm -rf ./release
-
-
-
 
 .PHONY: generate-types
 generate-types:
@@ -52,8 +54,6 @@ generate-types:
 	abigen --combined-json ./install/skale-network/releases/mainnet/skale-manager/1.5.0/abi.json --out a.go --pkg api --lang go
 
 	cd ./install/skale-manager/contracts/delegation/ && solc  --allow-paths .. --abi ./DelegationController.sol
-
-
 
 .PHONY: install-deps
 install-deps:

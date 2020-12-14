@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/client/structs"
-	"github.com/figment-networks/skale-indexer/store"
 	"math/big"
 	"time"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/figment-networks/skale-indexer/client/transport"
-	"github.com/figment-networks/skale-indexer/client/transport/eth/contract"
+
+	"github.com/figment-networks/skale-indexer/scraper/transport"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
+	"github.com/figment-networks/skale-indexer/store"
 )
 
 var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
@@ -52,11 +54,6 @@ type Manager struct {
 
 func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
 	return &Manager{c: c, dataStore: dataStore, tr: tr, cm: cm}
-}
-
-func (m *Manager) StoreEvent(ctx context.Context, ev structs.ContractEvent) error {
-	// some more magic in will be here in future
-	return m.dataStore.SaveContractEvent(ctx, ev)
 }
 
 func (m *Manager) GetImplementedContractNames() []string {
@@ -141,10 +138,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				}
 			}
 		}
-
-		if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
-			return fmt.Errorf("error calculating validator params %w", err)
-		}
+		/*
+			if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
+				return fmt.Errorf("error calculating validator params %w", err)
+			}
+		*/
 	case "nodes":
 		/*
 			@dev Emitted when a node is created.
@@ -298,6 +296,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		*/
 
 	}
+
+	// m.s.StoreEvent(ctx, ce)
 	return nil
 
 }

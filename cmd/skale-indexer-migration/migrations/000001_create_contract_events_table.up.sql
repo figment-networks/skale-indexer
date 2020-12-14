@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS contract_events
     params                  JSONB                    NOT NULL,
     removed                 BOOLEAN                  NOT NULL,
     bound_type              BOUNDTYPE                NOT NULL,
-    bound_address           NUMERIC(78)              NOT NULL,
+    bound_id                []NUMERIC(78)            NOT NULL,
+    bound_address           []NUMERIC(78)            NOT NULL,
     PRIMARY KEY (id)
 );

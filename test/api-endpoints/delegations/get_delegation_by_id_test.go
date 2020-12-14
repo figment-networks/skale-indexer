@@ -2,7 +2,7 @@ package delegations
 
 import (
 	"errors"
-	"github.com/figment-networks/skale-indexer/client/structs"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"

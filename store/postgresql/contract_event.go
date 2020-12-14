@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/figment-networks/skale-indexer/client/structs"
-	"github.com/figment-networks/skale-indexer/handler"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 const (
@@ -48,7 +47,7 @@ func (d *Driver) GetContractEvents(ctx context.Context, params structs.QueryPara
 		contractEvents = append(contractEvents, e)
 	}
 	if len(contractEvents) == 0 {
-		return nil, handler.ErrNotFound
+		return nil, ErrNotFound
 	}
 	return contractEvents, nil
 }

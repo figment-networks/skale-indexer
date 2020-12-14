@@ -2,9 +2,10 @@ package skale
 
 import (
 	"context"
-	"github.com/figment-networks/skale-indexer/client/structs"
 	"math/big"
 	"testing"
+
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
