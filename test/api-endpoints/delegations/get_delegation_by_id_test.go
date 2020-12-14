@@ -68,8 +68,7 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
-			},
+				Id: id},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
@@ -83,8 +82,7 @@ func TestGetDelegationById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id: invalidId,
-			},
+				Id: invalidId},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},

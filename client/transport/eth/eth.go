@@ -35,6 +35,7 @@ func (et *EthTransport) GetBoundContractCaller(ctx context.Context, address comm
 	return bind.NewBoundContract(address, a, et.C, nil, nil)
 }
 
+// TODO: validate from-to range
 func (et *EthTransport) GetLogs(ctx context.Context, from, to big.Int, contracts []common.Address) (logs []types.Log, err error) {
 	fq := ethereum.FilterQuery{
 		FromBlock: &from,

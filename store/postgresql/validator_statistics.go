@@ -35,7 +35,7 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Quer
 	if params.Id != "" {
 		q = fmt.Sprintf("%s%s", getByStatementVS, byIdVS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeVS, params.Id)
-	} else if params.ValidatorId > 0 {
+	} else if params.ValidatorId != 0 {
 		q = fmt.Sprintf("%s%s%s", getByStatementVS, byValidatorIdVS, orderByCreatedAtVS)
 		rows, err = d.db.QueryContext(ctx, q, params.StatisticTypeVS, params.ValidatorId)
 	} else if params.Id == "" && params.ValidatorId == 0 {

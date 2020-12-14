@@ -14,7 +14,7 @@ type Delegation struct {
 	DelegationID     *big.Int        `json:"delegation_id"`
 	Holder           common.Address  `json:"holder"`
 	ValidatorID      *big.Int        `json:"validatorId"`
-	ETHBlockHeight   *big.Int        `json:"eth_block_height"`
+	ETHBlockHeight   uint64          `json:"eth_block_height"`
 	Amount           *big.Int        `json:"amount"`
 	DelegationPeriod *big.Int        `json:"delegationPeriod"`
 	Created          time.Time       `json:"created"`

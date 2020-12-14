@@ -8,6 +8,7 @@ import (
 type QueryParams struct {
 	Id              string
 	ValidatorId     uint64
+	Recent          bool
 	Holder          common.Address
 	ETHBlockHeight  uint64
 	StatisticTypeVS StatisticTypeVS

@@ -8,6 +8,7 @@ import (
 	context "context"
 	structs "github.com/figment-networks/skale-indexer/client/structs"
 	gomock "github.com/golang/mock/gomock"
+	big "math/big"
 	reflect "reflect"
 )
 
@@ -163,6 +164,20 @@ func (m *MockDBDriver) GetValidatorStatistics(ctx context.Context, params struct
 func (mr *MockDBDriverMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDBDriver)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateParams mocks base method
+func (m *MockDBDriver) CalculateParams(ctx context.Context, height uint64, vID *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateParams", ctx, height, vID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateParams indicates an expected call of CalculateParams
+func (mr *MockDBDriverMockRecorder) CalculateParams(ctx, height, vID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateParams", reflect.TypeOf((*MockDBDriver)(nil).CalculateParams), ctx, height, vID)
 }
 
 // CalculateTotalStake mocks base method
@@ -359,6 +374,20 @@ func (m *MockDataStore) GetValidatorStatistics(ctx context.Context, params struc
 func (mr *MockDataStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateParams mocks base method
+func (m *MockDataStore) CalculateParams(ctx context.Context, height uint64, vID *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateParams", ctx, height, vID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateParams indicates an expected call of CalculateParams
+func (mr *MockDataStoreMockRecorder) CalculateParams(ctx, height, vID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateParams", reflect.TypeOf((*MockDataStore)(nil).CalculateParams), ctx, height, vID)
 }
 
 // CalculateTotalStake mocks base method
@@ -647,6 +676,20 @@ func (m *MockValidatorStatisticsStore) GetValidatorStatistics(ctx context.Contex
 func (mr *MockValidatorStatisticsStoreMockRecorder) GetValidatorStatistics(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).GetValidatorStatistics), ctx, params)
+}
+
+// CalculateParams mocks base method
+func (m *MockValidatorStatisticsStore) CalculateParams(ctx context.Context, height uint64, vID *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateParams", ctx, height, vID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CalculateParams indicates an expected call of CalculateParams
+func (mr *MockValidatorStatisticsStoreMockRecorder) CalculateParams(ctx, height, vID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateParams", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).CalculateParams), ctx, height, vID)
 }
 
 // CalculateTotalStake mocks base method

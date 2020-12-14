@@ -75,10 +75,12 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.QueryParams{
 		Id:          id,
 		ValidatorId: validatorId,
+		Recent:      recent,
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {
@@ -122,7 +124,8 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	timeFrom, errFrom := time.Parse(Layout, from)
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
-
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 	if id == "" && validatorIdParam == "" && ((errFrom != nil || errTo != nil) || (from == "" && to == "")) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
@@ -134,6 +137,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 		ValidatorId: validatorId,
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
+		Recent:      recent,
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), params)
@@ -178,6 +182,8 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	timeFrom, errFrom := time.Parse(Layout, from)
 	to := req.URL.Query().Get("to")
 	timeTo, errTo := time.Parse(Layout, to)
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 
 	if id == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -190,6 +196,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 		ValidatorId: validatorId,
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
+		Recent:      recent,
 	}
 
 	res, err := c.cli.GetDelegations(req.Context(), params)

@@ -20,6 +20,7 @@ type Node struct {
 	FinishTime     *big.Int   `json:"finish_time"`
 	Status         NodeStatus `json:"node_status"`
 	ValidatorID    *big.Int   `json:"validator_id"`
+	EventTime      time.Time  `json:"event_time"`
 }
 
 type NodeStatus uint

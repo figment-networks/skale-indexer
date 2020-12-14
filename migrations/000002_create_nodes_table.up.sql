@@ -14,8 +14,9 @@ CREATE TABLE IF NOT EXISTS nodes
     finish_time                     DECIMAL(65, 0)           NOT NULL,
     status                          VARCHAR(50)              NOT NULL,
     validator_id                    DECIMAL(65, 0)           NOT NULL,
+    event_time                      TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (id)
 );
 
 -- Indexes
-CREATE index idx_nodes_validator_id on nodes (validator_id);
+CREATE index idx_nodes_validator_id_and_start_block on nodes (validator_id, start_block);
