@@ -47,6 +47,7 @@ services:
       - "8085:8085"
     environment:
       ADDRESS: 0.0.0.0:8085
+      ETHEREUM_ADDRESS: http://host.docker.internal:8545
       DATABASE_URL: postgres://skale:skale@skale-indexer_postgresdatabase_1/skale?sslmode=disable
       ABI_DIR: /contracts
     depends_on:
