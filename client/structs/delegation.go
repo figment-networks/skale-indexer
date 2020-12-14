@@ -22,7 +22,6 @@ type Delegation struct {
 	Finished         *big.Int        `json:"finished"`
 	Info             string          `json:"info"`
 	State            DelegationState `json:"state"`
-	EventTime        time.Time       `json:"event_time"`
 }
 
 type DelegationState uint

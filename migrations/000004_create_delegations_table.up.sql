@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS delegations
     finished                TIMESTAMP WITH TIME ZONE NOT NULL,
     info                    TEXT                     NOT NULL,
     state                   SMALLINT                 NOT NULL,
-    event_time              TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (id)
 );
 

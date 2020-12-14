@@ -116,7 +116,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 
 		v.ETHBlockHeight = ce.BlockHeight
-		v.EventTime = ce.Time
+		v.RegistrationTime = ce.Time
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
 			return fmt.Errorf("error storing validator %w", err)
 		}
@@ -134,7 +134,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			// TODO: batch insert
 			for _, node := range nodes {
-				node.ETHBlockHeight = ce.BlockHeight
+				node.StartBlock = big.NewInt(int64(ce.BlockHeight))
 				node.EventTime = ce.Time
 				if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
@@ -186,7 +186,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Structure is not a node")
 		}
 
-		n.ETHBlockHeight = ce.BlockHeight
+		n.StartBlock = big.NewInt(int64(ce.BlockHeight))
 		n.EventTime = ce.Time
 		if err = m.dataStore.SaveNode(ctx, n); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
@@ -268,7 +268,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 
 		d.ETHBlockHeight = ce.BlockHeight
-		d.EventTime = ce.Time
+		d.Created = ce.Time
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}

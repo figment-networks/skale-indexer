@@ -7,7 +7,6 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,7 +15,7 @@ import (
 )
 
 func TestGetValidatorActiveNodesStatisticsByValidatorId(t *testing.T) {
-	var validatorId int64 = 2
+	var validatorId uint64 = 2
 	s := structs.ValidatorStatistics{
 		CreatedAt:      time.Time{},
 		UpdatedAt:      time.Time{},
@@ -86,7 +85,7 @@ func TestGetValidatorActiveNodesStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:     big.NewInt(validatorId),
+				ValidatorId:     validatorId,
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
 			},
 			dbResponse: handler.ErrNotFound,
@@ -102,7 +101,7 @@ func TestGetValidatorActiveNodesStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:     big.NewInt(validatorId),
+				ValidatorId:     validatorId,
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
 			},
 			dbResponse: errors.New("internal error"),
@@ -118,7 +117,7 @@ func TestGetValidatorActiveNodesStatisticsByValidatorId(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId:     big.NewInt(validatorId),
+				ValidatorId:     validatorId,
 				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
 			},
 			stats: statsByValidatorId,

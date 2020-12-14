@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/figment-networks/skale-indexer/client/structs"
-	"math/big"
 	"net/http"
 	"strconv"
 	"time"
@@ -66,10 +65,10 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId int64
+	var validatorId uint64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -80,7 +79,7 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: big.NewInt(validatorId),
+		ValidatorId: validatorId,
 		Recent:      recent,
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
@@ -110,10 +109,10 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId int64
+	var validatorId uint64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -135,7 +134,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: big.NewInt(validatorId),
+		ValidatorId: validatorId,
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
 		Recent:      recent,
@@ -168,10 +167,10 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId int64
+	var validatorId uint64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -194,7 +193,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.QueryParams{
 		Id:          id,
-		ValidatorId: big.NewInt(validatorId),
+		ValidatorId: validatorId,
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
 		Recent:      recent,
@@ -227,10 +226,10 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	id := req.URL.Query().Get("id")
 	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId int64
+	var validatorId uint64
 	var err error
 	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseInt(validatorIdParam, 10, 64)
+		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -260,7 +259,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	params := structs.QueryParams{
 		Id:              id,
-		ValidatorId:     big.NewInt(validatorId),
+		ValidatorId:     validatorId,
 		StatisticTypeVS: statisticType,
 	}
 

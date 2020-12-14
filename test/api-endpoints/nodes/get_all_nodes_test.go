@@ -7,7 +7,6 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -41,9 +40,7 @@ func TestGetAllNodes(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			params: structs.QueryParams{
-				ValidatorId: big.NewInt(0),
-			},
+			params:     structs.QueryParams{},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
@@ -55,10 +52,8 @@ func TestGetAllNodes(t *testing.T) {
 				URL:    &url.URL{},
 			},
 			dbResponse: errors.New("internal error"),
-			params: structs.QueryParams{
-				ValidatorId: big.NewInt(0),
-			},
-			code: http.StatusInternalServerError,
+			params:     structs.QueryParams{},
+			code:       http.StatusInternalServerError,
 		},
 		{
 			number: 4,
@@ -67,11 +62,9 @@ func TestGetAllNodes(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			params: structs.QueryParams{
-				ValidatorId: big.NewInt(0),
-			},
-			nodes: nodes,
-			code:  http.StatusOK,
+			params: structs.QueryParams{},
+			nodes:  nodes,
+			code:   http.StatusOK,
 		},
 	}
 	for _, tt := range tests {

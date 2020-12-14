@@ -97,7 +97,7 @@ func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.Query
 
 func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validatorId *big.Int) error {
 	params := structs.QueryParams{
-		ValidatorId:    validatorId,
+		ValidatorId:    validatorId.Uint64(),
 		ETHBlockHeight: blockHeight,
 	}
 	// TODO: add transactional commit-rollback

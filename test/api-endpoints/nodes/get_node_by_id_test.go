@@ -7,7 +7,6 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -33,8 +32,7 @@ func TestGetNodeById(t *testing.T) {
 				Method: http.MethodPost,
 			},
 			params: structs.QueryParams{
-				Id:          id,
-				ValidatorId: big.NewInt(0),
+				Id: id,
 			},
 			code: http.StatusMethodNotAllowed,
 		},
@@ -48,8 +46,7 @@ func TestGetNodeById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:          id,
-				ValidatorId: big.NewInt(0),
+				Id: id,
 			},
 			dbResponse: handler.ErrNotFound,
 			code:       http.StatusNotFound,
@@ -64,8 +61,7 @@ func TestGetNodeById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:          invalidId,
-				ValidatorId: big.NewInt(0),
+				Id: invalidId,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -80,8 +76,7 @@ func TestGetNodeById(t *testing.T) {
 				},
 			},
 			params: structs.QueryParams{
-				Id:          id,
-				ValidatorId: big.NewInt(0),
+				Id: id,
 			},
 			node: []structs.Node{},
 			code: http.StatusOK,

@@ -2,13 +2,12 @@ package structs
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"math/big"
 	"time"
 )
 
 type QueryParams struct {
 	Id              string
-	ValidatorId     *big.Int
+	ValidatorId     uint64
 	Recent          bool
 	Holder          common.Address
 	ETHBlockHeight  uint64
