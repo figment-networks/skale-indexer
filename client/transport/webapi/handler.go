@@ -56,61 +56,25 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	boundTypeParam := req.URL.Query().Get("bound_type")
-	if boundTypeParam == "validator" {
-		params.BoundType = "validator"
-		validatorIdParam := req.URL.Query().Get("validator_id")
-		var validatorId uint64
-		var err error
-		if validatorIdParam != "" {
-			validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
-				return
-			}
-		}
-		if validatorId == 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-			return
-		}
-		params.ValidatorId = validatorId
-
-	} else if boundTypeParam == "delegation" {
-		params.BoundType = "delegation"
-		validatorIdParam := req.URL.Query().Get("validator_id")
-		var validatorId uint64
-		var err error
-		if validatorIdParam != "" {
-			validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
-				return
-			}
-		}
-		if validatorId == 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-			return
-		}
-		params.ValidatorId = validatorId
-		delegationIdParam := req.URL.Query().Get("delegation_id")
-		var delegationId uint64
-		if delegationIdParam != "" {
-			delegationId, err = strconv.ParseUint(delegationIdParam, 10, 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
-				return
-			}
-		}
-		params.DelegationId = delegationId
-	} else {
+	typeParam := req.URL.Query().Get("type")
+	idParam := req.URL.Query().Get("id")
+	var err error
+	if (typeParam == "" ) !=  (idParam == "") {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+		w.Write(newApiError(err, http.StatusBadRequest))
 		return
+	}
+
+	if typeParam == ""  {
+		params.BoundType = typeParam
+		var id uint64
+		id, err = strconv.ParseUint(idParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+		params.BoundId = append(params.BoundId, id)
 	}
 
 	res, err := c.cli.GetContractEvents(req.Context(), params)

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS contract_events
     contract_address        NUMERIC(78)[]            NOT NULL,
     block_height            DECIMAL(65, 0)           NOT NULL,
     time                    TIMESTAMP WITH TIME ZONE NOT NULL,
-    transaction_hash        NUMERIC(125)[]           NOT NULL,
+    transaction_hash        NUMERIC(125)             NOT NULL,
     params                  JSONB                    NOT NULL,
     removed                 BOOLEAN                  NOT NULL,
     bound_type              BOUNDTYPE                NOT NULL,

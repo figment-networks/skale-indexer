@@ -16,6 +16,7 @@ type QueryParams struct {
 	ETHBlockHeight  uint64
 	StatisticTypeVS StatisticTypeVS
 	BoundType       string
+	BoundId     	[]uint64
 	TimeFrom        time.Time
 	TimeTo          time.Time
 }
