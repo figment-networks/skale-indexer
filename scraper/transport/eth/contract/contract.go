@@ -47,7 +47,7 @@ type ContractsContents struct {
 	Version string
 }
 
-func (m *Manager) GetContractsByContractNames(names []string) (ccs map[common.Address]ContractsContents) {
+func (m *Manager) GetContractsByNames(names []string) (ccs map[common.Address]ContractsContents) {
 	hash := fnv.New64a()
 	for _, n := range names {
 		hash.Write([]byte(n))
