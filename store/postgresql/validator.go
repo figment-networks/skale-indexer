@@ -8,6 +8,7 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+// TODO: run explain analyze to check full scan and add required indexes
 const (
 	insertStatementV         = `INSERT INTO validators ("validator_id", "name", "validator_address", "requested_address", "description", "fee_rate","registration_time", "minimum_delegation_amount", "accept_new_requests", "authorized", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "eth_block_height") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) `
 	getByStatementV          = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.authorized, v.active, v.active_nodes, v.linked_nodes, v.staked, v.pending, v.rewards, v.eth_block_height FROM validators v WHERE `
