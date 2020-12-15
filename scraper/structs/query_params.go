@@ -30,3 +30,12 @@ type EventParams struct {
 	TimeFrom        time.Time
 	TimeTo          time.Time
 }
+
+type DelegationParams struct {
+	ValidatorId		string
+	DelegationId    string
+	Recent          bool
+	TimeFrom        time.Time
+	TimeTo          time.Time
+}
+

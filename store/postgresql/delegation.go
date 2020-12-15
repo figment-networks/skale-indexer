@@ -50,7 +50,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams)
 
 	for rows.Next() {
 		dlg := structs.Delegation{}
-		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.UpdatedAt, &dlg.DelegationID, &dlg.Holder, &dlg.ValidatorID, &dlg.ETHBlockHeight, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.State)
+		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlg.DelegationID, &dlg.Holder, &dlg.ValidatorID, &dlg.ETHBlockHeight, &dlg.Amount, &dlg.DelegationPeriod, &dlg.Created, &dlg.Started, &dlg.Finished, &dlg.Info, &dlg.State)
 		if err != nil {
 			return nil, err
 		}

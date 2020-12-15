@@ -39,7 +39,7 @@ type ValidatorStore interface {
 
 type DelegationStore interface {
 	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
-	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 }
 
 type ValidatorStatisticsStore interface {
@@ -86,7 +86,7 @@ func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegatio
 	return s.driver.SaveDelegation(ctx, delegation)
 }
 
-func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegations(ctx, params)
 }
 
