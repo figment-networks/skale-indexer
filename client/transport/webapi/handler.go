@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math/big"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
+	"go.uber.org/zap"
 )
 
 type ClientContractor interface {
@@ -327,4 +331,58 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/validators", c.GetValidators)
 	mux.HandleFunc("/delegations", c.GetDelegations)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
+}
+
+type ScrapeContractor interface {
+	ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error
+}
+
+// ScrapeConnector is main HTTP connector for manager
+type ScrapeConnector struct {
+	l   *zap.Logger
+	cli ScrapeContractor
+	ccs map[common.Address]contract.ContractsContents
+}
+
+// NewConnector is  Connector constructor
+func NewScrapeConnector(l *zap.Logger, sc ScrapeContractor, ccs map[common.Address]contract.ContractsContents) *ScrapeConnector {
+	return &ScrapeConnector{l, sc, ccs}
+}
+
+// AttachToHandler attaches handlers to http server's mux
+func (sc *ScrapeConnector) AttachToHandler(mux *http.ServeMux) {
+	mux.HandleFunc("/getLogs", sc.GetLogs)
+}
+
+func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	f := req.URL.Query().Get("from")
+	from, ok := new(big.Int).SetString(f, 10)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
+		return
+	}
+
+	t := req.URL.Query().Get("to")
+	to, ok2 := new(big.Int).SetString(t, 10)
+	if !ok2 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":" to parameters are incorrect"}`))
+		return
+	}
+
+	if err := sc.cli.ParseLogs(req.Context(), sc.ccs, *from, *to); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
