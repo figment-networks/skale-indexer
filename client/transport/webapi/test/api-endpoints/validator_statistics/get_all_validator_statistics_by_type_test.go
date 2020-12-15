@@ -1,9 +1,10 @@
-package validator
+package validator_statistics
 
 import (
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -11,21 +12,26 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-func TestGetValidatorById(t *testing.T) {
-	vldById := structs.Validator{
-		Name:        "name_test",
-		Description: "description",
+func TestGetAllValidatorActiveNodesStatistics(t *testing.T) {
+	d := structs.ValidatorStatistics{
+		CreatedAt:      time.Time{},
+		UpdatedAt:      time.Time{},
+		ValidatorId:    2,
+		Amount:         3,
+		ETHBlockHeight: 1000,
+		StatisticType:  structs.ValidatorStatisticsTypeActiveNodes,
 	}
-	var id = "41754feb-1278-46da-981e-87a0876eed53"
-	var invalidId = "id_test"
+	var stats = make([]structs.ValidatorStatistics, 0)
+	stats = append(stats, d)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		validators []structs.Validator
+		stats      []structs.ValidatorStatistics
 		dbResponse error
 		code       int
 	}{
@@ -49,11 +55,11 @@ func TestGetValidatorById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "empty id",
+			name:   "unknown type",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=",
+					RawQuery: "statistic_type=unkown",
 				},
 			},
 			code: http.StatusBadRequest,
@@ -64,13 +70,13 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
 			},
-			dbResponse: handler.ErrNotFound,
+			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
@@ -79,14 +85,14 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
-			params: structs.QueryParams{
-				Id: invalidId,
-			},
 			dbResponse: errors.New("internal error"),
-			code:       http.StatusInternalServerError,
+			params: structs.QueryParams{
+				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+			},
+			code: http.StatusInternalServerError,
 		},
 		{
 			number: 6,
@@ -94,14 +100,14 @@ func TestGetValidatorById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=41754feb-1278-46da-981e-87a0876eed53",
+					RawQuery: "statistic_type=active_nodes",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
 			},
-			validators: []structs.Validator{vldById},
-			code:       http.StatusOK,
+			stats: stats,
+			code:  http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -110,14 +116,17 @@ func TestGetValidatorById(t *testing.T) {
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
 			if tt.number > 3 {
-				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
+				mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidators)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
+			res := http.HandlerFunc(connector.GetValidatorStatistics)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
+			for _, s := range tt.stats {
+				assert.True(t, s.StatisticType == structs.ValidatorStatisticsTypeActiveNodes)
+			}
 		})
 	}
 }

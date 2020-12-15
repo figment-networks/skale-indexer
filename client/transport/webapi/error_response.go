@@ -2,13 +2,6 @@ package webapi
 
 import (
 	"encoding/json"
-	"errors"
-)
-
-var (
-	ErrNotAllowedMethod = errors.New("method not allowed")
-	ErrMissingParameter = errors.New("missing parameter")
-	ErrNotFound         = errors.New("record not found")
 )
 
 type apiError struct {

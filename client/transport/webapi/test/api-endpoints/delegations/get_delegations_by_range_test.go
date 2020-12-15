@@ -2,7 +2,8 @@ package delegations
 
 import (
 	"errors"
-	"github.com/figment-networks/skale-indexer/handler"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
@@ -11,13 +12,13 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-func TestGetDelegationsByValidatorId(t *testing.T) {
-	var validatorId uint64 = 2
-	dlg := structs.Delegation{}
-	var dlgsByValidatorId = make([]structs.Delegation, 0)
-	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
+func TestGetValidatorByDateRange(t *testing.T) {
+	dlgByDateRange := structs.Delegation{}
+	from, _ := time.Parse(structs.Layout, "2006-01-02T15:04:05.000Z")
+	to, _ := time.Parse(structs.Layout, "2106-01-02T15:04:05.000Z")
 	tests := []struct {
 		number      int
 		name        string
@@ -40,64 +41,79 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			name:   "missing parameter",
 			req: &http.Request{
 				Method: http.MethodGet,
-				URL:    &url.URL{},
+				URL: &url.URL{
+				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 3,
-			name:   "invalid id",
+			name:   "empty from and to ",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=test",
+					RawQuery: "from=&to=",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 4,
+			name:   "invalid date from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2020&to=2100",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			dbResponse: handler.ErrNotFound,
+			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				ValidatorId: validatorId,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			delegations: dlgsByValidatorId,
+			delegations: []structs.Delegation{dlgByDateRange},
 			code:        http.StatusOK,
 		},
 	}
@@ -106,11 +122,11 @@ func TestGetDelegationsByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
+			if tt.number > 4 {
 				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
 			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)

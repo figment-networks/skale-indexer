@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 

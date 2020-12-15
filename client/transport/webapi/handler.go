@@ -19,8 +19,6 @@ type ClientContractor interface {
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 }
 
-const Layout = time.RFC3339
-
 // Connector is main HTTP connector for manager
 type Connector struct {
 	cli ClientContractor
@@ -40,17 +38,48 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
-	id := req.URL.Query().Get("id")
-	params := structs.QueryParams{
-		Id: id,
+	params := structs.QueryParams{}
+	from := req.URL.Query().Get("from")
+	timeFrom, errFrom := time.Parse(structs.Layout, from)
+	to := req.URL.Query().Get("to")
+	timeTo, errTo := time.Parse(structs.Layout, to)
+	if errFrom == nil && errTo == nil {
+		params.TimeFrom = timeFrom
+		params.TimeTo = timeTo
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+		return
 	}
+
+	typeParam := req.URL.Query().Get("type")
+	idParam := req.URL.Query().Get("id")
+	var err error
+	if (typeParam == "" ) !=  (idParam == "") {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(err, http.StatusBadRequest))
+		return
+	}
+
+	if typeParam == ""  {
+		params.BoundType = typeParam
+		var id uint64
+		id, err = strconv.ParseUint(idParam, 10, 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
+		params.BoundId = append(params.BoundId, id)
+	}
+
 	res, err := c.cli.GetContractEvents(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, structs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
 			return
@@ -69,7 +98,7 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -94,7 +123,7 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, structs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
 			return
@@ -113,7 +142,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -131,14 +160,14 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	}
 
 	from := req.URL.Query().Get("from")
-	timeFrom, errFrom := time.Parse(Layout, from)
+	timeFrom, errFrom := time.Parse(structs.Layout, from)
 	to := req.URL.Query().Get("to")
-	timeTo, errTo := time.Parse(Layout, to)
+	timeTo, errTo := time.Parse(structs.Layout, to)
 	recentParam := req.URL.Query().Get("recent")
 	recent, _ := strconv.ParseBool(recentParam)
 	if id == "" && validatorIdParam == "" && ((errFrom != nil || errTo != nil) || (from == "" && to == "")) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
@@ -152,7 +181,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	res, err := c.cli.GetValidators(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, structs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
 			return
@@ -171,7 +200,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -189,15 +218,15 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	}
 
 	from := req.URL.Query().Get("from")
-	timeFrom, errFrom := time.Parse(Layout, from)
+	timeFrom, errFrom := time.Parse(structs.Layout, from)
 	to := req.URL.Query().Get("to")
-	timeTo, errTo := time.Parse(Layout, to)
+	timeTo, errTo := time.Parse(structs.Layout, to)
 	recentParam := req.URL.Query().Get("recent")
 	recent, _ := strconv.ParseBool(recentParam)
 
 	if id == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
@@ -211,7 +240,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	res, err := c.cli.GetDelegations(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, structs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
 			return
@@ -230,7 +259,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
@@ -250,7 +279,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	statisticTypeParam := req.URL.Query().Get("statistic_type")
 	if statisticTypeParam == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
@@ -263,7 +292,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		statisticType = structs.ValidatorStatisticsTypeLinkedNodes
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(ErrMissingParameter, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
@@ -275,7 +304,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	res, err := c.cli.GetValidatorStatistics(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, structs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(newApiError(err, http.StatusNotFound))
 			return

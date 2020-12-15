@@ -1,9 +1,10 @@
-package validator_statistics
+package validator
 
 import (
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -11,20 +12,22 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
-func TestGetValidatorActiveNodesStatisticsById(t *testing.T) {
-	statById := structs.ValidatorStatistics{
-		StatisticType: structs.ValidatorStatisticsTypeActiveNodes,
+func TestGetValidatorByDateRange(t *testing.T) {
+	vldByDateRange := structs.Validator{
+		Name:        "name_test",
+		Description: "description",
 	}
-	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
-	var invalidId = "id_test"
+	from, _ := time.Parse(structs.Layout, "2006-01-02T15:04:05.000Z")
+	to, _ := time.Parse(structs.Layout, "2106-01-02T15:04:05.000Z")
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		stats      []structs.ValidatorStatistics
+		validators []structs.Validator
 		dbResponse error
 		code       int
 	}{
@@ -33,9 +36,6 @@ func TestGetValidatorActiveNodesStatisticsById(t *testing.T) {
 			name:   "not allowed method",
 			req: &http.Request{
 				Method: http.MethodPost,
-			},
-			params: structs.QueryParams{
-				Id: id,
 			},
 			code: http.StatusMethodNotAllowed,
 		},
@@ -51,62 +51,73 @@ func TestGetValidatorActiveNodesStatisticsById(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "unknown type",
+			name:   "empty from and to ",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "statistic_type=unkown",
+					RawQuery: "from=&to=",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 4,
+			name:   "invalid date from and to ",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2020&to=2100",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 5,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c&statistic_type=active_nodes",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:              id,
-				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			dbResponse: handler.ErrNotFound,
+			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test&statistic_type=active_nodes",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:              invalidId,
-				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 6,
+			number: 7,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c&statistic_type=active_nodes",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			params: structs.QueryParams{
-				Id:              id,
-				StatisticTypeVS: structs.ValidatorStatisticsTypeActiveNodes,
+				TimeFrom: from,
+				TimeTo:   to,
 			},
-			stats: []structs.ValidatorStatistics{statById},
-			code:  http.StatusOK,
+			validators: []structs.Validator{vldByDateRange},
+			code:       http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -114,18 +125,15 @@ func TestGetValidatorActiveNodesStatisticsById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.params).Return(tt.stats, tt.dbResponse)
+			if tt.number > 4 {
+				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidatorStatistics)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
+			res := http.HandlerFunc(connector.GetValidators)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
-			for _, s := range tt.stats {
-				assert.True(t, s.StatisticType == structs.ValidatorStatisticsTypeActiveNodes)
-			}
 		})
 	}
 }

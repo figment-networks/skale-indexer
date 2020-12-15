@@ -28,10 +28,7 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
 	var q string
 	var rows *sql.Rows
-	if params.Id != "" {
-		q = fmt.Sprintf("%s%s", getByStatementV, byIdV)
-		rows, err = d.db.QueryContext(ctx, q, params.Id)
-	} else if params.ValidatorId != 0 && !params.Recent {
+	if params.ValidatorId != 0 && !params.Recent {
 		q = fmt.Sprintf("%s%s%s", getByStatementV, byValidatorIdV, orderByRegistrationTimeV)
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else if params.ValidatorId != 0 && params.Recent {
@@ -41,8 +38,8 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 		q = fmt.Sprintf("%s%s%s", getByStatementV, byDateRangeV, orderByRegistrationTimeV)
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
 	} else {
-		// unexpected select query
-		return validators, ErrMissingParameter
+		q = fmt.Sprintf("%s%s", getByStatementV, byIdV)
+		rows, err = d.db.QueryContext(ctx, q, params.Id)
 	}
 
 	if err != nil {

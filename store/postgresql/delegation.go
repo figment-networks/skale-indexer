@@ -28,10 +28,7 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
 	var q string
 	var rows *sql.Rows
-	if params.Id != "" {
-		q = fmt.Sprintf("%s%s%s", getByStatementD, byIdD, orderByCreatedD)
-		rows, err = d.db.QueryContext(ctx, q, params.Id)
-	} else if params.ValidatorId != 0 && !params.Recent {
+	if params.ValidatorId != 0 && !params.Recent {
 		q = fmt.Sprintf("%s%s%s", getByStatementD, byValidatorIdD, orderByCreatedD)
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else if params.ValidatorId != 0 && params.Recent {
@@ -41,8 +38,8 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.QueryParams)
 		q = fmt.Sprintf("%s%s%s", getByStatementD, byDateRangeD, orderByCreatedD)
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
 	} else {
-		// unexpected select query
-		return delegations, ErrMissingParameter
+		q = fmt.Sprintf("%s%s%s", getByStatementD, byIdD, orderByCreatedD)
+		rows, err = d.db.QueryContext(ctx, q, params.Id)
 	}
 
 	if err != nil {

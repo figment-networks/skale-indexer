@@ -1,9 +1,10 @@
-package contract_events
+package nodes
 
 import (
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,16 +14,18 @@ import (
 	"testing"
 )
 
-func TestGetEventById(t *testing.T) {
-	eventById := structs.ContractEvent{}
-	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
-	var invalidId = "id_test"
+func TestGetNodesByValidatorId(t *testing.T) {
+	var validatorId uint64 = 2
+	n := structs.Node{
+	}
+	var nodesByValidatorId = make([]structs.Node, 0)
+	nodesByValidatorId = append(nodesByValidatorId, n)
 	tests := []struct {
 		number     int
 		name       string
 		req        *http.Request
 		params     structs.QueryParams
-		event      []structs.ContractEvent
+		nodes      []structs.Node
 		dbResponse error
 		code       int
 	}{
@@ -32,54 +35,62 @@ func TestGetEventById(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
-			params: structs.QueryParams{
-				Id: id,
-			},
 			code: http.StatusMethodNotAllowed,
 		},
 		{
 			number: 2,
+			name:   "invalid id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=test",
+				},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 3,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
+					RawQuery: "validator_id=2",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				ValidatorId: validatorId,
 			},
-			dbResponse: handler.ErrNotFound,
+			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 3,
+			number: 4,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=id_test",
+					RawQuery: "validator_id=2",
 				},
 			},
 			params: structs.QueryParams{
-				Id: invalidId,
+				ValidatorId: validatorId,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 4,
+			number: 5,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
+					RawQuery: "validator_id=2",
 				},
 			},
 			params: structs.QueryParams{
-				Id: id,
+				ValidatorId: validatorId,
 			},
-			event: []structs.ContractEvent{eventById},
+			nodes: nodesByValidatorId,
 			code:  http.StatusOK,
 		},
 	}
@@ -88,12 +99,12 @@ func TestGetEventById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 1 {
-				mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.params).Return(tt.event, tt.dbResponse)
+			if tt.number > 2 {
+				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.nodes, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetContractEvents)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
+			res := http.HandlerFunc(connector.GetNodes)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)
