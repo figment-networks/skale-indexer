@@ -19,7 +19,7 @@ type ClientContractor interface {
 	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
-	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 }
 
@@ -221,19 +221,8 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id := req.URL.Query().Get("id")
-	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
-	var err error
-	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
-		}
-	}
-
+	validatorId := req.URL.Query().Get("validator_id")
+	delegationId := req.URL.Query().Get("delegation_id")
 	from := req.URL.Query().Get("from")
 	timeFrom, errFrom := time.Parse(structs.Layout, from)
 	to := req.URL.Query().Get("to")
@@ -241,15 +230,15 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	recentParam := req.URL.Query().Get("recent")
 	recent, _ := strconv.ParseBool(recentParam)
 
-	if id == "" && validatorIdParam == "" && (errFrom != nil || errTo != nil) {
+	if delegationId == "" || (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	params := structs.QueryParams{
-		Id:          id,
+	params := structs.DelegationParams{
 		ValidatorId: validatorId,
+		DelegationId: delegationId,
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
 		Recent:      recent,
@@ -265,6 +254,22 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
+	}
+
+	var dlgs []DelegationAPI
+	for _, dlg := range res {
+		dlgs = append(dlgs, DelegationAPI{
+			DelegationID:     dlg.DelegationID,
+			Holder:           dlg.Holder,
+			ValidatorID:      dlg.ValidatorID,
+			ETHBlockHeight:   dlg.ETHBlockHeight,
+			Amount:           dlg.Amount,
+			DelegationPeriod: dlg.DelegationPeriod,
+			Created:          dlg.Created,
+			Started:          dlg.Started,
+			Finished:         dlg.Finished,
+			Info:             dlg.Info,
+		})
 	}
 
 	enc := json.NewEncoder(w)
