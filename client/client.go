@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/store"
 )

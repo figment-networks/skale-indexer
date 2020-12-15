@@ -1,9 +1,10 @@
-package validator
+package delegations
 
 import (
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,20 +14,19 @@ import (
 	"testing"
 )
 
-func TestGetValidatorsByValidatorId(t *testing.T) {
+func TestGetDelegationsByValidatorId(t *testing.T) {
 	var validatorId uint64 = 2
-	n := structs.Validator{
-	}
-	var validatorsByValidatorId = make([]structs.Validator, 0)
-	validatorsByValidatorId = append(validatorsByValidatorId, n)
+	dlg := structs.Delegation{}
+	var dlgsByValidatorId = make([]structs.Delegation, 0)
+	dlgsByValidatorId = append(dlgsByValidatorId, dlg)
 	tests := []struct {
-		number     int
-		name       string
-		req        *http.Request
-		params     structs.QueryParams
-		validators []structs.Validator
-		dbResponse error
-		code       int
+		number      int
+		name        string
+		req         *http.Request
+		params      structs.QueryParams
+		delegations []structs.Delegation
+		dbResponse  error
+		code        int
 	}{
 		{
 			number: 1,
@@ -38,6 +38,15 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 		},
 		{
 			number: 2,
+			name:   "missing parameter",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL:    &url.URL{},
+			},
+			code: http.StatusBadRequest,
+		},
+		{
+			number: 3,
 			name:   "invalid id",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -48,7 +57,7 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 			code: http.StatusBadRequest,
 		},
 		{
-			number: 3,
+			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -59,11 +68,11 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 			params: structs.QueryParams{
 				ValidatorId: validatorId,
 			},
-			dbResponse: handler.ErrNotFound,
+			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 4,
+			number: 5,
 			name:   "internal server error",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -78,7 +87,7 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			number: 5,
+			number: 6,
 			name:   "success response",
 			req: &http.Request{
 				Method: http.MethodGet,
@@ -89,8 +98,8 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 			params: structs.QueryParams{
 				ValidatorId: validatorId,
 			},
-			validators: validatorsByValidatorId,
-			code:       http.StatusOK,
+			delegations: dlgsByValidatorId,
+			code:        http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -98,12 +107,12 @@ func TestGetValidatorsByValidatorId(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 2 {
-				mockDB.EXPECT().GetValidators(tt.req.Context(), tt.params).Return(tt.validators, tt.dbResponse)
+			if tt.number > 3 {
+				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetValidators)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
+			res := http.HandlerFunc(connector.GetDelegations)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

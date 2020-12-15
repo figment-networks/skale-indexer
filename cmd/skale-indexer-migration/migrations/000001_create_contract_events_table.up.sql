@@ -18,3 +18,6 @@ CREATE TABLE IF NOT EXISTS contract_events
     bound_address           []NUMERIC(78)            NOT NULL,
     PRIMARY KEY (id)
 );
+
+-- TODO: find a way to index of second element of bound_id???
+CREATE index idx_contract_events_bound_id on validators USING GIN (bound_id);

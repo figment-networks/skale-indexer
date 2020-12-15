@@ -7,8 +7,8 @@ networks:
     attachable: true
 
 volumes:
-  postgresdatabase: {}
-  contracts: {}
+  postgresdatabase: { }
+  contracts: { }
 
 services:
   postgresdatabase:

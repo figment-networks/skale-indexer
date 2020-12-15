@@ -1,9 +1,10 @@
-package delegations
+package nodes
 
 import (
 	"errors"
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/client/transport/webapi"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/handler"
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -13,18 +14,17 @@ import (
 	"testing"
 )
 
-func TestGetDelegationById(t *testing.T) {
-	dlgById := structs.Delegation{}
-	var id = "93f14795-86dc-4db6-b20f-dda12e626406"
-	var invalidId = "id_not_uuid"
+func TestGetNodeById(t *testing.T) {
+	var id = "11053aa6-4bbb-4094-b588-8368cd621f2c"
+	var invalidId = "id_test"
 	tests := []struct {
-		number      int
-		name        string
-		req         *http.Request
-		params      structs.QueryParams
-		delegations []structs.Delegation
-		dbResponse  error
-		code        int
+		number     int
+		name       string
+		req        *http.Request
+		params     structs.QueryParams
+		node       []structs.Node
+		dbResponse error
+		code       int
 	}{
 		{
 			number: 1,
@@ -39,67 +39,48 @@ func TestGetDelegationById(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "missing parameter",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 3,
-			name:   "empty id",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=",
-				},
-			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 4,
 			name:   "record not found error",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
-				},
-			},
-			params: structs.QueryParams{
-				Id: id},
-			dbResponse: handler.ErrNotFound,
-			code:       http.StatusNotFound,
-		},
-		{
-			number: 5,
-			name:   "internal server error",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=id_not_uuid",
-				},
-			},
-			params: structs.QueryParams{
-				Id: invalidId},
-			dbResponse: errors.New("internal error"),
-			code:       http.StatusInternalServerError,
-		},
-		{
-			number: 6,
-			name:   "success response",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "id=93f14795-86dc-4db6-b20f-dda12e626406",
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
 				},
 			},
 			params: structs.QueryParams{
 				Id: id,
 			},
-			delegations: []structs.Delegation{dlgById},
-			code:        http.StatusOK,
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusNotFound,
+		},
+		{
+			number: 3,
+			name:   "internal server error",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "id=id_test",
+				},
+			},
+			params: structs.QueryParams{
+				Id: invalidId,
+			},
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
+		},
+		{
+			number: 4,
+			name:   "success response",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "id=11053aa6-4bbb-4094-b588-8368cd621f2c",
+				},
+			},
+			params: structs.QueryParams{
+				Id: id,
+			},
+			node: []structs.Node{},
+			code: http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
@@ -107,12 +88,12 @@ func TestGetDelegationById(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 3 {
-				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
+			if tt.number > 1 {
+				mockDB.EXPECT().GetNodes(tt.req.Context(), tt.params).Return(tt.node, tt.dbResponse)
 			}
-			contractor := *handler.NewClientContractor(mockDB)
-			connector := handler.NewClientConnector(contractor)
-			res := http.HandlerFunc(connector.GetDelegations)
+			contractor := *client.NewClient(mockDB)
+			connector := webapi.NewClientConnector(&contractor)
+			res := http.HandlerFunc(connector.GetNodes)
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
 			assert.True(t, rr.Code == tt.code)

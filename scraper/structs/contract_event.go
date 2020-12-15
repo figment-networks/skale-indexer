@@ -1,6 +1,8 @@
 package structs
 
 import (
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -18,6 +20,17 @@ type ContractEvent struct {
 	TransactionHash common.Hash            `json:"transaction_hash"`
 	Removed         bool                   `json:"removed"`
 	Params          map[string]interface{} `json:"params"`
-	BoundType       string                 `json:"boundType"`
-	BoundAddress    common.Address         `json:"boundAddress"`
+	BoundType       string                 `json:"bound_type"`
+	BoundId         []BoundId              `json:"bound_id"`
+	BoundAddress    common.Address         `json:"bound_address"`
+}
+
+type BoundId uint64
+
+func (a *BoundId) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(b, &a)
 }
