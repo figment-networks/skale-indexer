@@ -8,17 +8,18 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+// TODO: run explain analyze to check full scan and add required indexes
 const (
 	insertStatementD        = `INSERT INTO delegations ("delegation_id", "holder", "validator_id", "eth_block_height", "amount", "delegation_period", "created", "started",  "finished", "info", "state" ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
-	getByStatementD         = `SELECT d.id, d.created_at, d.updated_at, d.delegation_id, d.holder, d.validator_id, d.eth_block_height, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.state FROM delegations d `
-	byIdD                   = `WHERE d.id =  $1 `
-	byValidatorIdD          = `WHERE d.validator_id =  $1 `
-	byDateRangeD            = `AND d.created between $1 and $2 `
-	byRecentEthBlockHeightD  = `SELECT  DISTINCT ON (delegation_id) d.id, d.created_at, d.updated_at, d.delegation_id, d.holder, d.validator_id, d.eth_block_height, d.amount, d.delegation_period, d.created, d.started, d.finished, d.info, d.state  
-									FROM delegations d
-								WHERE d.validator_id = $1 AND d.eth_block_height <=$2 
-									ORDER BY d.delegation_id, d.eth_block_height DESC`
-	orderByCreatedD         = `ORDER BY d.created DESC `
+	getByStatementD         = `SELECT id, created_at, updated_at, delegation_id, holder, validator_id, eth_block_height, amount, delegation_period, created, started, finished, info, state FROM delegations `
+	byIdD                   = `WHERE id =  $1 `
+	byValidatorIdD          = `WHERE validator_id =  $1 `
+	byDateRangeD            = `AND created between $1 and $2 `
+	byRecentEthBlockHeightD  = `SELECT  DISTINCT ON (delegation_id) id, created_at, updated_at, delegation_id, holder, validator_id, eth_block_height, amount, delegation_period, created, started, finished, info, state  
+									FROM delegations 
+								WHERE validator_id = $1 AND eth_block_height <=$2 
+									ORDER BY delegation_id, eth_block_height DESC`
+	orderByCreatedD         = `ORDER BY created DESC `
 )
 
 // SaveDelegation saves delegation

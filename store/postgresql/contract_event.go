@@ -8,12 +8,13 @@ import (
 	"github.com/lib/pq"
 )
 
+// TODO: run explain analyze to check full scan and add required indexes
 const (
 	insertStatementCE        = `INSERT INTO contract_events ("contract_name", "event_name", "contract_address", "block_height", "time", "transaction_hash", "params", "removed", "bound_type", "bound_id", "bound_address") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
-	getByStatementCE         = `SELECT e.id, e.created_at, e.contract_name, e.event_name, e.contract_address, e.block_height, e.time, e.transaction_hash, e.params, e.removed, e.bound_type, e.bound_id, e.bound_address FROM contract_events e `
-	byTimeRangeCE            = `WHERE e.time BETWEEN $1 AND $2 `
-	byBoundIdCE              = `AND e.bound_id = $3 `
-	orderByEventTimeCE       = `ORDER BY e.time DESC`
+	getByStatementCE         = `SELECT id, created_at, contract_name, event_name, contract_address, block_height, time, transaction_hash, params, removed, bound_type, bound_id, bound_address FROM contract_events `
+	byTimeRangeCE            = `WHERE time BETWEEN $1 AND $2 `
+	byBoundIdCE              = `AND bound_id = $3 `
+	orderByEventTimeCE       = `ORDER BY time DESC`
 )
 
 // SaveEvent saves contract events
