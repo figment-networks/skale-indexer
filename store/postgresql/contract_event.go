@@ -10,9 +10,9 @@ import (
 
 const (
 	insertStatementCE        = `INSERT INTO contract_events ("contract_name", "event_name", "contract_address", "block_height", "time", "transaction_hash", "params", "removed", "bound_type", "bound_id", "bound_address") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `
-	//getByStatementCE         = `SELECT e.id, e.created_at, e.updated_at, e.contract_name, e.event_name, e.contract_address, e.block_height, e.time, e.transaction_hash, e.params, e.removed, e.bound_type, e.bound_id, e.bound_address FROM contract_events e `
+	//getByStatementCE         = `SELECT e.id, e.created_at, e.contract_name, e.event_name, e.contract_address, e.block_height, e.time, e.transaction_hash, e.params, e.removed, e.bound_type, e.bound_id, e.bound_address FROM contract_events e `
 	// TODO: find a solution to read byte array properly for contract_address, transaction_hash, bound_address
-	getByStatementCE         = `SELECT e.id, e.created_at, e.updated_at, e.contract_name, e.event_name, e.block_height, e.time, e.params, e.removed, e.bound_type, e.bound_id FROM contract_events e `
+	getByStatementCE         = `SELECT e.id, e.created_at, e.contract_name, e.event_name, e.block_height, e.time, e.params, e.removed, e.bound_type, e.bound_id FROM contract_events e `
 	byTimeRangeCE            = `WHERE e.time BETWEEN $1 AND $2 `
 	byBoundIdCE              = `AND e.bound_id = $3 `
 	byBoundIdSecondElementCE = `AND e.bound_id [2] = $3 `
@@ -49,9 +49,9 @@ func (d *Driver) GetContractEvents(ctx context.Context, params structs.QueryPara
 
 	for rows.Next() {
 		e := structs.ContractEvent{}
-		//err = rows.Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt, &e.ContractName, &e.EventName, pq.Array(&e.ContractAddress), &e.BlockHeight, &e.Time, pq.Array(&e.TransactionHash), &e.Params, &e.Removed, &e.BoundType, pq.Array(&e.BoundId), pq.Array(&e.BoundAddress))
+		//err = rows.Scan(&e.ID, &e.CreatedAt, &e.ContractName, &e.EventName, pq.Array(&e.ContractAddress), &e.BlockHeight, &e.Time, pq.Array(&e.TransactionHash), &e.Params, &e.Removed, &e.BoundType, pq.Array(&e.BoundId), pq.Array(&e.BoundAddress))
 		// TODO: find a solution to read byte array properly for contract_address, transaction_hash, bound_address
-		err = rows.Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt, &e.ContractName, &e.EventName, &e.BlockHeight, &e.Time, &e.Params, &e.Removed, &e.BoundType, pq.Array(&e.BoundId))
+		err = rows.Scan(&e.ID, &e.CreatedAt, &e.ContractName, &e.EventName, &e.BlockHeight, &e.Time, &e.Params, &e.Removed, &e.BoundType, pq.Array(&e.BoundId))
 		if err != nil {
 			return nil, err
 		}

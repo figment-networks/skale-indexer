@@ -10,6 +10,7 @@ import (
 type Delegation struct {
 	ID               string          `json:"id"`
 	CreatedAt        time.Time       `json:"created_at"`
+	// TODO: remove updated_at
 	UpdatedAt        time.Time       `json:"updated_at"`
 	DelegationID     *big.Int        `json:"delegation_id"`
 	Holder           common.Address  `json:"holder"`

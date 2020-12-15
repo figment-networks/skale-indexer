@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/lib/pq"
 	"time"
 )
 
 type ContractEvent struct {
 	ID              string         `json:"id"`
 	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       pq.NullTime    `json:"updated_at"`
 	ContractName    string         `json:"contract_name"`
 	EventName       string         `json:"event_name"`
 	ContractAddress common.Address `json:"contract_address"`

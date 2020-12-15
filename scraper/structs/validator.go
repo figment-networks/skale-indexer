@@ -9,6 +9,7 @@ import (
 type Validator struct {
 	ID                      string         `json:"id"`
 	CreatedAt               time.Time      `json:"created_at"`
+	// TODO: remove updated_at
 	UpdatedAt               time.Time      `json:"updated_at"`
 	ValidatorID             *big.Int       `json:"validator_id"`
 	Name                    string         `json:"name"`
