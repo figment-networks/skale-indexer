@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS validator_statistics;
-
 CREATE TABLE IF NOT EXISTS validator_statistics
 (
     id                      UUID DEFAULT   uuid_generate_v4(),

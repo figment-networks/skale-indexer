@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
@@ -23,7 +24,7 @@ type DataStore interface {
 
 type ContractEventStore interface {
 	SaveContractEvent(ctx context.Context, contractEvent structs.ContractEvent) error
-	GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error)
+	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 }
 
 type NodeStore interface {
@@ -61,7 +62,7 @@ func (s *Store) SaveContractEvent(ctx context.Context, contractEvent structs.Con
 	return s.driver.SaveContractEvent(ctx, contractEvent)
 }
 
-func (s *Store) GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error) {
+func (s *Store) GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error) {
 	return s.driver.GetContractEvents(ctx, params)
 }
 
