@@ -57,7 +57,7 @@ func TestManager_LoadContracts(t *testing.T) {
 			t.Error(err)
 		}
 
-		ccs := m.GetContractsByContractNames([]string{"delegation_controller", "validator_service"})
+		ccs := m.GetContractsByNames([]string{"delegation_controller", "validator_service"})
 
 		require.Len(t, ccs, 2)
 

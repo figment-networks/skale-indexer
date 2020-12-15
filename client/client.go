@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/store"
 )
@@ -16,7 +17,7 @@ func NewClient(storeEng store.DataStore) *Client {
 	}
 }
 
-func (c *Client) GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error) {
+func (c *Client) GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error) {
 	return c.storeEng.GetContractEvents(ctx, params)
 }
 
@@ -28,7 +29,7 @@ func (c *Client) GetValidators(ctx context.Context, params structs.QueryParams) 
 	return c.storeEng.GetValidators(ctx, params)
 }
 
-func (c *Client) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return c.storeEng.GetDelegations(ctx, params)
 }
 

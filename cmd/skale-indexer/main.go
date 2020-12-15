@@ -107,20 +107,16 @@ func main() {
 	caller := &skale.Caller{}
 	am := actions.NewManager(caller, storeDB, tr, cm)
 	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
-	/*
-		ccs := cm.GetContractsByNames(am.GetImplementedEventsNames())
-		if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
-			logger.GetLogger().Error(err)
-			return
-		}
-	*/
-	eAPI.AM.GetImplementedContractNames()
 	mux := http.NewServeMux()
 
 	cli := client.NewClient(storeDB)
 	hCli := webapi.NewClientConnector(cli)
-
 	hCli.AttachToHandler(mux)
+
+	ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
+	sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
+	sCli.AttachToHandler(mux)
+
 	mux.Handle("/metrics", metrics.Handler())
 
 	s := &http.Server{

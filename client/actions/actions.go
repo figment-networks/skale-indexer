@@ -114,9 +114,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		v.ETHBlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
+		/*  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
-			return fmt.Errorf("error storing validator %w", err)
-		}
+				return fmt.Errorf("error storing validator %w", err)
+			}*/
 
 		if ce.EventName == "NodeAddressWasAdded" || ce.EventName == "NodeAddressWasRemoved" {
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
@@ -143,6 +144,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error calculating validator params %w", err)
 			}
 		*/
+
+		ce.BoundType = "validator"
+		//ce.BoundId = "validator"
 	case "nodes":
 		/*
 			@dev Emitted when a node is created.
@@ -297,8 +301,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 	}
 
-	// m.s.StoreEvent(ctx, ce)
-	return nil
+	return m.dataStore.SaveContractEvent(ctx, ce)
 
 }
 

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
@@ -23,7 +24,7 @@ type DataStore interface {
 
 type ContractEventStore interface {
 	SaveContractEvent(ctx context.Context, contractEvent structs.ContractEvent) error
-	GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error)
+	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 }
 
 type NodeStore interface {
@@ -38,7 +39,7 @@ type ValidatorStore interface {
 
 type DelegationStore interface {
 	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
-	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 }
 
 type ValidatorStatisticsStore interface {
@@ -61,7 +62,7 @@ func (s *Store) SaveContractEvent(ctx context.Context, contractEvent structs.Con
 	return s.driver.SaveContractEvent(ctx, contractEvent)
 }
 
-func (s *Store) GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error) {
+func (s *Store) GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error) {
 	return s.driver.GetContractEvents(ctx, params)
 }
 
@@ -85,7 +86,7 @@ func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegatio
 	return s.driver.SaveDelegation(ctx, delegation)
 }
 
-func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegations(ctx, params)
 }
 
