@@ -1,4 +1,4 @@
-package delegations
+package api_endpoints
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func TestGetValidatorByDateRange(t *testing.T) {
+func TestDelegations(t *testing.T) {
 	dlgByDateRange := structs.Delegation{}
 	from, _ := time.Parse(structs.Layout, "2006-01-02T15:04:05.000Z")
 	to, _ := time.Parse(structs.Layout, "2106-01-02T15:04:05.000Z")
@@ -23,7 +23,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 		number      int
 		name        string
 		req         *http.Request
-		params      structs.QueryParams
+		params      structs.DelegationParams
 		delegations []structs.Delegation
 		dbResponse  error
 		code        int
@@ -38,7 +38,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 		},
 		{
 			number: 2,
-			name:   "missing parameter",
+			name:   "missing parameter all",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -48,68 +48,121 @@ func TestGetValidatorByDateRange(t *testing.T) {
 		},
 		{
 			number: 3,
-			name:   "empty from and to ",
+			name:   "invalid date from and to",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "from=&to=",
+					RawQuery: "from=2006&to=2106",
 				},
 			},
 			code: http.StatusBadRequest,
 		},
 		{
 			number: 4,
-			name:   "invalid date from and to ",
+			name:   "record not found error for delegation_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "from=2020&to=2100",
+					RawQuery: "delegation_id=1903",
 				},
 			},
-			code: http.StatusBadRequest,
-		},
-		{
-			number: 5,
-			name:   "record not found error",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL: &url.URL{
-					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
-				},
-			},
-			params: structs.QueryParams{
-				TimeFrom: from,
-				TimeTo:   to,
+			params: structs.DelegationParams{
+				DelegationId: "1903",
 			},
 			dbResponse: structs.ErrNotFound,
 			code:       http.StatusNotFound,
 		},
 		{
-			number: 6,
-			name:   "internal server error",
+			number: 5,
+			name:   "internal server error for delegation_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "delegation_id=test",
 				},
 			},
-			params: structs.QueryParams{
-				TimeFrom: from,
-				TimeTo:   to,
+			params: structs.DelegationParams{
+				DelegationId: "test",
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
+			number: 6,
+			name:   "success response for delegation_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "delegation_id=1903",
+				},
+			},
+			params: structs.DelegationParams{
+				DelegationId: "1903",
+			},
+			delegations: []structs.Delegation{dlgByDateRange},
+			code:        http.StatusOK,
+		},
+		{
 			number: 7,
-			name:   "success response",
+			name:   "record not found error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			params: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusNotFound,
+		},
+		{
+			number: 8,
+			name:   "internal server error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			params: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
+		},
+		{
+			number: 9,
+			name:   "success response for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			params: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			delegations: []structs.Delegation{dlgByDateRange},
+			code:        http.StatusOK,
+		},
+		{
+			number: 10,
+			name:   "success response for created time range without validator_id and recent",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
 					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
-			params: structs.QueryParams{
+			params: structs.DelegationParams{
 				TimeFrom: from,
 				TimeTo:   to,
 			},
@@ -122,7 +175,7 @@ func TestGetValidatorByDateRange(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := store.NewMockDataStore(mockCtrl)
-			if tt.number > 4 {
+			if tt.number > 3 {
 				mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.params).Return(tt.delegations, tt.dbResponse)
 			}
 			contractor := *client.NewClient(mockDB)

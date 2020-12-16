@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func TestGetContractEvents(t *testing.T) {
+func TestContractEvents(t *testing.T) {
 	from, _ := time.Parse(structs.Layout, "2006-01-02T15:04:05.000Z")
 	to, _ := time.Parse(structs.Layout, "2106-01-02T15:04:05.000Z")
 	var validatorId uint64 = 2
