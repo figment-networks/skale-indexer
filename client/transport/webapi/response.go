@@ -29,8 +29,6 @@ type DelegationAPI struct {
 	Amount           *big.Int       `json:"amount"`
 	DelegationPeriod *big.Int       `json:"delegation_period"`
 	Created          time.Time      `json:"created"`
-	Started          *big.Int       `json:"started"`
-	Finished         *big.Int       `json:"finished"`
 	Info             string         `json:"info"`
 }
 
