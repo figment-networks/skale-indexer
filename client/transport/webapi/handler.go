@@ -65,7 +65,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	var err error
 	if (typeParam == "") != (idParam == "") {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
