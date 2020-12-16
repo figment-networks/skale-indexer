@@ -230,18 +230,18 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	recentParam := req.URL.Query().Get("recent")
 	recent, _ := strconv.ParseBool(recentParam)
 
-	if delegationId == "" || (errFrom != nil || errTo != nil) {
+	if delegationId == "" && (errFrom != nil || errTo != nil) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
 	params := structs.DelegationParams{
-		ValidatorId: validatorId,
+		ValidatorId:  validatorId,
 		DelegationId: delegationId,
-		TimeFrom:    timeFrom,
-		TimeTo:      timeTo,
-		Recent:      recent,
+		TimeFrom:     timeFrom,
+		TimeTo:       timeTo,
+		Recent:       recent,
 	}
 
 	res, err := c.cli.GetDelegations(req.Context(), params)
@@ -266,15 +266,13 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 			Amount:           dlg.Amount,
 			DelegationPeriod: dlg.DelegationPeriod,
 			Created:          dlg.Created,
-			Started:          dlg.Started,
-			Finished:         dlg.Finished,
 			Info:             dlg.Info,
 		})
 	}
 
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
+	enc.Encode(dlgs)
 }
 
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
