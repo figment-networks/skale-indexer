@@ -19,6 +19,6 @@ type ContractEvent struct {
 	Removed         bool                   `json:"removed"`
 	Params          map[string]interface{} `json:"params"`
 	BoundType       string                 `json:"bound_type"`
-	BoundID         big.Int                `json:"bound_id"`
-	BoundAddress    common.Address         `json:"bound_address"`
+	BoundID         []big.Int              `json:"bound_id"`
+	BoundAddress    []common.Address       `json:"bound_address"`
 }

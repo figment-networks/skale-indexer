@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"go.uber.org/zap"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -50,6 +51,7 @@ type Manager struct {
 	c         Call
 	tr        transport.EthereumTransport
 	cm        *contract.Manager
+	l         *zap.Logger
 }
 
 func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
@@ -61,7 +63,6 @@ func (m *Manager) GetImplementedContractNames() []string {
 }
 
 func (m *Manager) GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error) {
-	// add cache
 	h, err = m.tr.GetBlockHeader(ctx, height)
 	return h, err
 }
@@ -102,16 +103,20 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			);
 		*/
 
-		vID, ok := ce.Params["validatorId"]
+		vIDI, ok := ce.Params["validatorId"]
 		if !ok {
 			return errors.New("Structure is not a validator")
 		}
 
-		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID.(*big.Int))
+		vID, ok := vIDI.(*big.Int)
+		if !ok {
+			return errors.New("Structure is not a validator")
+		}
+
+		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID)
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
-
 		v.ETHBlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
 		/*  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
@@ -125,18 +130,19 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return errors.New("Node contract is not found for version :" + c.Version)
 
 			}
-			nodes, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID.(*big.Int))
+			nodes, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID)
 			if err != nil {
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
 
-			// TODO: batch insert
+			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
 				node.StartBlock = big.NewInt(int64(ce.BlockHeight))
 				node.EventTime = ce.Time
-				if err := m.dataStore.SaveNode(ctx, node); err != nil {
+				// BUG(lukanus):
+				/*	if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
-				}
+				}*/
 			}
 		}
 		/*
@@ -146,7 +152,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		*/
 
 		ce.BoundType = "validator"
-		//ce.BoundId = "validator"
+		ce.BoundID = append(ce.BoundID, *vID)
 	case "nodes":
 		/*
 			@dev Emitted when a node is created.
@@ -178,11 +184,16 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			);
 		*/
 
-		vID, ok := ce.Params["nodeIndex"]
+		nIDI, ok := ce.Params["nodeIndex"]
+		if !ok {
+			return errors.New("Structure is not a node")
+		}
+		nID, ok := nIDI.(*big.Int)
 		if !ok {
 			return errors.New("Structure is not a validator")
 		}
-		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, vID.(*big.Int))
+
+		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, nID)
 		if err != nil {
 			// TODO: change err message from line 203
 			return errors.New("Structure is not a node")
@@ -190,9 +201,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		n.StartBlock = big.NewInt(int64(ce.BlockHeight))
 		n.EventTime = ce.Time
-		if err = m.dataStore.SaveNode(ctx, n); err != nil {
-			return fmt.Errorf("error storing delegation %w", err)
-		}
+		//	if err = m.dataStore.SaveNode(ctx, n); err != nil {
+		//		return fmt.Errorf("error storing nodes %w", err)
+		//	}
+
+		ce.BoundType = "node"
+		ce.BoundID = append(ce.BoundID, *nID)
 
 		// TODO(lukanus): Get Validator Nodes maybe?
 	case "punisher":
@@ -208,6 +222,34 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				uint amount
 			);
 		*/
+		switch ce.EventName {
+		case "slash":
+			vIDI, ok := ce.Params["validatorId"]
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			vID, ok := vIDI.(*big.Int)
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			ce.BoundType = "validator"
+			ce.BoundID = append(ce.BoundID, *vID)
+		case "forgive":
+			wAddrI, ok := ce.Params["wallet"]
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			wAddr, ok := wAddrI.(common.Address)
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			ce.BoundAddress = append(ce.BoundAddress, wAddr)
+		}
+
 	case "distributor":
 		/*
 			@dev Emitted when bounty is withdrawn.
@@ -239,6 +281,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error calling getEarnedFeeAmountOf function %w", err)
 			}
 		*/
+
 	case "delegation_controller":
 		/*
 			@dev Emitted when a delegation is proposed to a validator.
@@ -259,12 +302,16 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			);
 		*/
 
-		dID, ok := ce.Params["delegationId"]
+		dIDI, ok := ce.Params["delegationId"]
+		if !ok {
+			return errors.New("Structure is not a delegation")
+		}
+		dID, ok := dIDI.(*big.Int)
 		if !ok {
 			return errors.New("Structure is not a delegation")
 		}
 
-		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID.(*big.Int))
+		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID)
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
@@ -274,6 +321,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
+		ce.BoundType = "delegation"
+		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
 	case "skale_manager":
 		/*
 			@dev Emitted when bounty is received.
@@ -298,7 +347,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				uint gasSpend
 			);
 		*/
-
+	default:
+		m.l.Debug("Unknown event type", zap.String("type", ce.ContractName), zap.Any("event", ce))
 	}
 
 	return m.dataStore.SaveContractEvent(ctx, ce)

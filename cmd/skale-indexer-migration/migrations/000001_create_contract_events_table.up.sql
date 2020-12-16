@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'boundtype') THEN
-        CREATE TYPE BOUNDTYPE AS ENUM ('validator', 'delegation');
+        CREATE TYPE BOUNDTYPE AS ENUM ('validator', 'delegation', 'node');
     END IF;
     --more types here...
 END$$;
@@ -13,7 +13,7 @@ END$$;
 
 CREATE TABLE IF NOT EXISTS contract_events
 (
-    id                      UUID DEFAULT   uuid_generate_v4(),
+    id                      UUID                     DEFAULT   uuid_generate_v4(),
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     contract_name           VARCHAR(100)             NOT NULL,
     event_name              VARCHAR(50)              NOT NULL,
@@ -30,4 +30,8 @@ CREATE TABLE IF NOT EXISTS contract_events
 );
 
 -- Indexes
-CREATE index idx_contract_events_bound_id on contract_events USING GIN (bound_id);
+CREATE INDEX idx_c_ev_time on contract_events (time);
+CREATE INDEX idx_c_ev_bound_type on contract_events (bound_type);
+CREATE index idx_c_ev_bound_id on contract_events USING GIN (bound_id);
+
+CREATE UNIQUE INDEX idx_c_ev_unique on contract_events (contract_address, event_name, block_height, transaction_hash, removed);

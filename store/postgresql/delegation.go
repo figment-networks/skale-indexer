@@ -20,7 +20,18 @@ const (
 
 // SaveDelegation saves delegation
 func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
-	_, err := d.db.Exec(insertStatementD, dl.DelegationID, dl.Holder, dl.ValidatorID, dl.ETHBlockHeight, dl.Amount, dl.DelegationPeriod, dl.Created, dl.Started, dl.Finished, dl.Info, dl.State)
+	_, err := d.db.Exec(insertStatementD,
+		dl.DelegationID.String(),
+		dl.Holder.Hash().Big().String(),
+		dl.ValidatorID.String(),
+		dl.ETHBlockHeight,
+		dl.Amount.String(),
+		dl.DelegationPeriod.String(),
+		dl.Created,
+		dl.Started.String(),
+		dl.Finished.String(),
+		dl.Info,
+		dl.State)
 	return err
 }
 

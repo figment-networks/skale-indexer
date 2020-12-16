@@ -86,7 +86,7 @@ func TestGetLogs(t *testing.T) {
 			am := actions.NewManager(caller, mockDB, tr, cm)
 			eAPI := scraper.NewEthereumAPI(zl, tr, am)
 
-			ccs := cm.GetContractsByContractNames(am.GetImplementedContractNames())
+			ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
 				t.Error(err)
 				return
