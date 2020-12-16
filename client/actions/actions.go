@@ -54,8 +54,8 @@ type Manager struct {
 	l         *zap.Logger
 }
 
-func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager) *Manager {
-	return &Manager{c: c, dataStore: dataStore, tr: tr, cm: cm}
+func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager, l *zap.Logger) *Manager {
+	return &Manager{c: c, dataStore: dataStore, tr: tr, cm: cm, l: l}
 }
 
 func (m *Manager) GetImplementedContractNames() []string {
