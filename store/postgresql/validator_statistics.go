@@ -74,6 +74,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.QueryPa
 }
 
 // update "ACTIVE NODES"
+// TODO: change calculation active nodes = active + leaving nodes
 func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
 	_, err := d.db.Exec(calculateActiveNodes, params.ETHBlockHeight, structs.ValidatorStatisticsTypeActiveNodes, params.ValidatorId, structs.NodeStatusActive)
 	if err == nil {
