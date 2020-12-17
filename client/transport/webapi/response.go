@@ -21,9 +21,9 @@ type ContractEventAPI struct {
 }
 
 type DelegationAPI struct {
-	DelegationID     big.Int        `json:"delegation_id"`
+	DelegationID     *big.Int        `json:"delegation_id"`
 	Holder           common.Address `json:"holder"`
-	ValidatorID      big.Int        `json:"validator_id"`
+	ValidatorID      *big.Int        `json:"validator_id"`
 	ETHBlockHeight   uint64         `json:"eth_block_height"`
 	Amount           *big.Int       `json:"amount"`
 	DelegationPeriod *big.Int       `json:"delegation_period"`

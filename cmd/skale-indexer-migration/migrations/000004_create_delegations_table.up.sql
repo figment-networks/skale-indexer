@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS delegations
     amount                  DECIMAL(65, 0)           NOT NULL,
     delegation_period       DECIMAL(65, 0)           NOT NULL,
     created                 TIMESTAMP WITH TIME ZONE NOT NULL,
-    started                 DECIMAL(65, 0)           NOT NULL,
-    finished                DECIMAL(65, 0)           NOT NULL,
+    --started                 DECIMAL(65, 0)           NOT NULL,
+    --finished                DECIMAL(65, 0)           NOT NULL,
     info                    TEXT                     NOT NULL,
     state                   SMALLINT                 NOT NULL,
     PRIMARY KEY (id)

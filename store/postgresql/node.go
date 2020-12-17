@@ -77,11 +77,6 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		n.FinishTime = new(big.Int).SetUint64(finishTime)
 		n.ValidatorID = new(big.Int).SetUint64(validatorId)
 
-		ocs := "a"
-		oba := []byte(ocs)
-		b := oba[0]
-		fmt.Println(b)
-
 		k := strings.Split(ip, ".")
 		var ipp [4]byte
 		for i := 0; i < len(ipp); i++ {
