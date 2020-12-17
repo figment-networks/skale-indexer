@@ -29,7 +29,7 @@ type ContractEventStore interface {
 
 type NodeStore interface {
 	SaveNode(ctx context.Context, node structs.Node) error
-	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
+	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 }
 
 type ValidatorStore interface {
@@ -70,7 +70,7 @@ func (s *Store) SaveNode(ctx context.Context, node structs.Node) error {
 	return s.driver.SaveNode(ctx, node)
 }
 
-func (s *Store) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	return s.driver.GetNodes(ctx, params)
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -17,7 +18,7 @@ import (
 
 type ClientContractor interface {
 	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
-	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
+	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
@@ -119,22 +120,10 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id := req.URL.Query().Get("id")
-	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
-	var err error
-	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
-		}
-	}
+	validatorId := req.URL.Query().Get("validator_id")
 	recentParam := req.URL.Query().Get("recent")
 	recent, _ := strconv.ParseBool(recentParam)
-	params := structs.QueryParams{
-		Id:          id,
+	params := structs.NodeParams{
 		ValidatorId: validatorId,
 		Recent:      recent,
 	}
@@ -150,9 +139,25 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var nodes []NodeAPI
+	for _, n := range res {
+		nodes = append(nodes, NodeAPI{
+			NodeID:         n.NodeID,
+			Name:           n.Name,
+			IP:             fmt.Sprintf("%v.%v.%v.%v", int(n.IP[0]), int(n.IP[1]), int(n.IP[2]), int(n.IP[3])),
+			PublicIP:       fmt.Sprintf("%v.%v.%v.%v", int(n.PublicIP[0]), int(n.PublicIP[1]), int(n.PublicIP[2]), int(n.PublicIP[3])),
+			Port:           n.Port,
+			StartBlock:     n.StartBlock,
+			NextRewardDate: n.NextRewardDate,
+			LastRewardDate: n.LastRewardDate,
+			FinishTime:     n.FinishTime,
+			ValidatorID:    n.ValidatorID,
+		})
+	}
+
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
+	enc.Encode(nodes)
 }
 
 func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {

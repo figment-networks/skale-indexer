@@ -21,7 +21,7 @@ func (c *Client) GetContractEvents(ctx context.Context, params structs.EventPara
 	return c.storeEng.GetContractEvents(ctx, params)
 }
 
-func (c *Client) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+func (c *Client) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	return c.storeEng.GetNodes(ctx, params)
 }
 
