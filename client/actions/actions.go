@@ -137,7 +137,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
-				node.StartBlock = big.NewInt(int64(ce.BlockHeight))
 				node.EventTime = ce.Time
 				// BUG(lukanus):
 				/*	if err := m.dataStore.SaveNode(ctx, node); err != nil {
@@ -199,7 +198,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Structure is not a node")
 		}
 
-		n.StartBlock = big.NewInt(int64(ce.BlockHeight))
 		n.EventTime = ce.Time
 		if err = m.dataStore.SaveNode(ctx, n); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
@@ -316,7 +314,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
 
-		d.ETHBlockHeight = ce.BlockHeight
+		d.BlockHeight = ce.BlockHeight
 		d.Created = ce.Time
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)

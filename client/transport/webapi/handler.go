@@ -81,11 +81,6 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 
 	res, err := c.cli.GetContractEvents(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, structs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
@@ -120,19 +115,14 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	}
 
 	validatorId := req.URL.Query().Get("validator_id")
-	recentParam := req.URL.Query().Get("recent")
-	recent, _ := strconv.ParseBool(recentParam)
+	//	recentParam := req.URL.Query().Get("recent")
+	//	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.NodeParams{
 		ValidatorId: validatorId,
-		Recent:      recent,
+		//	Recent:      recent,
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, structs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
@@ -225,36 +215,25 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	validatorId := req.URL.Query().Get("validator_id")
-	delegationId := req.URL.Query().Get("delegation_id")
-	from := req.URL.Query().Get("from")
-	timeFrom, errFrom := time.Parse(structs.Layout, from)
-	to := req.URL.Query().Get("to")
-	timeTo, errTo := time.Parse(structs.Layout, to)
-	recentParam := req.URL.Query().Get("recent")
-	recent, _ := strconv.ParseBool(recentParam)
+	timeFrom, errFrom := time.Parse(structs.Layout, req.URL.Query().Get("from"))
+	timeTo, errTo := time.Parse(structs.Layout, req.URL.Query().Get("to"))
+	//recentParam := req.URL.Query().Get("recent")
+	//recent, _ := strconv.ParseBool(recentParam)
 
-	if delegationId == "" && (errFrom != nil || errTo != nil) {
+	if errFrom != nil || errTo != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	params := structs.DelegationParams{
-		ValidatorId:  validatorId,
-		DelegationId: delegationId,
+	res, err := c.cli.GetDelegations(req.Context(), structs.DelegationParams{
+		ValidatorId:  req.URL.Query().Get("validator_id"),
+		DelegationId: req.URL.Query().Get("delegation_id"),
 		TimeFrom:     timeFrom,
 		TimeTo:       timeTo,
-		Recent:       recent,
-	}
+	})
 
-	res, err := c.cli.GetDelegations(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, structs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
@@ -266,7 +245,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 			DelegationID:     dlg.DelegationID,
 			Holder:           dlg.Holder,
 			ValidatorID:      dlg.ValidatorID,
-			ETHBlockHeight:   dlg.ETHBlockHeight,
+			BlockHeight:      dlg.BlockHeight,
 			Amount:           dlg.Amount,
 			DelegationPeriod: dlg.DelegationPeriod,
 			Created:          dlg.Created,

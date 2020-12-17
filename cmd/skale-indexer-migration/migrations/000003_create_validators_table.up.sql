@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS validators
     pending                     DECIMAL(65, 0)           NOT NULL,
     rewards                     DECIMAL(65, 0)           NOT NULL,
     data                        JSONB                    NOT NULL,
-    eth_block_height            DECIMAL(65, 0)           NOT NULL,
+    block_height            DECIMAL(65, 0)           NOT NULL,
     event_time                  TIMESTAMP WITH TIME ZONE NOT NULL,
     UNIQUE(validator_id),
     PRIMARY KEY (id)
 );
 -- Indexes
-CREATE index idx_validators_validator_id_and_eth_block_height on validators (validator_id, eth_block_height);
+CREATE index idx_validators_validator_id_and_block_height on validators (validator_id,  block_height);

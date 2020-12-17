@@ -65,7 +65,6 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 	}
 
 	defer rows.Close()
-
 	for rows.Next() {
 		n := structs.Node{}
 		var nodeId uint64

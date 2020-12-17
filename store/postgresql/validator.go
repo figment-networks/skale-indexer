@@ -10,12 +10,12 @@ import (
 
 // TODO: run explain analyze to check full scan and add required indexes
 const (
-	insertStatementV         = `INSERT INTO validators ("validator_id", "name", "validator_address", "requested_address", "description", "fee_rate","registration_time", "minimum_delegation_amount", "accept_new_requests", "authorized", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "eth_block_height") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) `
-	getByStatementV          = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.authorized, v.active, v.active_nodes, v.linked_nodes, v.staked, v.pending, v.rewards, v.eth_block_height FROM validators v WHERE `
+	insertStatementV         = `INSERT INTO validators ("validator_id", "name", "validator_address", "requested_address", "description", "fee_rate","registration_time", "minimum_delegation_amount", "accept_new_requests", "authorized", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "block_height") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) `
+	getByStatementV          = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.authorized, v.active, v.active_nodes, v.linked_nodes, v.staked, v.pending, v.rewards, v.block_height FROM validators v WHERE `
 	byIdV                    = `v.id =  $1 `
 	byDateRangeV             = `v.created_at between $1 and $2 `
 	byValidatorIdV           = `v.validator_id =  $1 `
-	byRecentEthBlockHeightV  = `AND v.eth_block_height =  (SELECT v2.eth_block_height FROM delegations v2 WHERE v2.validator_id = $2 ORDER BY v2.eth_block_height DESC LIMIT 1) `
+	byRecentEthBlockHeightV  = `AND v.block_height =  (SELECT v2.block_height FROM delegations v2 WHERE v2.validator_id = $2 ORDER BY v2.block_height DESC LIMIT 1) `
 	orderByRegistrationTimeV = `ORDER BY v.registration_time DESC `
 )
 
@@ -31,7 +31,7 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.RegistrationTime,
 		v.MinimumDelegationAmount.String(),
 		v.AcceptNewRequests,
-		v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, v.ETHBlockHeight)
+		v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, v.BlockHeight)
 	return err
 }
 

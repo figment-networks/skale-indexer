@@ -11,19 +11,17 @@ import (
 
 // TODO: run explain analyze to check full scan and add required indexes
 const (
-	// TODO: add started, finished
-	getByStatementD = `SELECT id, created_at, delegation_id, holder, validator_id, eth_block_height, amount, delegation_period, created, info, state FROM delegations `
+	getByStatementD = `SELECT id, delegation_id, holder, validator_id, block_height, amount, delegation_period, created, info, state FROM delegations `
 	byDelegationIdD = `WHERE delegation_id =  $1 `
 	byCreatedRangeD = `WHERE created between $1 and $2 `
 	byValidatorIdD  = `AND validator_id =  $3 `
 	orderByCreatedD = `ORDER BY created DESC `
 
 	// for recent
-	// TODO: add started, finished
-	byRecentEthBlockHeightD = `SELECT  DISTINCT ON (delegation_id) id, created_at, delegation_id, holder, validator_id, eth_block_height, amount, delegation_period, created, info, state
+	byRecentEthBlockHeightD = `SELECT DISTINCT ON (delegation_id) id, delegation_id, holder, validator_id, block_height, amount, delegation_period, created, info, state
 									FROM delegations `
 	byRecentValidatorIdD = `WHERE validator_id = $1 `
-	orderRecentD         = `ORDER BY delegation_id, eth_block_height DESC`
+	orderRecentD         = `ORDER BY delegation_id,  block_height DESC`
 )
 
 // SaveDelegation saves delegation
@@ -32,7 +30,7 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 				"delegation_id",
 				"holder",
 				"validator_id",
-				"eth_block_height",
+				"block_height",
 				"amount",
 				"delegation_period",
 				"created",
@@ -40,11 +38,23 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 				"finished",
 				"info",
 				"state")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) `,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		ON CONFLICT (delegation_id, block_height)
+		DO UPDATE SET
+			holder = EXCLUDED.holder,
+			validator_id = EXCLUDED.validator_id,
+			amount = EXCLUDED.amount,
+			delegation_period = EXCLUDED.delegation_period,
+			created = EXCLUDED.created,
+			started = EXCLUDED.started,
+			finished = EXCLUDED.finished,
+			info = EXCLUDED.info,
+			state = EXCLUDED.state
+		`,
 		dl.DelegationID.String(),
 		dl.Holder.Hash().Big().String(),
 		dl.ValidatorID.String(),
-		dl.ETHBlockHeight,
+		dl.BlockHeight,
 		dl.Amount.String(),
 		dl.DelegationPeriod.String(),
 		dl.Created,
@@ -95,8 +105,8 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		var vldId uint64
 		var amount []byte
 		var dlgPeriod uint64
-		err = rows.Scan(&dlg.ID, &dlg.CreatedAt, &dlgId, &holder, &vldId, &dlg.ETHBlockHeight, &amount, &dlgPeriod, &dlg.Created, &dlg.Info, &dlg.State)
-		if err != nil {
+
+		if err := rows.Scan(&dlg.ID, &dlgId, &holder, &vldId, &dlg.BlockHeight, &amount, &dlgPeriod, &dlg.Created, &dlg.Info, &dlg.State); err != nil {
 			return nil, err
 		}
 		dlg.DelegationID = new(big.Int).SetUint64(dlgId)
