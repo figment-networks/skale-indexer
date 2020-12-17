@@ -16,7 +16,7 @@ import (
 )
 
 type ClientContractor interface {
-	GetContractEvents(ctx context.Context, params structs.QueryParams) (contractEvents []structs.ContractEvent, err error)
+	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
@@ -46,7 +46,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	params := structs.QueryParams{}
+	params := structs.EventParams{}
 	from := req.URL.Query().Get("from")
 	timeFrom, errFrom := time.Parse(structs.Layout, from)
 	to := req.URL.Query().Get("to")
@@ -63,22 +63,20 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	typeParam := req.URL.Query().Get("type")
 	idParam := req.URL.Query().Get("id")
 	var err error
-	if (typeParam == "" ) !=  (idParam == "") {
+	if (typeParam == "") != (idParam == "") {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 		return
 	}
 
-	if typeParam == ""  {
-		params.BoundType = typeParam
-		var id uint64
-		id, err = strconv.ParseUint(idParam, 10, 64)
+	if typeParam != "" {
+		params.Type = typeParam
+		params.Id, err = strconv.ParseUint(idParam, 10, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
 			return
 		}
-		params.BoundId = append(params.BoundId, id)
 	}
 
 	res, err := c.cli.GetContractEvents(req.Context(), params)
@@ -93,9 +91,24 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	var ceva []ContractEventAPI
+	for _, r := range res {
+		ceva = append(ceva, ContractEventAPI{
+			ID:              r.ID,
+			ContractName:    r.ContractName,
+			ContractAddress: r.ContractAddress,
+			EventName:       r.EventName,
+			BlockHeight:     r.BlockHeight,
+			Time:            r.Time,
+			TransactionHash: r.TransactionHash,
+			Params:          r.Params,
+			Removed:         r.Removed,
+		})
+	}
+
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
+	enc.Encode(ceva)
 }
 
 func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
@@ -358,7 +371,8 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write(newApiError(ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		// w.Write(newApiError(, http.StatusMethodNotAllowed))
+		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
 		return
 	}
 

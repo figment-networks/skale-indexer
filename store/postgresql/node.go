@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -19,7 +20,13 @@ const (
 
 // SaveNode saves node
 func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
-	_, err := d.db.Exec(insertStatementN, n.NodeID, n.Name, n.IP, n.PublicIP, n.Port, n.StartBlock, n.NextRewardDate, n.LastRewardDate, n.FinishTime, n.Status, n.ValidatorID, n.EventTime)
+	// BUG(lukanus): pq: invalid byte sequence for encoding \"UTF8\": 0x00"
+	_, err := d.db.Exec(insertStatementN,
+		n.NodeID.String(),
+		n.Name,
+		net.IPv4(n.IP[0], n.IP[1], n.IP[2], n.IP[3]),
+		net.IPv4(n.PublicIP[0], n.PublicIP[1], n.PublicIP[2], n.PublicIP[3]),
+		n.Port, n.StartBlock.String(), n.NextRewardDate, n.LastRewardDate, n.FinishTime.String(), n.Status, n.ValidatorID.String(), n.EventTime)
 	return err
 }
 

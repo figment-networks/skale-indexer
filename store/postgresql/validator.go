@@ -20,7 +20,17 @@ const (
 
 // SaveValidator saves validator
 func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
-	_, err := d.db.Exec(insertStatementV, v.ValidatorID, v.Name, v.ValidatorAddress, v.RequestedAddress, v.Description, v.FeeRate, v.RegistrationTime, v.MinimumDelegationAmount, v.AcceptNewRequests, v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, v.ETHBlockHeight)
+	_, err := d.db.Exec(insertStatementV,
+		v.ValidatorID.String(),
+		v.Name,
+		v.ValidatorAddress.Hash().Big().String(),
+		v.RequestedAddress.Hash().Big().String(),
+		v.Description,
+		v.FeeRate.String(),
+		v.RegistrationTime,
+		v.MinimumDelegationAmount.String(),
+		v.AcceptNewRequests,
+		v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, v.ETHBlockHeight)
 	return err
 }
 

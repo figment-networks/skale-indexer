@@ -105,7 +105,7 @@ func main() {
 	}
 
 	caller := &skale.Caller{}
-	am := actions.NewManager(caller, storeDB, tr, cm)
+	am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
 	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()
 

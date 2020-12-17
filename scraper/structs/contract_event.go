@@ -1,16 +1,15 @@
 package structs
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 type ContractEvent struct {
 	ID              uuid.UUID              `json:"id"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
 	ContractName    string                 `json:"contract_name"`
 	EventName       string                 `json:"event_name"`
 	ContractAddress common.Address         `json:"contract_address"`
@@ -19,6 +18,7 @@ type ContractEvent struct {
 	TransactionHash common.Hash            `json:"transaction_hash"`
 	Removed         bool                   `json:"removed"`
 	Params          map[string]interface{} `json:"params"`
-	BoundType       string                 `json:"boundType"`
-	BoundAddress    common.Address         `json:"boundAddress"`
+	BoundType       string                 `json:"bound_type"`
+	BoundID         []big.Int              `json:"bound_id"`
+	BoundAddress    []common.Address       `json:"bound_address"`
 }

@@ -1,8 +1,9 @@
 package structs
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 const Layout = time.RFC3339
@@ -17,6 +18,15 @@ type QueryParams struct {
 	StatisticTypeVS StatisticTypeVS
 	BoundType       string
 	BoundId     	[]uint64
+	TimeFrom        time.Time
+	TimeTo          time.Time
+}
+
+
+type EventParams struct {
+	RecordId        string
+	Id				uint64
+	Type       		string
 	TimeFrom        time.Time
 	TimeTo          time.Time
 }
