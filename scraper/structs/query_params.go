@@ -38,3 +38,8 @@ type DelegationParams struct {
 	TimeFrom       time.Time
 	TimeTo         time.Time
 }
+
+type NodeParams struct {
+	ValidatorId string
+	Recent      bool
+}

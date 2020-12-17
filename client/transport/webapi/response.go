@@ -20,7 +20,6 @@ type ContractEventAPI struct {
 	Params          map[string]interface{} `json:"params"`
 }
 
-// TODO: change api response with this
 type DelegationAPI struct {
 	DelegationID     big.Int        `json:"delegation_id"`
 	Holder           common.Address `json:"holder"`
@@ -32,12 +31,11 @@ type DelegationAPI struct {
 	Info             string         `json:"info"`
 }
 
-// TODO: change api response with this
 type NodeAPI struct {
 	NodeID         *big.Int  `json:"node_id"`
 	Name           string    `json:"name"`
-	IP             [4]byte   `json:"ip"`
-	PublicIP       [4]byte   `json:"public_ip"`
+	IP             string    `json:"ip"`
+	PublicIP       string    `json:"public_ip"`
 	Port           uint16    `json:"port"`
 	StartBlock     *big.Int  `json:"start_block"`
 	NextRewardDate time.Time `json:"next_reward_date"`
