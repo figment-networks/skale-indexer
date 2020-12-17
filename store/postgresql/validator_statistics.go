@@ -58,9 +58,6 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Quer
 		}
 		validatorStatistics = append(validatorStatistics, d)
 	}
-	if len(validatorStatistics) == 0 {
-		return nil, ErrNotFound
-	}
 	return validatorStatistics, nil
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -144,8 +143,8 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 		nodes = append(nodes, NodeAPI{
 			NodeID:         n.NodeID,
 			Name:           n.Name,
-			IP:             fmt.Sprintf("%v.%v.%v.%v", int(n.IP[0]), int(n.IP[1]), int(n.IP[2]), int(n.IP[3])),
-			PublicIP:       fmt.Sprintf("%v.%v.%v.%v", int(n.PublicIP[0]), int(n.PublicIP[1]), int(n.PublicIP[2]), int(n.PublicIP[3])),
+			IP:             n.IP.String(),
+			PublicIP:       n.PublicIP.String(),
 			Port:           n.Port,
 			StartBlock:     n.StartBlock,
 			NextRewardDate: n.NextRewardDate,

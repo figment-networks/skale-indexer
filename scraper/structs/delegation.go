@@ -1,9 +1,10 @@
 package structs
 
 import (
-	"github.com/google/uuid"
 	"math/big"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/ethereum/go-ethereum/common"
 )

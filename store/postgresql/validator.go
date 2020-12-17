@@ -67,8 +67,5 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 		}
 		validators = append(validators, vld)
 	}
-	if len(validators) == 0 {
-		return nil, ErrNotFound
-	}
 	return validators, nil
 }

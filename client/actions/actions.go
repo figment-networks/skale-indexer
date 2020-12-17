@@ -201,9 +201,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		n.StartBlock = big.NewInt(int64(ce.BlockHeight))
 		n.EventTime = ce.Time
-		//	if err = m.dataStore.SaveNode(ctx, n); err != nil {
-		//		return fmt.Errorf("error storing nodes %w", err)
-		//	}
+		if err = m.dataStore.SaveNode(ctx, n); err != nil {
+			return fmt.Errorf("error storing nodes %w", err)
+		}
 
 		ce.BoundType = "node"
 		ce.BoundID = append(ce.BoundID, *nID)
@@ -321,6 +321,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
+
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
 	case "skale_manager":

@@ -110,8 +110,5 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		dlg.DelegationPeriod = new(big.Int).SetUint64(dlgPeriod)
 		delegations = append(delegations, dlg)
 	}
-	if len(delegations) == 0 {
-		return nil, ErrNotFound
-	}
 	return delegations, nil
 }
