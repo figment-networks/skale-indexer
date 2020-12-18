@@ -5,12 +5,9 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"flag"
-	"log"
 	"net/http"
 
 	"github.com/figment-networks/indexing-engine/metrics"
-	"github.com/figment-networks/indexing-engine/metrics/prometheusmetrics"
-
 	"github.com/figment-networks/skale-indexer/api/skale"
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/client/actions"
@@ -35,49 +32,12 @@ func init() {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	// Initialize configuration
-	cfg, err := initConfig(configPath)
-	if err != nil {
-		log.Fatalf("error initializing config [ERR: %v]", err.Error())
-	}
+	ctx := context.Background()
 
-	if cfg.RollbarServerRoot == "" {
-		cfg.RollbarServerRoot = "github.com/figment-networks/skale-indexer"
-	}
-	rcfg := &logger.RollbarConfig{
-		AppEnv:             cfg.AppEnv,
-		RollbarAccessToken: cfg.RollbarAccessToken,
-		RollbarServerRoot:  cfg.RollbarServerRoot,
-		Version:            config.GitSHA,
-	}
-
-	if cfg.AppEnv == "development" || cfg.AppEnv == "local" {
-		logger.Init("console", "debug", []string{"stderr"}, rcfg)
-	} else {
-		logger.Init("json", "info", []string{"stderr"}, rcfg)
-	}
-
-	logger.Info(config.IdentityString())
-	defer logger.Sync()
-
-	// Initialize metrics
-	prom := prometheusmetrics.New()
-	err = metrics.AddEngine(prom)
-	if err != nil {
-		logger.Error(err)
-	}
-	err = metrics.Hotload(prom.Name())
-	if err != nil {
-		logger.Error(err)
-	}
 
 	// connect to database
-	logger.Info("[DB] Connecting to database...")
-	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	db, err := sql.Open("postgres", "postgresql://localhost:5432/skale?user=postgres&password=admin&sslmode=disable")
 	if err != nil {
-		logger.Error(err)
 		return
 	}
 
@@ -85,27 +45,24 @@ func main() {
 		logger.Error(err)
 		return
 	}
-	logger.Info("[DB] Ping successfull...")
 	defer db.Close()
 
 	pgsqlDriver := postgresql.NewDriver(ctx, db, logger.GetLogger())
 	storeDB := store.New(pgsqlDriver)
 
-	tr := eth.NewEthTransport(cfg.EthereumAddress)
+	tr := eth.NewEthTransport("http://0.0.0.0:8545")
 	if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
-		logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
 		return
 	}
 	defer tr.Close(ctx)
 
 	cm := contract.NewManager()
-	if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
-		logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
+	if err := cm.LoadContractsFromDir("C:\\Users\\emire\\repo\\skale-indexer\\test\\integration\\testFIles"); err != nil {
 		return
 	}
 
 	caller := &skale.Caller{}
-	am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
+	am := actions.NewManager(caller, storeDB, tr, cm, nil)
 	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()
 
@@ -120,7 +77,7 @@ func main() {
 	mux.Handle("/metrics", metrics.Handler())
 
 	s := &http.Server{
-		Addr:    cfg.Address,
+		Addr:    "127.0.0.1:8000",
 		Handler: mux,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,

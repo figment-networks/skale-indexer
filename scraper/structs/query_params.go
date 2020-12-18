@@ -43,3 +43,10 @@ type NodeParams struct {
 	ValidatorId string
 	Recent      bool
 }
+
+type ValidatorParams struct {
+	ValidatorId    string
+	Recent         bool
+	TimeFrom       time.Time
+	TimeTo         time.Time
+}

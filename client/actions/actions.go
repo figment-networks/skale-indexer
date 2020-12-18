@@ -20,7 +20,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 )
 
-var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
+var implementedContractNames = []string{"validator_service"}
 
 type Call interface {
 	// Validator
@@ -117,12 +117,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
-		v.ETHBlockHeight = ce.BlockHeight
+		//v.ETHBlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
-		/*  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
+		//  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
 				return fmt.Errorf("error storing validator %w", err)
-			}*/
+			}
 
 		if ce.EventName == "NodeAddressWasAdded" || ce.EventName == "NodeAddressWasRemoved" {
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)

@@ -4,19 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math/big"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 // TODO: run explain analyze to check full scan and add required indexes
 const (
-	insertStatementV         = `INSERT INTO validators ("validator_id", "name", "validator_address", "requested_address", "description", "fee_rate","registration_time", "minimum_delegation_amount", "accept_new_requests", "authorized", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards", "block_height") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) `
-	getByStatementV          = `SELECT v.id, v.created_at, v.updated_at, v.validator_id, v.name, v.validator_address, v.requested_address, v.description, v.fee_rate, v.registration_time, v.minimum_delegation_amount, v.accept_new_requests, v.authorized, v.active, v.active_nodes, v.linked_nodes, v.staked, v.pending, v.rewards, v.block_height FROM validators v WHERE `
-	byIdV                    = `v.id =  $1 `
-	byDateRangeV             = `v.created_at between $1 and $2 `
-	byValidatorIdV           = `v.validator_id =  $1 `
-	byRecentEthBlockHeightV  = `AND v.block_height =  (SELECT v2.block_height FROM delegations v2 WHERE v2.validator_id = $2 ORDER BY v2.block_height DESC LIMIT 1) `
-	orderByRegistrationTimeV = `ORDER BY v.registration_time DESC `
+	insertStatementV         = `INSERT INTO validators ("validator_id", "name", "validator_address", "requested_address", "description", "fee_rate","registration_time", "minimum_delegation_amount", "accept_new_requests", "authorized", "active", "active_nodes", "linked_nodes", "staked", "pending", "rewards") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) `
+	byValidatorIdV           = `AND validator_id =  $3 `
+	orderByRegistrationTimeV = `ORDER BY registration_time DESC `
 )
 
 // SaveValidator saves validator
@@ -31,26 +28,25 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.RegistrationTime,
 		v.MinimumDelegationAmount.String(),
 		v.AcceptNewRequests,
-		v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards, v.BlockHeight)
+		v.Authorized, v.Active, v.ActiveNodes, v.LinkedNodes, v.Staked, v.Pending, v.Rewards)
 	return err
 }
 
 // GetValidators gets validators by params
-func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
-	var q string
+func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
+	// TODO: add minimum_delegation_amount
+	q:= `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, 
+ 				fee_rate, registration_time, accept_new_requests, authorized,
+ 				active, active_nodes, linked_nodes, staked, pending, rewards 
+ 		FROM validators WHERE created_at between $1 AND $2 `
 	var rows *sql.Rows
-	if params.ValidatorId != 0 && !params.Recent {
-		q = fmt.Sprintf("%s%s%s", getByStatementV, byValidatorIdV, orderByRegistrationTimeV)
-		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
-	} else if params.ValidatorId != 0 && params.Recent {
-		q = fmt.Sprintf("%s%s%s%s", getByStatementV, byValidatorIdV, byRecentEthBlockHeightV, orderByRegistrationTimeV)
-		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId, params.ValidatorId)
-	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
-		q = fmt.Sprintf("%s%s%s", getByStatementV, byDateRangeV, orderByRegistrationTimeV)
-		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
+
+	if params.ValidatorId != ""{
+		q = fmt.Sprintf("%s%s", q, byValidatorIdV)
+		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo, params.ValidatorId)
 	} else {
-		q = fmt.Sprintf("%s%s", getByStatementV, byIdV)
-		rows, err = d.db.QueryContext(ctx, q, params.Id)
+		q = fmt.Sprintf("%s%s", q, orderByRegistrationTimeV)
+		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
 	}
 
 	if err != nil {
@@ -61,10 +57,29 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 
 	for rows.Next() {
 		vld := structs.Validator{}
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.ValidatorID, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.ETHBlockHeight)
+		var vldId uint64
+		var validatorAddress []byte
+		var requestedAddress []byte
+		var feeRate uint64
+		//var mnmDlgAmount uint64
+
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime,
+			//&mnmDlgAmount,
+			&vld.AcceptNewRequests, &vld.Authorized, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards)
 		if err != nil {
 			return nil, err
 		}
+
+		vld.ValidatorID = new(big.Int).SetUint64(vldId)
+		vldAddress := new(big.Int)
+		vldAddress.SetString(string(validatorAddress), 10)
+		vld.ValidatorAddress.SetBytes(vldAddress.Bytes())
+		rqtAddress := new(big.Int)
+		rqtAddress.SetString(string(requestedAddress), 10)
+		vld.RequestedAddress.SetBytes(rqtAddress.Bytes())
+		vld.FeeRate = new(big.Int).SetUint64(feeRate)
+		//vld.MinimumDelegationAmount = new(big.Int).SetUint64(mnmDlgAmount)
+
 		validators = append(validators, vld)
 	}
 	return validators, nil

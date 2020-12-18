@@ -25,7 +25,7 @@ func (c *Client) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 	return c.storeEng.GetNodes(ctx, params)
 }
 
-func (c *Client) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+func (c *Client) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
 	return c.storeEng.GetValidators(ctx, params)
 }
 
