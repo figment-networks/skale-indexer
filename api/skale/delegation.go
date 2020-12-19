@@ -283,3 +283,35 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 
 	return delegations, nil
 }
+
+func (c *Caller) GetBalanceOfHolder(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, address common.Address) (balance *big.Int, err error) {
+	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	co := &bind.CallOpts{
+		Context: ctxT,
+	}
+
+	if blockNumber > 0 { // (lukanus): 0 = latest
+		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		co.Pending = true
+	}
+
+	results := []interface{}{}
+	err = bc.Call(co, &results, "balanceOf", address)
+
+	if err != nil {
+		return nil, fmt.Errorf("error calling balanceOf function %w", err)
+	}
+
+	if len(results) == 0 {
+		return nil, errors.New("empty result")
+	}
+
+	balance, ok := results[0].(*big.Int)
+	if !ok {
+		return nil, errors.New("balance is not *big.Int type ")
+	}
+
+	return balance, nil
+}

@@ -20,7 +20,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 )
 
-var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
+var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2", "skale_token"}
 
 type Call interface {
 	// Validator
@@ -41,6 +41,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
+	GetBalanceOfHolder(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (balance *big.Int, err error)
 }
 
 type BCGetter interface {
