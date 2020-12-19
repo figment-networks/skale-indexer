@@ -339,8 +339,15 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
+	// TODO: add recent param
+	//recentParam := req.URL.Query().Get("recent")
+	//recent, _ := strconv.ParseBool(recentParam)
+	params := structs.AccountParams{
+		Id:   req.URL.Query().Get("id"),
+		Kind: req.URL.Query().Get("kind"),
+	}
 
-	res, err := c.cli.GetAccounts(req.Context(), structs.AccountParams{})
+	res, err := c.cli.GetAccounts(req.Context(), params)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -352,8 +359,9 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 	for _, a := range res {
 		accs = append(accs, AccountAPI{
 			Address:   a.Address,
-			BoundType: a.BoundKind,
+			BoundKind: a.BoundKind,
 			BoundID:   a.BoundID,
+			BlockHeight: a.BlockHeight,
 		})
 	}
 

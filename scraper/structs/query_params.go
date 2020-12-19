@@ -45,13 +45,15 @@ type NodeParams struct {
 }
 
 type ValidatorParams struct {
-	ValidatorId    string
-	Recent         bool
-	TimeFrom       time.Time
-	TimeTo         time.Time
+	ValidatorId string
+	Recent      bool
+	TimeFrom    time.Time
+	TimeTo      time.Time
 }
 
 type AccountParams struct {
-	ValidatorId    string
-	Address         bool
+	Kind    string
+	Id      string
+	Address bool
+	Recent  bool
 }
