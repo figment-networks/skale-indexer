@@ -551,7 +551,7 @@ func TestHandler(t *testing.T) {
 			mockDB := store.NewMockDataStore(mockCtrl)
 			contractor := *client.NewClient(mockDB)
 			connector := NewClientConnector(&contractor)
-
+			//TODO: unit tests for 'accounts'
 			if tt.expectedParams != nil {
 				switch tt.expectedParams.(type) {
 				case structs.DelegationParams:
