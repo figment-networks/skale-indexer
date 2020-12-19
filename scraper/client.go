@@ -50,6 +50,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 		return fmt.Errorf("error in GetLogs request: %w", err)
 	}
 
+	eAPI.log.Debug("[EthTransport] GetLogs  ", zap.Int("len", len(logs)), zap.Any("request", logs))
 
 	if len(logs) == 0 {
 		return nil
@@ -77,8 +78,10 @@ OutputLoop:
 		case o := <-output:
 			gotResponses++
 			if o.Error != nil {
+				eAPI.log.Error("Error", zap.Error(o.Error))
 				continue
 			}
+			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
 			p, ok := processed[o.CE.BlockHeight]
 			if !ok {
 				p = []ProcOutput{}
@@ -114,6 +117,7 @@ func populateToWokers(logs []types.Log, populateCh chan ProcInput) {
 }
 
 func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Address]contract.ContractsContents, in chan ProcInput, out chan ProcOutput) {
+	defer eAPI.log.Sync()
 
 	for {
 		select {
@@ -149,22 +153,22 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 func processLog(logger *zap.Logger, l types.Log, h *types.Header, ccs map[common.Address]contract.ContractsContents) (ce structs.ContractEvent, err error) {
 	c, ok := ccs[l.Address]
 	if !ok {
-	//	logger.Error("[EthTransport] GetLogs contract not found ", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
+		logger.Error("[EthTransport] GetLogs contract not found ", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
 		return ce, fmt.Errorf("error in GetLogs, there is no such contract as %s ", l.Address.String())
 	}
 	if len(l.Topics) == 0 {
-	//	logger.Error("[EthTransport] GetLogs list has empty topic list", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
+		logger.Error("[EthTransport] GetLogs list has empty topic list", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
 		return ce, fmt.Errorf("getLogs list has empty topic list")
 	}
-//	logger.Debug("[EthTransport] GetLogs got contract", zap.String("name", c.Name), zap.Uint64("request", l.BlockNumber))
+	logger.Debug("[EthTransport] GetLogs got contract", zap.String("name", c.Name), zap.Uint64("request", l.BlockNumber))
 	event, err := c.Abi.EventByID(l.Topics[0])
 	if err != nil {
-	//	logger.Error("[EthTransport] GetLogs abi has no such event",
-	//		zap.String("txHash", l.TxHash.String()),
-	//		zap.String("address", l.Address.String()),
-	//		zap.String("name", c.Name),
-	//		zap.Uint64("request", l.BlockNumber),
-	//	)
+		logger.Error("[EthTransport] GetLogs abi has no such event",
+			zap.String("txHash", l.TxHash.String()),
+			zap.String("address", l.Address.String()),
+			zap.String("name", c.Name),
+			zap.Uint64("request", l.BlockNumber),
+		)
 		return ce, fmt.Errorf("getLogs list has empty topic list %w", err)
 	}
 	mapped := make(map[string]interface{}, len(event.Inputs))
