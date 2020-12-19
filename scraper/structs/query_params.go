@@ -50,3 +50,8 @@ type ValidatorParams struct {
 	TimeFrom       time.Time
 	TimeTo         time.Time
 }
+
+type AccountParams struct {
+	ValidatorId    string
+	Address         bool
+}

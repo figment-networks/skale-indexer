@@ -21,6 +21,7 @@ type ClientContractor interface {
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -192,8 +193,8 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	for _, vld := range res {
 		vlds = append(vlds, ValidatorAPI{
 
-			ValidatorID:      vld.ValidatorID,
-			Name:             vld.Name,
+			ValidatorID: vld.ValidatorID,
+			Name:        vld.Name,
 			//ValidatorAddress: vld.ValidatorAddress,
 			//RequestedAddress: vld.RequestedAddress,
 			//Description:      vld.Description,
@@ -203,7 +204,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 			//AcceptNewRequests: vld.AcceptNewRequests,
 			//Authorized:        vld.Authorized,
 			//Active:            vld.Active,
-			ActiveNodes:       vld.ActiveNodes,
+			ActiveNodes: vld.ActiveNodes,
 			//LinkedNodes:       vld.LinkedNodes,
 			//Staked:            vld.Staked,
 			//Pending:           vld.Pending,
@@ -331,6 +332,36 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	enc.Encode(res)
 }
 
+func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	res, err := c.cli.GetAccounts(req.Context(), structs.AccountParams{})
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var accs []AccountAPI
+	for _, a := range res {
+		accs = append(accs, AccountAPI{
+			Address:   a.Address,
+			BoundType: a.BoundKind,
+			BoundID:   a.BoundID,
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(accs)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
@@ -339,6 +370,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/validators", c.GetValidators)
 	mux.HandleFunc("/delegations", c.GetDelegations)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
+	mux.HandleFunc("/accounts", c.GetAccounts)
 }
 
 type ScrapeContractor interface {
