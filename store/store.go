@@ -2,8 +2,8 @@ package store
 
 import (
 	"context"
-
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"math/big"
 )
 
 type DBDriver interface {
@@ -45,11 +45,11 @@ type AccountStore interface {
 }
 
 type ValidatorStatisticsStore interface {
-	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	//	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
-	//  CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
-	//	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
-	//	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
+	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
+	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 }
 
 type DelegationStore interface {
@@ -97,15 +97,14 @@ func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationPar
 	return s.driver.GetDelegations(ctx, params)
 }
 
-func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return s.driver.GetValidatorStatistics(ctx, params)
 }
 
-/*
 func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validatorId *big.Int) error {
-	params := structs.QueryParams{
-		ValidatorId:    validatorId.Uint64(),
-		ETHBlockHeight: blockHeight,
+	params := structs.ValidatorStatisticsParams{
+		ValidatorId: validatorId.String(),
+		BlockHeight: blockHeight,
 	}
 	//TODO: add transactional commit-rollback
 	if err := s.driver.CalculateTotalStake(ctx, params); err != nil {
@@ -121,18 +120,17 @@ func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validat
 	return nil
 }
 
-func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateTotalStake(ctx, params)
 }
 
-func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateActiveNodes(ctx, params)
 }
 
-func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
 }
-*/
 
 func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error {
 	return s.driver.SaveAccount(ctx, account)

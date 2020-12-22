@@ -33,7 +33,7 @@ func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationPa
 	return c.storeEng.GetDelegations(ctx, params)
 }
 
-func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return c.storeEng.GetValidatorStatistics(ctx, params)
 }
 

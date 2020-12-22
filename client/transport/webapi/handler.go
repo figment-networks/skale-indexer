@@ -20,7 +20,7 @@ type ClientContractor interface {
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
-	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 }
 
@@ -268,6 +268,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(dlgs)
 }
 
+// TODO: add unit tests
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
@@ -276,43 +277,9 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	id := req.URL.Query().Get("id")
-	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
-	var err error
-	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
-		}
-	}
-
-	statisticTypeParam := req.URL.Query().Get("statistic_type")
-	if statisticTypeParam == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	var statisticType structs.StatisticTypeVS
-	if statisticTypeParam == "total_stake" {
-		statisticType = structs.ValidatorStatisticsTypeTotalStake
-	} else if statisticTypeParam == "active_nodes" {
-		statisticType = structs.ValidatorStatisticsTypeActiveNodes
-	} else if statisticTypeParam == "linked_nodes" {
-		statisticType = structs.ValidatorStatisticsTypeLinkedNodes
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	params := structs.QueryParams{
-		Id:              id,
-		ValidatorId:     validatorId,
-		StatisticTypeVS: statisticType,
+	params := structs.ValidatorStatisticsParams{
+		ValidatorId:     req.URL.Query().Get("validator_id"),
+		StatisticTypeVS: req.URL.Query().Get("statistic_type"),
 	}
 
 	res, err := c.cli.GetValidatorStatistics(req.Context(), params)
