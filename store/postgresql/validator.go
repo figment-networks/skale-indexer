@@ -9,12 +9,6 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
-// TODO: run explain analyze to check full scan and add required indexes
-const (
-	byValidatorIdV       = `AND validator_id =  $3 `
-	orderByValidatorIdV  = `ORDER BY validator_id `
-)
-
 // SaveValidator saves validator
 func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 	_, err := d.db.Exec(`INSERT INTO validators (
@@ -72,7 +66,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	var rows *sql.Rows
 
 	if params.ValidatorId != "" {
-		q = fmt.Sprintf("%s%s", q, byValidatorIdD)
+		q = fmt.Sprintf("%s%s", q, ` WHERE validator_id =  $1` )
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else {
 		q = `SELECT DISTINCT ON (validator_id)  id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, 
