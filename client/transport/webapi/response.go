@@ -51,6 +51,7 @@ type ValidatorAPI struct {
 	RequestedAddress        common.Address `json:"requested_address"`
 	Description             string         `json:"description"`
 	FeeRate                 *big.Int       `json:"fee_rate"`
+	BlockHeight             uint64         `json:"block_height"`
 	RegistrationTime        time.Time      `json:"registration_time"`
 	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool           `json:"accept_new_requests"`

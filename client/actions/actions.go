@@ -119,7 +119,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
-		//v.ETHBlockHeight = ce.BlockHeight
+		v.BlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
 		//  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {

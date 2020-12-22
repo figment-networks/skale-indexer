@@ -161,8 +161,8 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	timeFrom, errFrom := time.Parse(structs.Layout, req.URL.Query().Get("from"))
 	timeTo, errTo := time.Parse(structs.Layout, req.URL.Query().Get("to"))
 
-	//recentParam := req.URL.Query().Get("recent")
-	//recent, _ := strconv.ParseBool(recentParam)
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 
 	if errFrom != nil || errTo != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -174,7 +174,7 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 		ValidatorId: req.URL.Query().Get("validator_id"),
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
-		//	Recent:      recent,
+		Recent:      recent,
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), params)
@@ -192,19 +192,19 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	var vlds []ValidatorAPI
 	for _, vld := range res {
 		vlds = append(vlds, ValidatorAPI{
-
-			ValidatorID: vld.ValidatorID,
-			Name:        vld.Name,
+			ValidatorID:      vld.ValidatorID,
+			Name:             vld.Name,
 			ValidatorAddress: vld.ValidatorAddress,
 			RequestedAddress: vld.RequestedAddress,
 			Description:      vld.Description,
 			FeeRate:          vld.FeeRate,
+			BlockHeight:      vld.BlockHeight,
 			RegistrationTime: vld.RegistrationTime,
-			//MinimumDelegationAmount
+			//MinimumDelegationAmount: vld.MinimumDelegationAmount,
 			AcceptNewRequests: vld.AcceptNewRequests,
 			Authorized:        vld.Authorized,
 			Active:            vld.Active,
-			ActiveNodes: vld.ActiveNodes,
+			ActiveNodes:       vld.ActiveNodes,
 			LinkedNodes:       vld.LinkedNodes,
 			Staked:            vld.Staked,
 			Pending:           vld.Pending,
@@ -358,9 +358,9 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 	var accs []AccountAPI
 	for _, a := range res {
 		accs = append(accs, AccountAPI{
-			Address:   a.Address,
-			BoundKind: a.BoundKind,
-			BoundID:   a.BoundID,
+			Address:     a.Address,
+			BoundKind:   a.BoundKind,
+			BoundID:     a.BoundID,
 			BlockHeight: a.BlockHeight,
 		})
 	}
