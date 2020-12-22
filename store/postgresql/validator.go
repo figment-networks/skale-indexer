@@ -61,7 +61,7 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 // GetValidators gets validators by params
 func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
 	q := `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, 
-			accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
+			minimum_delegation_amount, accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
  		FROM validators  `
 	var rows *sql.Rows
 
@@ -70,7 +70,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else {
 		q = `SELECT DISTINCT ON (validator_id)  id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, 
-			accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
+			minimum_delegation_amount, accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
  		FROM validators ORDER BY validator_id DESC`
 		rows, err = d.db.QueryContext(ctx, q)
 	}
@@ -87,11 +87,10 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		var validatorAddress []byte
 		var requestedAddress []byte
 		var feeRate uint64
-		//var mnmDlgAmount uint256.In
+		var mnmDlgAmount string
 
 		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime,
-			//&mnmDlgAmount,
-			&vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards)
+			&mnmDlgAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards)
 		if err != nil {
 			return nil, err
 		}
@@ -104,8 +103,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		rqtAddress.SetString(string(requestedAddress), 10)
 		vld.RequestedAddress.SetBytes(rqtAddress.Bytes())
 		vld.FeeRate = new(big.Int).SetUint64(feeRate)
-		// TODO: bug for some values out of range mnmDlgAmount
-		//vld.MinimumDelegationAmount = new(big.Int).SetUint64(mnmDlgAmount)
+		amnt := new(big.Int)
+		amnt.SetString(mnmDlgAmount, 10)
+		vld.MinimumDelegationAmount= amnt
 
 		validators = append(validators, vld)
 	}
