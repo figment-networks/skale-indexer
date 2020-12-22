@@ -116,11 +116,8 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 	}
 
 	validatorId := req.URL.Query().Get("validator_id")
-	//	recentParam := req.URL.Query().Get("recent")
-	//	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.NodeParams{
 		ValidatorId: validatorId,
-		//	Recent:      recent,
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {
@@ -158,23 +155,8 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	timeFrom, errFrom := time.Parse(structs.Layout, req.URL.Query().Get("from"))
-	timeTo, errTo := time.Parse(structs.Layout, req.URL.Query().Get("to"))
-
-	recentParam := req.URL.Query().Get("recent")
-	recent, _ := strconv.ParseBool(recentParam)
-
-	if errFrom != nil || errTo != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
 	params := structs.ValidatorParams{
 		ValidatorId: req.URL.Query().Get("validator_id"),
-		TimeFrom:    timeFrom,
-		TimeTo:      timeTo,
-		Recent:      recent,
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), params)
@@ -198,7 +180,6 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 			RequestedAddress: vld.RequestedAddress,
 			Description:      vld.Description,
 			FeeRate:          vld.FeeRate,
-			BlockHeight:      vld.BlockHeight,
 			RegistrationTime: vld.RegistrationTime,
 			//MinimumDelegationAmount: vld.MinimumDelegationAmount,
 			AcceptNewRequests: vld.AcceptNewRequests,
@@ -227,8 +208,6 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 
 	timeFrom, errFrom := time.Parse(structs.Layout, req.URL.Query().Get("from"))
 	timeTo, errTo := time.Parse(structs.Layout, req.URL.Query().Get("to"))
-	//recentParam := req.URL.Query().Get("recent")
-	//recent, _ := strconv.ParseBool(recentParam)
 
 	if errFrom != nil || errTo != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -318,12 +297,9 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-	// TODO: add recent param
-	//recentParam := req.URL.Query().Get("recent")
-	//recent, _ := strconv.ParseBool(recentParam)
+
 	params := structs.AccountParams{
-		Id:   req.URL.Query().Get("id"),
-		Kind: req.URL.Query().Get("kind"),
+		Type: req.URL.Query().Get("type"),
 	}
 
 	res, err := c.cli.GetAccounts(req.Context(), params)
@@ -338,9 +314,7 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 	for _, a := range res {
 		accs = append(accs, AccountAPI{
 			Address:     a.Address,
-			BoundKind:   a.BoundKind,
-			BoundID:     a.BoundID,
-			BlockHeight: a.BlockHeight,
+			AccountType: a.AccountType,
 		})
 	}
 

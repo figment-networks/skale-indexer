@@ -30,11 +30,11 @@ const (
  							DO UPDATE SET amount = EXCLUDED.amount`
 
 	updateTotalStake = `UPDATE validators SET staked = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ORDER BY block_height DESC LIMIT 1) 
-							WHERE validator_id = $4 AND block_height = $5 `
+							WHERE validator_id = $4 `
 	updateActiveNodes = `UPDATE validators SET active_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ORDER BY block_height DESC LIMIT 1)
- 							WHERE validator_id = $4 AND block_height = $5 `
+ 							WHERE validator_id = $4 `
 	updateLinkedNodes = `UPDATE validators SET linked_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ORDER BY block_height DESC LIMIT 1)
- 							WHERE validator_id = $4 AND block_height = $5 `
+ 							WHERE validator_id = $4 `
 )
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
@@ -85,7 +85,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	_, err := d.db.Exec(calculateActiveNodes, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, params.ValidatorId, structs.NodeStatusActive)
 	if err == nil {
-		_, err = d.db.Exec(updateActiveNodes, params.ValidatorId, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight, params.ValidatorId, params.BlockHeight)
+		_, err = d.db.Exec(updateActiveNodes, params.ValidatorId, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight, params.ValidatorId)
 	}
 	return err
 }
@@ -94,7 +94,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	_, err := d.db.Exec(calculateLinkedNodes, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, params.ValidatorId)
 	if err == nil {
-		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.ValidatorStatisticsTypeLinkedNodes, params.BlockHeight, params.ValidatorId, params.BlockHeight)
+		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.ValidatorStatisticsTypeLinkedNodes, params.BlockHeight, params.ValidatorId)
 	}
 	return err
 }

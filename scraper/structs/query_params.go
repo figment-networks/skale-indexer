@@ -36,10 +36,8 @@ type ValidatorParams struct {
 }
 
 type AccountParams struct {
-	Kind    string
-	Id      string
+	Type    string
 	Address bool
-	Recent  bool
 }
 
 type ValidatorStatisticsParams struct {

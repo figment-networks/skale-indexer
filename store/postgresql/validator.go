@@ -12,7 +12,6 @@ import (
 // TODO: run explain analyze to check full scan and add required indexes
 const (
 	byValidatorIdV       = `AND validator_id =  $3 `
-	byRecentBlockHeightV = `AND block_height =  ((SELECT v2.block_height FROM validators v2 WHERE v2.validator_id = $3 ORDER BY v2.block_height DESC LIMIT 1)) `
 	orderByValidatorIdV  = `ORDER BY validator_id `
 )
 
@@ -25,7 +24,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			"requested_address", 
 			"description", 
 			"fee_rate", 
-			"block_height", 
 			"registration_time", 
 			"minimum_delegation_amount", 
 			"accept_new_requests", 
@@ -35,8 +33,8 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			"staked", 
 			"pending", 
 			"rewards") 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
-		ON CONFLICT (validator_id, block_height)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+		ON CONFLICT (validator_id)
 		DO UPDATE SET
 			name = EXCLUDED.name,
 			validator_address = EXCLUDED.validator_address,
@@ -59,7 +57,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.RequestedAddress.Hash().Big().String(),
 		v.Description,
 		v.FeeRate.String(),
-		v.BlockHeight,
 		v.RegistrationTime,
 		v.MinimumDelegationAmount.String(),
 		v.AcceptNewRequests,
@@ -69,24 +66,18 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 
 // GetValidators gets validators by params
 func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
-	q := `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, block_height, registration_time, 
+	q := `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, 
 			accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
- 		FROM validators WHERE created_at between $1 AND $2 `
+ 		FROM validators  `
 	var rows *sql.Rows
 
-	if params.ValidatorId != "" && params.Recent {
-		q = fmt.Sprintf("%s%s%s", q, byValidatorIdD, byRecentBlockHeightV)
-		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo, params.ValidatorId)
-	} else if params.ValidatorId != "" && !params.Recent {
-		q = fmt.Sprintf("%s%s", q, byValidatorIdV)
-		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo, params.ValidatorId)
-	} else if !params.Recent {
-		q = fmt.Sprintf("%s%s", q, orderByValidatorIdV)
-		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo)
+	if params.ValidatorId != "" {
+		q = fmt.Sprintf("%s%s", q, byValidatorIdD)
+		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
 	} else {
-		q = `SELECT DISTINCT ON (validator_id)  id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, block_height, registration_time, 
+		q = `SELECT DISTINCT ON (validator_id)  id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, 
 			accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards 
- 		FROM validators ORDER BY validator_id, block_height DESC`
+ 		FROM validators ORDER BY validator_id DESC`
 		rows, err = d.db.QueryContext(ctx, q)
 	}
 
@@ -104,7 +95,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		var feeRate uint64
 		//var mnmDlgAmount uint256.In
 
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.BlockHeight, &vld.RegistrationTime,
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime,
 			//&mnmDlgAmount,
 			&vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards)
 		if err != nil {

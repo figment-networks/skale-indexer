@@ -73,7 +73,5 @@ type ValidatorStatisticsAPI struct {
 
 type AccountAPI struct {
 	Address     common.Address `json:"address"`
-	BoundKind   string         `json:"bound_kind"`
-	BoundID     *big.Int       `json:"bound_id"`
-	BlockHeight uint64         `json:"block_height"`
+	AccountType string         `json:"account_type"`
 }

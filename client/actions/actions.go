@@ -119,12 +119,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
-		v.BlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
 		//  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
 				return fmt.Errorf("error storing validator %w", err)
-			}
+		}
 
 		if ce.EventName == "NodeAddressWasAdded" || ce.EventName == "NodeAddressWasRemoved" {
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
@@ -148,13 +147,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				}*/
 			}
 		}
-		/*
-		   TODO: change algorithm
-				1. list <- get delegations by validator and save to db
-				2. delete from accounts table if list ids NOT IN for same block
-				3. insert/update list to accounts table
-				4. calculate parameters and consider accounts table for address based
-		 */
  		/*
 			if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
 				return fmt.Errorf("error calculating validator params %w", err)

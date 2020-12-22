@@ -7,16 +7,13 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"math/big"
 )
-const (
-	orderByBlockHeightA = `ORDER BY block_height  DESC `
-)
+
 // SaveAccount saves account
 func (d *Driver) SaveAccount(ctx context.Context, a structs.Account) error {
-	_, err := d.db.Exec(`INSERT INTO accounts ("address", "bound_kind", "bound_id", "block_height") VALUES ($1, $2, $3, $4) `,
+	_, err := d.db.Exec(`INSERT INTO accounts ("address", "account_type") 
+			VALUES ($1, $2) `,
 		a.Address.Hash().Big().String(),
-		a.BoundKind,
-		a.BoundID.String(),
-		a.BlockHeight)
+		a.AccountType)
 	return err
 }
 
@@ -24,19 +21,14 @@ func (d *Driver) SaveAccount(ctx context.Context, a structs.Account) error {
 // GetAccounts gets accounts
 func (d *Driver) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
 
-	q := `SELECT id, created_at, address, bound_kind, bound_id, block_height FROM accounts `
+	q := `SELECT id, created_at, address, account_type FROM accounts `
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q)
-    // TODO: handle recent param
-	if params.Kind != "" && params.Id != ""{
-		q = fmt.Sprintf("%s%s%s", q, "WHERE bound_kind =  $1 AND bound_id =  $2 ", orderByBlockHeightA)
-		rows, err = d.db.QueryContext(ctx, q, params.Kind, params.Id)
-	} else if params.Kind != "" && params.Id == "" {
-		q = fmt.Sprintf("%s%s%s", q, "WHERE bound_kind =  $1 ", orderByBlockHeightA)
-		rows, err = d.db.QueryContext(ctx, q, params.Kind)
+	if params.Type != "" {
+		q = fmt.Sprintf("%s%s", q, "WHERE type =  $1 ")
+		rows, err = d.db.QueryContext(ctx, q, params.Type)
 	} else {
-		q = fmt.Sprintf("%s%s", q, orderByBlockHeightA)
 		rows, err = d.db.QueryContext(ctx, q)
 	}
 
@@ -48,14 +40,12 @@ func (d *Driver) GetAccounts(ctx context.Context, params structs.AccountParams) 
 	for rows.Next() {
 		a := structs.Account{}
 		var addr []byte
-		var bndId uint64
-		if err = rows.Scan(&a.ID, &a.CreatedAt, &addr, &a.BoundKind, &bndId, &a.BlockHeight ); err != nil {
+		if err = rows.Scan(&a.ID, &a.CreatedAt, &addr, &a.AccountType ); err != nil {
 			return nil, err
 		}
 		p := new(big.Int)
 		p.SetString(string(addr), 10)
 		a.Address.SetBytes(p.Bytes())
-		a.BoundID = new(big.Int).SetUint64(bndId)
 
 		accounts = append(accounts, a)
 	}
