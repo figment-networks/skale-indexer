@@ -64,11 +64,11 @@ type ValidatorAPI struct {
 	Rewards                 uint64         `json:"rewards"`
 }
 
-// TODO: change api response with this
 type ValidatorStatisticsAPI struct {
-	ValidatorId uint64 `json:"validator_id"`
-	Amount      uint64 `json:"amount"`
-	BlockHeight uint64 `json:"block_height"`
+	ValidatorId   uint64 `json:"validator_id"`
+	Amount        uint64 `json:"amount"`
+	BlockHeight   uint64 `json:"block_height"`
+	StatisticType string `json:"statistic_type"`
 }
 
 type AccountAPI struct {

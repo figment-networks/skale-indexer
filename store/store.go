@@ -46,7 +46,7 @@ type AccountStore interface {
 
 type ValidatorStatisticsStore interface {
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
+	//CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
 	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error

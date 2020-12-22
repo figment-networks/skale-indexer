@@ -16,7 +16,18 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 			("node_id", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "event_time")
 			VALUES
 			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-			`,
+			ON CONFLICT (node_id)
+				DO UPDATE SET
+			name = EXCLUDED.name,
+			ip = EXCLUDED.ip,
+			public_ip = EXCLUDED.public_ip,
+			next_reward_date = EXCLUDED.next_reward_date,
+			last_reward_date = EXCLUDED.last_reward_date,
+			finish_time = EXCLUDED.finish_time,
+			status = EXCLUDED.status,
+			validator_id = EXCLUDED.validator_id,
+			event_time = EXCLUDED.event_time
+		`,
 		n.NodeID.String(),
 		n.Name,
 		n.IP.String(),

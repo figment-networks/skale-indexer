@@ -46,6 +46,7 @@ type ValidatorStatisticsParams struct {
 	ValidatorId     string
 	StatisticTypeVS string
 	BlockHeight     uint64
+	Recent          bool
 	TimeFrom        time.Time
 	TimeTo          time.Time
 }

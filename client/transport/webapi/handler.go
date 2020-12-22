@@ -276,10 +276,12 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-
+	recentParam := req.URL.Query().Get("recent")
+	recent, _ := strconv.ParseBool(recentParam)
 	params := structs.ValidatorStatisticsParams{
 		ValidatorId:     req.URL.Query().Get("validator_id"),
 		StatisticTypeVS: req.URL.Query().Get("statistic_type"),
+		Recent:          recent,
 	}
 
 	res, err := c.cli.GetValidatorStatistics(req.Context(), params)
@@ -294,9 +296,19 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	var vlds []ValidatorStatisticsAPI
+	for _, v := range res {
+		vlds = append(vlds, ValidatorStatisticsAPI{
+			StatisticType: v.StatisticType.String(),
+			ValidatorId:   v.ValidatorId.Uint64(),
+			BlockHeight:   v.BlockHeight,
+			Amount:        v.Amount,
+		})
+	}
+
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
+	enc.Encode(vlds)
 }
 
 func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
