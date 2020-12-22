@@ -1,12 +1,8 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
---create types
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'boundkind') THEN
         CREATE TYPE BOUNDKIND AS ENUM ('validator', 'delegator');
     END IF;
-    --more types here...
 END$$;
 
 CREATE TABLE IF NOT EXISTS accounts

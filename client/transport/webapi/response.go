@@ -45,22 +45,22 @@ type NodeAPI struct {
 }
 
 type ValidatorAPI struct {
-	ValidatorID *big.Int `json:"validator_id"`
-	Name        string   `json:"name"`
-	//ValidatorAddress        common.Address `json:"validator_address"`
-	//RequestedAddress        common.Address `json:"requested_address"`
-	//Description             string         `json:"description"`
-	//FeeRate                 *big.Int       `json:"fee_rate"`
-	RegistrationTime time.Time `json:"registration_time"`
-	//MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
-	//AcceptNewRequests       bool           `json:"accept_new_requests"`
-	//Authorized              bool           `json:"authorized"`
-	//Active                  bool           `json:"active"`
-	ActiveNodes int `json:"active_nodes"`
-	//LinkedNodes             int            `json:"linked_nodes"`
-	//Staked                  uint64         `json:"staked"`
-	//Pending                 uint64         `json:"pending"`
-	//Rewards                 uint64         `json:"rewards"`
+	ValidatorID             *big.Int       `json:"validator_id"`
+	Name                    string         `json:"name"`
+	ValidatorAddress        common.Address `json:"validator_address"`
+	RequestedAddress        common.Address `json:"requested_address"`
+	Description             string         `json:"description"`
+	FeeRate                 *big.Int       `json:"fee_rate"`
+	RegistrationTime        time.Time      `json:"registration_time"`
+	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
+	AcceptNewRequests       bool           `json:"accept_new_requests"`
+	Authorized              bool           `json:"authorized"`
+	Active                  bool           `json:"active"`
+	ActiveNodes             int            `json:"active_nodes"`
+	LinkedNodes             int            `json:"linked_nodes"`
+	Staked                  uint64         `json:"staked"`
+	Pending                 uint64         `json:"pending"`
+	Rewards                 uint64         `json:"rewards"`
 }
 
 // TODO: change api response with this
@@ -71,8 +71,8 @@ type ValidatorStatisticsAPI struct {
 }
 
 type AccountAPI struct {
-	Address   common.Address `json:"address"`
-	BoundKind string         `json:"bound_kind"`
-	BoundID   *big.Int       `json:"bound_id"`
-	BlockHeight uint64 		`json:"block_height"`
+	Address     common.Address `json:"address"`
+	BoundKind   string         `json:"bound_kind"`
+	BoundID     *big.Int       `json:"bound_id"`
+	BlockHeight uint64         `json:"block_height"`
 }

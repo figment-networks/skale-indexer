@@ -195,20 +195,20 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 			ValidatorID: vld.ValidatorID,
 			Name:        vld.Name,
-			//ValidatorAddress: vld.ValidatorAddress,
-			//RequestedAddress: vld.RequestedAddress,
-			//Description:      vld.Description,
-			//FeeRate:          vld.FeeRate,
+			ValidatorAddress: vld.ValidatorAddress,
+			RequestedAddress: vld.RequestedAddress,
+			Description:      vld.Description,
+			FeeRate:          vld.FeeRate,
 			RegistrationTime: vld.RegistrationTime,
 			//MinimumDelegationAmount
-			//AcceptNewRequests: vld.AcceptNewRequests,
-			//Authorized:        vld.Authorized,
-			//Active:            vld.Active,
+			AcceptNewRequests: vld.AcceptNewRequests,
+			Authorized:        vld.Authorized,
+			Active:            vld.Active,
 			ActiveNodes: vld.ActiveNodes,
-			//LinkedNodes:       vld.LinkedNodes,
-			//Staked:            vld.Staked,
-			//Pending:           vld.Pending,
-			//Rewards:           vld.Rewards,
+			LinkedNodes:       vld.LinkedNodes,
+			Staked:            vld.Staked,
+			Pending:           vld.Pending,
+			Rewards:           vld.Rewards,
 		})
 	}
 
