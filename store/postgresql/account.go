@@ -11,7 +11,10 @@ import (
 // SaveAccount saves account
 func (d *Driver) SaveAccount(ctx context.Context, a structs.Account) error {
 	_, err := d.db.Exec(`INSERT INTO accounts ("address", "account_type") 
-			VALUES ($1, $2) `,
+			VALUES ($1, $2) 
+			ON CONFLICT (address)
+			DO UPDATE SET
+			account_type = EXCLUDED.account_type `,
 		a.Address.Hash().Big().String(),
 		a.AccountType)
 	return err

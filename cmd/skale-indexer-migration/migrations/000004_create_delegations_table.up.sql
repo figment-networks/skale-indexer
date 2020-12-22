@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS delegations
     PRIMARY KEY (id)
 );
 
--- TODO: unique constraints?
 -- Indexes
 CREATE index idx_delegations_holder on delegations (holder);
-CREATE index idx_delegations_validator_id_and_block_height on delegations (validator_id, block_height);
+CREATE UNIQUE index idx_delegations_delegation_id_and_block_height on delegations (delegation_id, block_height);
