@@ -61,7 +61,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.QueryParams) 
 
 	for rows.Next() {
 		vld := structs.Validator{}
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.ValidatorID, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.ETHBlockHeight)
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vld.UpdatedAt, &vld.ValidatorID, &vld.Name, &vld.ValidatorAddress, &vld.RequestedAddress, &vld.Description, &vld.FeeRate, &vld.RegistrationTime, &vld.MinimumDelegationAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.Active, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.BlockHeight)
 		if err != nil {
 			return nil, err
 		}

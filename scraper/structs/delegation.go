@@ -16,6 +16,7 @@ type Delegation struct {
 	Holder           common.Address  `json:"holder"`
 	ValidatorID      *big.Int        `json:"validatorId"`
 	BlockHeight      uint64          `json:"block_height"`
+	TransactionHash  common.Hash     `json:"transaction_hash"`
 	Amount           *big.Int        `json:"amount"`
 	DelegationPeriod *big.Int        `json:"delegationPeriod"`
 	Created          time.Time       `json:"created"`

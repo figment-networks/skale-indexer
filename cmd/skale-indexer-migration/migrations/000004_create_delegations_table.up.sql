@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS delegations
     holder                  NUMERIC(78)              NOT NULL,
     validator_id            DECIMAL(65, 0)           NOT NULL,
     block_height            DECIMAL(65, 0)           NOT NULL,
+    transaction_hash        NUMERIC(125)             NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     delegation_period       DECIMAL(65, 0)           NOT NULL,
     created                 TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -18,5 +19,6 @@ CREATE TABLE IF NOT EXISTS delegations
 
 -- TODO: unique constraints?
 -- Indexes
-CREATE index idx_delegations_holder on delegations (holder);
-CREATE index idx_delegations_validator_id_and_block_height on delegations (validator_id, block_height);
+CREATE index idx_del_h on delegations (holder);
+CREATE index idx_del_v_id_bl_height on delegations (validator_id, block_height);
+CREATE UNIQUE INDEX idx_del_unique on delegations (delegation_id, transaction_hash);

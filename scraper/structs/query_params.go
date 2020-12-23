@@ -31,12 +31,11 @@ type EventParams struct {
 }
 
 type DelegationParams struct {
-	ValidatorId    string
-	DelegationId   string
-	ETHBlockHeight string
-	Recent         bool
-	TimeFrom       time.Time
-	TimeTo         time.Time
+	ValidatorId  string
+	DelegationId string
+	BlockHeight  string
+	TimeFrom     time.Time
+	TimeTo       time.Time
 }
 
 type NodeParams struct {

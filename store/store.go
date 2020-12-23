@@ -6,6 +6,8 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+//go:generate mockgen -destination=./mocks/mock_store.go  -package=mocks github.com/figment-networks/skale-indexer/store DataStore
+
 type DBDriver interface {
 	ContractEventStore
 	NodeStore
@@ -40,6 +42,7 @@ type ValidatorStore interface {
 type DelegationStore interface {
 	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
+	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 }
 
 type ValidatorStatisticsStore interface {
@@ -87,6 +90,10 @@ func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegatio
 }
 
 func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
+	return s.driver.GetDelegations(ctx, params)
+}
+
+func (s *Store) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegations(ctx, params)
 }
 

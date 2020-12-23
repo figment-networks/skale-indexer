@@ -11,7 +11,8 @@ import (
 	clientStructures "github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
-	"github.com/figment-networks/skale-indexer/store"
+
+	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap/zaptest"
 )
@@ -82,7 +83,7 @@ func TestGetLogs(t *testing.T) {
 			caller := &skale.Caller{}
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			mockDB := store.NewMockDataStore(mockCtrl)
+			mockDB := storeMocks.NewMockDataStore(mockCtrl)
 			am := actions.NewManager(caller, mockDB, tr, cm, zl)
 			eAPI := scraper.NewEthereumAPI(zl, tr, am)
 

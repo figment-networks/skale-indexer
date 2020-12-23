@@ -81,9 +81,11 @@ func (d *Driver) GetContractEvents(ctx context.Context, params structs.EventPara
 			q += ` AND ( (bound_type = 'validator' AND bound_id[1] = $3 ) OR
 				   ( bound_type = 'delegation' AND bound_id[2] = $3) ) `
 		case "delegation":
-			q += ` AND (bound_id[1] = $3 AND bound_type = 'delegation') `
+			q += ` AND bound_id[1] = $3 AND bound_type = 'delegation' `
 		case "node":
-			q += ` AND (bound_id[1] = $3 AND bound_type = 'node') `
+			q += ` AND bound_id[1] = $3 AND bound_type = 'node' `
+		case "token":
+			q += ` AND bound_type = 'token' ` // TODO(l): Add address maybe?
 		default:
 			return nil, errors.New("unknown type")
 		}

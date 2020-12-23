@@ -10,7 +10,7 @@ import (
 
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/store"
+	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -428,7 +428,7 @@ func TestHandler(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			mockDB := store.NewMockDataStore(mockCtrl)
+			mockDB := storeMocks.NewMockDataStore(mockCtrl)
 			contractor := *client.NewClient(mockDB)
 			connector := NewClientConnector(&contractor)
 
