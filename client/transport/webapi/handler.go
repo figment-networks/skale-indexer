@@ -300,6 +300,7 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.AccountParams{
 		Type: req.URL.Query().Get("type"),
+		Address: req.URL.Query().Get("address"),
 	}
 
 	res, err := c.cli.GetAccounts(req.Context(), params)

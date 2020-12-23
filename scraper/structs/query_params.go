@@ -37,7 +37,7 @@ type ValidatorParams struct {
 
 type AccountParams struct {
 	Type    string
-	Address bool
+	Address string
 }
 
 type ValidatorStatisticsParams struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"math/big"
 )
@@ -28,8 +29,11 @@ func (d *Driver) GetAccounts(ctx context.Context, params structs.AccountParams) 
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q)
-	if params.Type != "" {
-		q = fmt.Sprintf("%s%s", q, "WHERE type =  $1 ")
+	if params.Address != ""{
+		q = fmt.Sprintf("%s%s", q, "WHERE address =  $1 ")
+		rows, err = d.db.QueryContext(ctx, q, common.HexToAddress(params.Address).Hash().Big().String())
+	} else if params.Type != "" {
+		q = fmt.Sprintf("%s%s", q, "WHERE account_type =  $1 ")
 		rows, err = d.db.QueryContext(ctx, q, params.Type)
 	} else {
 		rows, err = d.db.QueryContext(ctx, q)
