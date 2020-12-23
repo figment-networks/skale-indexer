@@ -323,24 +323,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing delegation %w", err)
 		}
 
-		ddls, err := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
-		for _, ddd := range ddls {
-			a := structs.Account{
-				Address: ddd.Holder,
-				AccountType: "validator",
-			}
-			m.dataStore.SaveAccount(ctx, a)
-		}
-
-		ddls, err = m.c.GetValidatorDelegations(ctx, bc, ce.BlockHeight, d.ValidatorID)
-		for _, ddd := range ddls {
-			a := structs.Account{
-				Address: ddd.Holder,
-				AccountType: "delegator",
-			}
-			m.dataStore.SaveAccount(ctx, a)
-		}
-
 		//
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
