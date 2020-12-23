@@ -174,22 +174,22 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 	var vlds []ValidatorAPI
 	for _, vld := range res {
 		vlds = append(vlds, ValidatorAPI{
-			ValidatorID:      vld.ValidatorID,
-			Name:             vld.Name,
-			ValidatorAddress: vld.ValidatorAddress,
-			RequestedAddress: vld.RequestedAddress,
-			Description:      vld.Description,
-			FeeRate:          vld.FeeRate,
-			RegistrationTime: vld.RegistrationTime,
-			//MinimumDelegationAmount: vld.MinimumDelegationAmount,
-			AcceptNewRequests: vld.AcceptNewRequests,
-			Authorized:        vld.Authorized,
-			Active:            vld.Active,
-			ActiveNodes:       vld.ActiveNodes,
-			LinkedNodes:       vld.LinkedNodes,
-			Staked:            vld.Staked,
-			Pending:           vld.Pending,
-			Rewards:           vld.Rewards,
+			ValidatorID:             vld.ValidatorID,
+			Name:                    vld.Name,
+			ValidatorAddress:        vld.ValidatorAddress,
+			RequestedAddress:        vld.RequestedAddress,
+			Description:             vld.Description,
+			FeeRate:                 vld.FeeRate,
+			RegistrationTime:        vld.RegistrationTime,
+			MinimumDelegationAmount: vld.MinimumDelegationAmount,
+			AcceptNewRequests:       vld.AcceptNewRequests,
+			Authorized:              vld.Authorized,
+			Active:                  vld.Active,
+			ActiveNodes:             vld.ActiveNodes,
+			LinkedNodes:             vld.LinkedNodes,
+			Staked:                  vld.Staked,
+			Pending:                 vld.Pending,
+			Rewards:                 vld.Rewards,
 		})
 	}
 

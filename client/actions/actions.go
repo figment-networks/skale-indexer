@@ -323,6 +323,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing delegation %w", err)
 		}
 
+		vlds, _ := m.dataStore.GetValidators(ctx, structs.ValidatorParams{ValidatorId: d.ValidatorID.String()})
+		accType := "delegator"
+		if vlds != nil && vlds[0].ValidatorAddress.String() == d.Holder.String() {
+			accType = "validator"
+		}
+
+		m.dataStore.SaveAccount(ctx, structs.Account{
+			Address: d.Holder,
+			AccountType: accType,
+		})
+
 		//
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
