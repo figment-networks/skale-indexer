@@ -94,7 +94,7 @@ func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationPar
 }
 
 func (s *Store) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	return s.driver.GetDelegations(ctx, params)
+	return s.driver.GetDelegationTimeline(ctx, params)
 }
 
 func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {

@@ -73,7 +73,7 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	}
 	if params.ValidatorId != "" {
 		wherec = append(wherec, ` validator_id = $`+strconv.Itoa(i))
-		args = append(args, params.DelegationId)
+		args = append(args, params.ValidatorId)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -91,6 +91,9 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	}
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -101,10 +104,12 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 			holder    []byte
 			vldId     uint64
 			amount    []byte
+			started   uint64
+			finished  uint64
 			dlgPeriod uint64
 		)
 
-		if err := rows.Scan(&dlg.ID, &dlgId, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &dlg.Info, &dlg.State); err != nil {
+		if err := rows.Scan(&dlg.ID, &dlgId, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
 			return nil, err
 		}
 
@@ -121,6 +126,8 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		dlg.ValidatorID = new(big.Int).SetUint64(vldId)
 		dlg.DelegationID = new(big.Int).SetUint64(dlgId)
 		dlg.DelegationPeriod = new(big.Int).SetUint64(dlgPeriod)
+		dlg.Started = new(big.Int).SetUint64(started)
+		dlg.Finished = new(big.Int).SetUint64(finished)
 		delegations = append(delegations, dlg)
 	}
 	return delegations, nil
@@ -145,7 +152,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	}
 	if params.ValidatorId != "" {
 		wherec = append(wherec, ` validator_id = $`+strconv.Itoa(i))
-		args = append(args, params.DelegationId)
+		args = append(args, params.ValidatorId)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -163,6 +170,9 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	}
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -173,10 +183,12 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 			holder    []byte
 			vldId     uint64
 			amount    []byte
+			started   uint64
+			finished  uint64
 			dlgPeriod uint64
 		)
 
-		if err := rows.Scan(&dlgId, &dlg.ID, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &dlg.Info, &dlg.State); err != nil {
+		if err := rows.Scan(&dlgId, &dlg.ID, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
 			return nil, err
 		}
 
@@ -193,6 +205,8 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		dlg.ValidatorID = new(big.Int).SetUint64(vldId)
 		dlg.DelegationID = new(big.Int).SetUint64(dlgId)
 		dlg.DelegationPeriod = new(big.Int).SetUint64(dlgPeriod)
+		dlg.Started = new(big.Int).SetUint64(started)
+		dlg.Finished = new(big.Int).SetUint64(finished)
 		delegations = append(delegations, dlg)
 	}
 	return delegations, nil

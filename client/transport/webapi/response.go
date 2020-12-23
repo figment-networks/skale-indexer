@@ -23,11 +23,14 @@ type ContractEventAPI struct {
 type DelegationAPI struct {
 	DelegationID     *big.Int       `json:"delegation_id"`
 	Holder           common.Address `json:"holder"`
+	TransactionHash  common.Hash    `json:"transaction_hash"`
 	ValidatorID      *big.Int       `json:"validator_id"`
 	BlockHeight      uint64         `json:"block_height"`
 	Amount           *big.Int       `json:"amount"`
 	DelegationPeriod *big.Int       `json:"delegation_period"`
 	Created          time.Time      `json:"created"`
+	Started          *big.Int       `json:"started"`
+	Finished         *big.Int       `json:"finished"`
 	Info             string         `json:"info"`
 }
 
