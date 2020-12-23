@@ -146,12 +146,32 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}*/
 			}
-		}
- 		/*
-			if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
-				return fmt.Errorf("error calculating validator params %w", err)
+		} else if ce.EventName == "ValidatorRegistered" {
+			m.dataStore.SaveAccount(ctx, structs.Account{
+				Address: v.ValidatorAddress,
+				AccountType: "validator",
+			})
+		} else if ce.EventName == "ValidatorAddressChanged" {
+			newAddrI, ok := ce.Params["newAddress"]
+			if !ok {
+				return errors.New("Structure is not a validator")
 			}
-		*/
+
+			addr, ok := newAddrI.(common.Address)
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			m.dataStore.SaveAccount(ctx, structs.Account{
+				Address:      addr,
+				AccountType: "validator",
+			})
+		}
+		/*
+		   if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
+			   return fmt.Errorf("error calculating validator params %w", err)
+		   }
+	   */
 
 		ce.BoundType = "validator"
 		ce.BoundID = append(ce.BoundID, *vID)
@@ -319,14 +339,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		d.BlockHeight = ce.BlockHeight
 		d.Created = ce.Time
-		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
-			return fmt.Errorf("error storing delegation %w", err)
-		}
 
-		vlds, _ := m.dataStore.GetValidators(ctx, structs.ValidatorParams{ValidatorId: d.ValidatorID.String()})
-		accType := "delegator"
-		if vlds != nil && vlds[0].ValidatorAddress.String() == d.Holder.String() {
-			accType = "validator"
+		dlgs, _ := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
+		accType := "nothing"
+		if dlgs != nil && len(dlgs) > 0 {
+			accType = "delegator"
 		}
 
 		m.dataStore.SaveAccount(ctx, structs.Account{
