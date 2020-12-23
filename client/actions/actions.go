@@ -339,6 +339,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		d.BlockHeight = ce.BlockHeight
 		d.Created = ce.Time
+		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
+			return fmt.Errorf("error storing delegation %w", err)
+		}
 
 		dlgs, _ := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
 		accType := "nothing"
