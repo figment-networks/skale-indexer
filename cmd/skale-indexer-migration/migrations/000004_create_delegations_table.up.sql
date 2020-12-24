@@ -19,6 +19,6 @@ CREATE TABLE IF NOT EXISTS delegations
 
 -- TODO: unique constraints?
 -- Indexes
-CREATE index idx_del_h on delegations (holder);
-CREATE index idx_del_v_id_bl_height on delegations (validator_id, block_height);
+CREATE INDEX idx_del_h on delegations (holder);
+CREATE INDEX idx_del_v_id_bl_height on delegations (validator_id, block_height);
 CREATE UNIQUE INDEX idx_del_unique on delegations (delegation_id, transaction_hash);
