@@ -42,3 +42,8 @@ type NodeParams struct {
 	ValidatorId string
 	Recent      bool
 }
+
+type AccountParams struct {
+	Type    string
+	Address string
+}

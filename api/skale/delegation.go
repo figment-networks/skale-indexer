@@ -137,6 +137,7 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 
 	co := &bind.CallOpts{
 		Context: ctxT,
+		Pending: true,
 	}
 
 	if blockNumber > 0 { // (lukanus): 0 = latest
@@ -179,6 +180,83 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 		cancelA()
 		if err != nil {
 			return nil, fmt.Errorf("error calling delegationsByValidator function %w", err)
+		}
+
+		if len(resultsA) == 0 {
+			return nil, errors.New("empty result")
+		}
+
+		id, ok := resultsA[0].(*big.Int)
+		if !ok {
+			return nil, errors.New("delegation id is not a bigint")
+		}
+
+		d, err := c.GetDelegation(ctx, bc, blockNumber, id)
+		if err != nil {
+			return nil, fmt.Errorf("error calling delegations function %w", err)
+		}
+
+		d.State, err = c.GetDelegationState(ctx, bc, blockNumber, id)
+		if err != nil {
+			return nil, fmt.Errorf("error getting delegation state %w", err)
+		}
+
+		delegations = append(delegations, d)
+	}
+
+	return delegations, nil
+}
+
+func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error) {
+
+	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	co := &bind.CallOpts{
+		Context: ctxT,
+		Pending: true,
+	}
+
+	if blockNumber > 0 { // (lukanus): 0 = latest
+		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+	}
+	results := []interface{}{}
+
+	err = bc.Call(co, &results, "getDelegationsByHolderLength", holder)
+
+	if err != nil {
+		return nil, fmt.Errorf("error calling delegations function %w", err)
+	}
+
+	if len(results) == 0 {
+		return nil, errors.New("empty result")
+	}
+
+	count, ok := results[0].(*big.Int)
+	if !ok {
+		return nil, errors.New("count is not *big.Int type ")
+	}
+
+	delegations = []structs.Delegation{}
+
+	for i := uint64(0); i < count.Uint64(); i++ {
+
+		ctxTA, cancelA := context.WithTimeout(ctx, time.Second*30)
+		co := &bind.CallOpts{
+			Context: ctxTA,
+		}
+
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+			co.Pending = true
+		}
+		resultsA := []interface{}{}
+
+		err = bc.Call(co, &resultsA, "delegationsByHolder", holder, new(big.Int).SetUint64(i))
+
+		cancelA()
+		if err != nil {
+			return nil, fmt.Errorf("error calling delegationsByHolder function %w", err)
 		}
 
 		if len(resultsA) == 0 {

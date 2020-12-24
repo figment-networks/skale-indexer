@@ -41,6 +41,7 @@ type Call interface {
 	GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
+	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
 }
 
 type BCGetter interface {
@@ -143,6 +144,32 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				/*	if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}*/
+			}
+		} else if ce.EventName == "ValidatorRegistered" {
+			err = m.dataStore.SaveAccount(ctx, structs.Account{
+				Address:     v.ValidatorAddress,
+				AccountType: "validator",
+			})
+			if err != nil {
+				return fmt.Errorf("error storing account %w", err)
+			}
+		} else if ce.EventName == "ValidatorAddressChanged" {
+			newAddrI, ok := ce.Params["newAddress"]
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			addr, ok := newAddrI.(common.Address)
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+
+			err = m.dataStore.SaveAccount(ctx, structs.Account{
+				Address:     addr,
+				AccountType: "validator",
+			})
+			if err != nil {
+				return fmt.Errorf("error storing account %w", err)
 			}
 		}
 		/*
@@ -319,6 +346,20 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
+		}
+
+		dlgs, _ := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
+		accType := "nothing"
+		if dlgs != nil && len(dlgs) > 0 {
+			accType = "delegator"
+		}
+
+		err = m.dataStore.SaveAccount(ctx, structs.Account{
+			Address:     d.Holder,
+			AccountType: accType,
+		})
+		if err != nil {
+			return fmt.Errorf("error storing account %w", err)
 		}
 
 		ce.BoundType = "delegation"
