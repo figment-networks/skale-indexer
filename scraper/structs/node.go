@@ -2,6 +2,7 @@ package structs
 
 import (
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -10,8 +11,8 @@ type Node struct {
 	CreatedAt      time.Time  `json:"created_at"`
 	NodeID         *big.Int   `json:"node_id"`
 	Name           string     `json:"name"`
-	IP             [4]byte    `json:"ip"`
-	PublicIP       [4]byte    `json:"public_ip"`
+	IP             net.IP     `json:"ip"`
+	PublicIP       net.IP     `json:"public_ip"`
 	Port           uint16     `json:"port"`
 	StartBlock     *big.Int   `json:"start_block"`
 	NextRewardDate time.Time  `json:"next_reward_date"`
@@ -19,7 +20,9 @@ type Node struct {
 	FinishTime     *big.Int   `json:"finish_time"`
 	Status         NodeStatus `json:"node_status"`
 	ValidatorID    *big.Int   `json:"validator_id"`
-	EventTime      time.Time  `json:"event_time"`
+
+	EventTime   time.Time `json:"event_time"`
+	BlockHeight uint64    `json:"block_height"`
 }
 
 type NodeStatus uint

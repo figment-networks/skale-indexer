@@ -1,14 +1,15 @@
 package structs
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type Validator struct {
-	ID                      string         `json:"id"`
-	CreatedAt               time.Time      `json:"created_at"`
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
 	// TODO: remove updated_at
 	UpdatedAt               time.Time      `json:"updated_at"`
 	ValidatorID             *big.Int       `json:"validator_id"`
@@ -27,5 +28,5 @@ type Validator struct {
 	Staked                  uint64         `json:"staked"`
 	Pending                 uint64         `json:"pending"`
 	Rewards                 uint64         `json:"rewards"`
-	ETHBlockHeight          uint64         `json:"eth_block_height"`
+	BlockHeight             uint64         `json:"block_height"`
 }
