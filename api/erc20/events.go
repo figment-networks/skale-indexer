@@ -12,24 +12,13 @@ import (
 )
 
 /*
-
-	FUNCTIONS
-	totalSupply()
-	balanceOf(account)
-	transfer(recipient, amount)
-	allowance(owner, spender)
-	approve(spender, amount)
-	transferFrom(sender, recipient, amount)
-*/
-
-/*
 	EVENTS
 	Transfer(from, to, value)
 	Approval(owner, spender, value)
 */
 
 type ERC20Call interface {
-	TotalSupply(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (balance big.Int, err error)
+	TotalSupply(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (ts big.Int, err error)
 	BalanceOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, tokenHolder common.Address) (balance big.Int, err error)
 	Transfer(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, recipient common.Address, amount *big.Int) (successful bool, err error)
 	Allowance(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, owner, spender common.Address) (res big.Int, err error)
@@ -229,5 +218,4 @@ func (c *ERC20Caller) TransferFrom(ctx context.Context, bc *bind.BoundContract, 
 	}
 
 	return successful, nil
-
 }
