@@ -116,7 +116,6 @@ func (m *Manager) LoadContractsFromDir(inputFolder string) error {
 }
 
 func (m *Manager) getContracts(abiF io.Reader, version string) error {
-
 	abiP := make(map[string]AbiPair)
 	dec := json.NewDecoder(abiF)
 

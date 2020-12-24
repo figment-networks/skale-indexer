@@ -21,7 +21,7 @@ func (c *Client) GetContractEvents(ctx context.Context, params structs.EventPara
 	return c.storeEng.GetContractEvents(ctx, params)
 }
 
-func (c *Client) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+func (c *Client) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	return c.storeEng.GetNodes(ctx, params)
 }
 
@@ -29,10 +29,13 @@ func (c *Client) GetValidators(ctx context.Context, params structs.QueryParams) 
 	return c.storeEng.GetValidators(ctx, params)
 }
 
-func (c *Client) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return c.storeEng.GetDelegations(ctx, params)
 }
 
+func (c *Client) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
+	return c.storeEng.GetDelegationTimeline(ctx, params)
+}
 func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return c.storeEng.GetValidatorStatistics(ctx, params)
 }

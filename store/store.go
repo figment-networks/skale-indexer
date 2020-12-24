@@ -6,6 +6,8 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+//go:generate mockgen -destination=./mocks/mock_store.go  -package=mocks github.com/figment-networks/skale-indexer/store DataStore
+
 type DBDriver interface {
 	ContractEventStore
 	NodeStore
@@ -29,7 +31,7 @@ type ContractEventStore interface {
 
 type NodeStore interface {
 	SaveNode(ctx context.Context, node structs.Node) error
-	GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error)
+	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 }
 
 type ValidatorStore interface {
@@ -39,7 +41,8 @@ type ValidatorStore interface {
 
 type DelegationStore interface {
 	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
-	GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error)
+	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
+	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 }
 
 type ValidatorStatisticsStore interface {
@@ -70,7 +73,7 @@ func (s *Store) SaveNode(ctx context.Context, node structs.Node) error {
 	return s.driver.SaveNode(ctx, node)
 }
 
-func (s *Store) GetNodes(ctx context.Context, params structs.QueryParams) (nodes []structs.Node, err error) {
+func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	return s.driver.GetNodes(ctx, params)
 }
 
@@ -86,8 +89,12 @@ func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegatio
 	return s.driver.SaveDelegation(ctx, delegation)
 }
 
-func (s *Store) GetDelegations(ctx context.Context, params structs.QueryParams) (delegations []structs.Delegation, err error) {
+func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return s.driver.GetDelegations(ctx, params)
+}
+
+func (s *Store) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
+	return s.driver.GetDelegationTimeline(ctx, params)
 }
 
 func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {

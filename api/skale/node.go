@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net"
 	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
@@ -111,16 +112,20 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	}
 
 	lrDate := results[5].(*big.Int)
+	IP := results[1].([4]byte)
+	publicIP := results[1].([4]byte)
 	return structs.Node{
 		NodeID:         nodeID,
 		Name:           results[0].(string),
-		IP:             results[1].([4]byte),
-		PublicIP:       results[2].([4]byte),
+		IP:             net.IPv4(IP[0], IP[1], IP[2], IP[3]),
+		PublicIP:       net.IPv4(publicIP[0], publicIP[1], publicIP[2], publicIP[3]),
 		Port:           results[3].(uint16),
 		StartBlock:     results[4].(*big.Int),
 		LastRewardDate: time.Unix(lrDate.Int64(), 0),
 		FinishTime:     results[6].(*big.Int),
 		Status:         structs.NodeStatus(results[7].(uint8)),
 		ValidatorID:    results[8].(*big.Int),
+
+		BlockHeight: blockNumber,
 	}, nil
 }

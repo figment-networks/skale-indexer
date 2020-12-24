@@ -4,18 +4,19 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type Delegation struct {
-	ID               string          `json:"id"`
+	ID               uuid.UUID       `json:"id"`
 	CreatedAt        time.Time       `json:"created_at"`
-	// TODO: remove updated_at
-	UpdatedAt        time.Time       `json:"updated_at"`
 	DelegationID     *big.Int        `json:"delegation_id"`
 	Holder           common.Address  `json:"holder"`
 	ValidatorID      *big.Int        `json:"validatorId"`
-	ETHBlockHeight   uint64          `json:"eth_block_height"`
+	BlockHeight      uint64          `json:"block_height"`
+	TransactionHash  common.Hash     `json:"transaction_hash"`
 	Amount           *big.Int        `json:"amount"`
 	DelegationPeriod *big.Int        `json:"delegationPeriod"`
 	Created          time.Time       `json:"created"`
@@ -56,6 +57,6 @@ func (k DelegationState) String() string {
 	case DelegationStateCOMPLETED:
 		return "COMPLETED"
 	default:
-		return "unknown"
+		return "UNKNOWN"
 	}
 }

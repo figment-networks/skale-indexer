@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"go.uber.org/zap"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -15,12 +14,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
+	"github.com/figment-networks/skale-indexer/client/standard"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/scraper/transport"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
 	"github.com/figment-networks/skale-indexer/store"
 )
 
-var implementedContractNames = []string{"delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
+var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
 
 type Call interface {
 	// Validator
@@ -67,7 +68,7 @@ func (m *Manager) GetBlockHeader(ctx context.Context, height *big.Int) (h *types
 	return h, err
 }
 
-func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error {
+func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) (err error) {
 
 	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
 
@@ -117,7 +118,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
-		v.ETHBlockHeight = ce.BlockHeight
+		v.BlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
 		/*  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
@@ -137,7 +138,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
-				node.StartBlock = big.NewInt(int64(ce.BlockHeight))
 				node.EventTime = ce.Time
 				// BUG(lukanus):
 				/*	if err := m.dataStore.SaveNode(ctx, node); err != nil {
@@ -199,11 +199,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Structure is not a node")
 		}
 
-		n.StartBlock = big.NewInt(int64(ce.BlockHeight))
 		n.EventTime = ce.Time
-		//	if err = m.dataStore.SaveNode(ctx, n); err != nil {
-		//		return fmt.Errorf("error storing nodes %w", err)
-		//	}
+		if err = m.dataStore.SaveNode(ctx, n); err != nil {
+			return fmt.Errorf("error storing nodes %w", err)
+		}
 
 		ce.BoundType = "node"
 		ce.BoundID = append(ce.BoundID, *nID)
@@ -315,12 +314,13 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
+		d.TransactionHash = ce.TransactionHash
+		d.BlockHeight = ce.BlockHeight
 
-		d.ETHBlockHeight = ce.BlockHeight
-		d.Created = ce.Time
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
+
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
 	case "skale_manager":
@@ -347,7 +347,18 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				uint gasSpend
 			);
 		*/
+	case "skale_token":
+		ce.BoundType = "token"
+		if ce.EventName == "transfer" || ce.EventName == "approval" {
+			ce, err = standard.DecodeERC20Events(ctx, ce)
+			if err != nil {
+				return fmt.Errorf("error decoding event ERC20 %w", err)
+			}
+		} else {
+		}
+
 	default:
+
 		m.l.Debug("Unknown event type", zap.String("type", ce.ContractName), zap.Any("event", ce))
 	}
 

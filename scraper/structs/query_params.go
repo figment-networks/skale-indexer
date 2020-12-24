@@ -17,16 +17,28 @@ type QueryParams struct {
 	ETHBlockHeight  uint64
 	StatisticTypeVS StatisticTypeVS
 	BoundType       string
-	BoundId     	[]uint64
+	BoundId         []uint64
 	TimeFrom        time.Time
 	TimeTo          time.Time
 }
 
-
 type EventParams struct {
-	RecordId        string
-	Id				uint64
-	Type       		string
-	TimeFrom        time.Time
-	TimeTo          time.Time
+	RecordId string
+	Id       uint64
+	Type     string
+	TimeFrom time.Time
+	TimeTo   time.Time
+}
+
+type DelegationParams struct {
+	ValidatorId  string
+	DelegationId string
+	BlockHeight  string
+	TimeFrom     time.Time
+	TimeTo       time.Time
+}
+
+type NodeParams struct {
+	ValidatorId string
+	Recent      bool
 }

@@ -20,12 +20,12 @@ type ContractEventAPI struct {
 	Params          map[string]interface{} `json:"params"`
 }
 
-// TODO: change api response with this
 type DelegationAPI struct {
-	DelegationID     big.Int        `json:"delegation_id"`
+	DelegationID     *big.Int       `json:"delegation_id"`
 	Holder           common.Address `json:"holder"`
-	ValidatorID      big.Int        `json:"validator_id"`
-	ETHBlockHeight   uint64         `json:"eth_block_height"`
+	TransactionHash  common.Hash    `json:"transaction_hash"`
+	ValidatorID      *big.Int       `json:"validator_id"`
+	BlockHeight      uint64         `json:"block_height"`
 	Amount           *big.Int       `json:"amount"`
 	DelegationPeriod *big.Int       `json:"delegation_period"`
 	Created          time.Time      `json:"created"`
@@ -34,12 +34,11 @@ type DelegationAPI struct {
 	Info             string         `json:"info"`
 }
 
-// TODO: change api response with this
 type NodeAPI struct {
 	NodeID         *big.Int  `json:"node_id"`
 	Name           string    `json:"name"`
-	IP             [4]byte   `json:"ip"`
-	PublicIP       [4]byte   `json:"public_ip"`
+	IP             string    `json:"ip"`
+	PublicIP       string    `json:"public_ip"`
 	Port           uint16    `json:"port"`
 	StartBlock     *big.Int  `json:"start_block"`
 	NextRewardDate time.Time `json:"next_reward_date"`
@@ -70,7 +69,7 @@ type ValidatorAPI struct {
 
 // TODO: change api response with this
 type ValidatorStatisticsAPI struct {
-	ValidatorId    uint64 `json:"validator_id"`
-	Amount         uint64 `json:"amount"`
-	ETHBlockHeight uint64 `json:"eth_block_height"`
+	ValidatorId uint64 `json:"validator_id"`
+	Amount      uint64 `json:"amount"`
+	BlockHeight uint64 `json:"block_height"`
 }
