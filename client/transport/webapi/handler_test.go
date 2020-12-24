@@ -2,17 +2,16 @@ package webapi
 
 import (
 	"errors"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"testing"
-	"time"
-
 	"github.com/figment-networks/skale-indexer/client"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"testing"
+	"time"
 )
 
 func TestHandler(t *testing.T) {
@@ -107,7 +106,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype:      "event",
 			dbResponse: structs.ErrNotFound,
-			code:       http.StatusNotFound,
+			code:       http.StatusInternalServerError,
 		},
 		{
 			name: "internal server error",
@@ -178,26 +177,30 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=1903",
+					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.DelegationParams{
 				DelegationId: "1903",
+				TimeFrom:     from,
+				TimeTo:       to,
 			},
 			ttype:      "delegation",
 			dbResponse: structs.ErrNotFound,
-			code:       http.StatusNotFound,
+			code:       http.StatusInternalServerError,
 		},
 		{
 			name: "internal server error for delegation_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=test",
+					RawQuery: "delegation_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.DelegationParams{
 				DelegationId: "test",
+				TimeFrom:     from,
+				TimeTo:       to,
 			},
 			dbResponse: errors.New("internal error"),
 			ttype:      "delegation",
@@ -208,11 +211,13 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=1903",
+					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.DelegationParams{
 				DelegationId: "1903",
+				TimeFrom:     from,
+				TimeTo:       to,
 			},
 			ttype:          "delegation",
 			expectedReturn: []structs.Delegation{{}},
@@ -233,7 +238,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype:      "delegation",
 			dbResponse: structs.ErrNotFound,
-			code:       http.StatusNotFound,
+			code:       http.StatusInternalServerError,
 		},
 		{
 			name: "internal server error for created time range",
@@ -282,6 +287,152 @@ func TestHandler(t *testing.T) {
 				TimeTo:   to,
 			},
 			ttype:          "delegation",
+			expectedReturn: []structs.Delegation{{}},
+			code:           http.StatusOK,
+		},
+		{
+			name: "not allowed method",
+			req: &http.Request{
+				Method: http.MethodPost,
+			},
+			ttype: "delegation_time_line",
+			code:  http.StatusMethodNotAllowed,
+		},
+		{
+			name: "missing parameter all",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL:    &url.URL{},
+			},
+			ttype: "delegation_time_line",
+			code:  http.StatusBadRequest,
+		},
+		{
+			name: "invalid date from and to",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006&to=2106",
+				},
+			},
+			ttype: "delegation_time_line",
+			code:  http.StatusBadRequest,
+		},
+		{
+			name: "record not found error for delegation_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				DelegationId: "1903",
+				TimeFrom:     from,
+				TimeTo:       to,
+			},
+			ttype:      "delegation_time_line",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for delegation_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "delegation_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				DelegationId: "test",
+				TimeFrom:     from,
+				TimeTo:       to,
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "delegation_time_line",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for delegation_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				DelegationId: "1903",
+				TimeFrom:     from,
+				TimeTo:       to,
+			},
+			ttype:          "delegation_time_line",
+			expectedReturn: []structs.Delegation{{}},
+			code:           http.StatusOK,
+		},
+		{
+			name: "record not found error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			ttype:      "delegation_time_line",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			ttype:      "delegation_time_line",
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				ValidatorId: "100",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			ttype:          "delegation_time_line",
+			expectedReturn: []structs.Delegation{{}},
+			code:           http.StatusOK,
+		},
+		{
+			name: "success response for created time range without validator_id and recent",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.DelegationParams{
+				TimeFrom: from,
+				TimeTo:   to,
+			},
+			ttype:          "delegation_time_line",
 			expectedReturn: []structs.Delegation{{}},
 			code:           http.StatusOK,
 		},
@@ -435,7 +586,11 @@ func TestHandler(t *testing.T) {
 			if tt.expectedParams != nil {
 				switch tt.expectedParams.(type) {
 				case structs.DelegationParams:
-					mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					if tt.ttype == "delegation" {
+						mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					} else {
+						mockDB.EXPECT().GetDelegationTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					}
 				case structs.EventParams:
 					mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 				case structs.NodeParams:
@@ -447,6 +602,8 @@ func TestHandler(t *testing.T) {
 			switch tt.ttype {
 			case "delegation":
 				res = http.HandlerFunc(connector.GetDelegations)
+			case "delegation_time_line":
+				res = http.HandlerFunc(connector.GetDelegationsTimeline)
 			case "event":
 				res = http.HandlerFunc(connector.GetContractEvents)
 			case "node":
