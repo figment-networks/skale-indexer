@@ -47,7 +47,6 @@ type NodeAPI struct {
 	ValidatorID    *big.Int  `json:"validator_id"`
 }
 
-// TODO: change api response with this
 type ValidatorAPI struct {
 	ValidatorID             *big.Int       `json:"validator_id"`
 	Name                    string         `json:"name"`
@@ -59,7 +58,6 @@ type ValidatorAPI struct {
 	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool           `json:"accept_new_requests"`
 	Authorized              bool           `json:"authorized"`
-	Active                  bool           `json:"active"`
 	ActiveNodes             int            `json:"active_nodes"`
 	LinkedNodes             int            `json:"linked_nodes"`
 	Staked                  uint64         `json:"staked"`

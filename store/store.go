@@ -38,7 +38,7 @@ type NodeStore interface {
 
 type ValidatorStore interface {
 	SaveValidator(ctx context.Context, validator structs.Validator) error
-	GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error)
+	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 }
 
 type DelegationStore interface {
@@ -88,7 +88,7 @@ func (s *Store) SaveValidator(ctx context.Context, validator structs.Validator) 
 	return s.driver.SaveValidator(ctx, validator)
 }
 
-func (s *Store) GetValidators(ctx context.Context, params structs.QueryParams) (validators []structs.Validator, err error) {
+func (s *Store) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
 	return s.driver.GetValidators(ctx, params)
 }
 
