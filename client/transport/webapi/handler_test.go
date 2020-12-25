@@ -28,7 +28,6 @@ func TestHandler(t *testing.T) {
 		dbResponse     error
 		code           int
 	}{
-
 		{
 			name: "not allowed method",
 			req: &http.Request{
@@ -275,7 +274,7 @@ func TestHandler(t *testing.T) {
 			code:           http.StatusOK,
 		},
 		{
-			name: "success response for created time range without validator_id and recent",
+			name: "success response for created time range without validator_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -421,7 +420,7 @@ func TestHandler(t *testing.T) {
 			code:           http.StatusOK,
 		},
 		{
-			name: "success response for created time range without validator_id and recent",
+			name: "success response for created time range without validator_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
@@ -668,6 +667,149 @@ func TestHandler(t *testing.T) {
 			expectedReturn: []structs.Node{{}},
 			code:           http.StatusOK,
 		},
+		{
+			name: "not allowed method",
+			req: &http.Request{
+				Method: http.MethodPost,
+			},
+			ttype: "validator",
+			code:  http.StatusMethodNotAllowed,
+		},
+		{
+			name: "missing parameter all",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL:    &url.URL{},
+			},
+			ttype: "validator",
+			code:  http.StatusBadRequest,
+		},
+		{
+			name: "invalid date from and to",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006&to=2106",
+				},
+			},
+			ttype: "validator",
+			code:  http.StatusBadRequest,
+		},
+		{
+			name: "record not found error for validator_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				ValidatorId: "1903",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			ttype:      "validator",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for validator_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				ValidatorId: "test",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "validator",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for validator_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "validator_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				ValidatorId: "1903",
+				TimeFrom:    from,
+				TimeTo:      to,
+			},
+			ttype:          "validator",
+			expectedReturn: []structs.Validator{},
+			code:           http.StatusOK,
+		},
+		{
+			name: "record not found error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				TimeFrom: from,
+				TimeTo:   to,
+			},
+			ttype:      "validator",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				TimeFrom: from,
+				TimeTo:   to,
+			},
+			ttype:      "validator",
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for created time range",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				TimeFrom: from,
+				TimeTo:   to,
+			},
+			ttype:          "validator",
+			expectedReturn: []structs.Validator{},
+			code:           http.StatusOK,
+		},
+		{
+			name: "success response for created time range without validator_id",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+				},
+			},
+			expectedParams: structs.ValidatorParams{
+				TimeFrom: from,
+				TimeTo:   to,
+			},
+			ttype:          "validator",
+			expectedReturn: []structs.Validator{{}},
+			code:           http.StatusOK,
+		},
 	}
 
 	for _, tt := range tests {
@@ -695,6 +837,8 @@ func TestHandler(t *testing.T) {
 					mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 				case structs.NodeParams:
 					mockDB.EXPECT().GetNodes(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+				case structs.ValidatorParams:
+					mockDB.EXPECT().GetValidators(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 				}
 			}
 
@@ -710,6 +854,8 @@ func TestHandler(t *testing.T) {
 				res = http.HandlerFunc(connector.GetContractEvents)
 			case "node":
 				res = http.HandlerFunc(connector.GetNodes)
+			case "validator":
+				res = http.HandlerFunc(connector.GetValidators)
 			}
 
 			rr := httptest.NewRecorder()
