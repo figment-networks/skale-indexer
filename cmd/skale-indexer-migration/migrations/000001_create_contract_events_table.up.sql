@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS contract_events
 );
 
 -- Indexes
-CREATE INDEX idx_c_ev_time on contract_events (time);
-CREATE INDEX idx_c_ev_bound_type on contract_events (bound_type);
-CREATE INDEX idx_c_ev_bound_id on contract_events USING GIN (bound_id);
+CREATE INDEX idx_c_ev_time ON contract_events (time);
+CREATE INDEX idx_c_ev_bound_type ON contract_events (bound_type);
+CREATE INDEX idx_c_ev_bound_id ON contract_events USING GIN (bound_id);
 
-CREATE UNIQUE INDEX idx_c_ev_unique on contract_events (contract_address, event_name, block_height, transaction_hash, removed);
+CREATE UNIQUE INDEX idx_c_ev_unique ON contract_events (contract_address, event_name, block_height, transaction_hash, removed);

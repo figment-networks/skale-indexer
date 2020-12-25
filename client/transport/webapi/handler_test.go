@@ -550,7 +550,7 @@ func TestHandler(t *testing.T) {
 			ttype:          "node",
 			expectedParams: structs.NodeParams{},
 			dbResponse:     structs.ErrNotFound,
-			code:           http.StatusNotFound,
+			code:           http.StatusInternalServerError,
 		},
 		{
 			name: "internal server error",
@@ -587,7 +587,7 @@ func TestHandler(t *testing.T) {
 				ValidatorId: "2",
 			},
 			dbResponse: structs.ErrNotFound,
-			code:       http.StatusNotFound,
+			code:       http.StatusInternalServerError,
 		},
 		{
 			name: "internal server error with validator_id",
@@ -620,49 +620,46 @@ func TestHandler(t *testing.T) {
 			code:           http.StatusOK,
 		},
 		{
-			name: "record not found error with validator_id and recent",
+			name: "record not found error with node_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&recent=true",
+					RawQuery: "node_id=2",
 				},
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				ValidatorId: "2",
-				Recent:      true,
+				NodeId: "2",
 			},
 			dbResponse: structs.ErrNotFound,
-			code:       http.StatusNotFound,
+			code:       http.StatusInternalServerError,
 		},
 		{
-			name: "internal server error with validator_id and recent",
+			name: "internal server error with node_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&recent=true",
+					RawQuery: "node_id=2",
 				},
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				ValidatorId: "2",
-				Recent:      true,
+				NodeId: "2",
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
 		{
-			name: "success response with validator_id and recent",
+			name: "success response with node_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=2&recent=true",
+					RawQuery: "node_id=2",
 				},
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				ValidatorId: "2",
-				Recent:      true,
+				NodeId: "2",
 			},
 			expectedReturn: []structs.Node{{}},
 			code:           http.StatusOK,

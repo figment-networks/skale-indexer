@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS accounts
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE index idx_a_address on accounts (address);
+CREATE UNIQUE INDEX idx_a_address ON accounts (address);

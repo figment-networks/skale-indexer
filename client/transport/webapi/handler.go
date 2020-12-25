@@ -116,9 +116,9 @@ func (c *Connector) GetNodes(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	validatorId := req.URL.Query().Get("validator_id")
 	params := structs.NodeParams{
-		ValidatorId: validatorId,
+		NodeId:      req.URL.Query().Get("node_id"),
+		ValidatorId: req.URL.Query().Get("validator_id"),
 	}
 	res, err := c.cli.GetNodes(req.Context(), params)
 	if err != nil {

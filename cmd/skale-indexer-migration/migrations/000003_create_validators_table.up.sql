@@ -21,4 +21,4 @@ CREATE TABLE IF NOT EXISTS validators
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE index idx_v_validator_id on validators (validator_id);
+CREATE UNIQUE INDEX idx_v_validator_id ON validators (validator_id);

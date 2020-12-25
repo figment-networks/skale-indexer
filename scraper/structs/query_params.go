@@ -39,8 +39,8 @@ type DelegationParams struct {
 }
 
 type NodeParams struct {
+	NodeId      string
 	ValidatorId string
-	Recent      bool
 }
 
 type AccountParams struct {
