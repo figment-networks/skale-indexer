@@ -52,6 +52,9 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 		RegistrationTime:        time.Unix(vraw.RegistrationTime.Int64(), 0),
 		MinimumDelegationAmount: vraw.MinimumDelegationAmount,
 		AcceptNewRequests:       vraw.AcceptNewRequests,
+		Staked:                  big.NewInt(0),
+		Pending:                 big.NewInt(0),
+		Rewards:                 big.NewInt(0),
 	}, nil
 }
 

@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS validator_statistics
 (
     id                      UUID DEFAULT   uuid_generate_v4(),
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at              TIMESTAMP WITH TIME ZONE,
     validator_id            DECIMAL(65, 0)           NOT NULL,
     amount                  DECIMAL(65, 0)           NOT NULL,
     block_height            DECIMAL(65, 0)           NOT NULL,
@@ -10,5 +9,4 @@ CREATE TABLE IF NOT EXISTS validator_statistics
     PRIMARY KEY (id)
 );
 
--- Indexes
-CREATE index idx_validator_statistics_statistics_type_and_validator_id on validator_statistics (statistics_type, validator_id);
+CREATE UNIQUE INDEX idx_validator_statistics_statistics_type_and_validator_id_and_block_height ON validator_statistics (statistics_type, validator_id, block_height);

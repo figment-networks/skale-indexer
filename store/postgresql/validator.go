@@ -41,9 +41,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			minimum_delegation_amount = EXCLUDED.minimum_delegation_amount,
 			accept_new_requests = EXCLUDED.accept_new_requests,
 			authorized = EXCLUDED.authorized,
-			active_nodes = EXCLUDED.active_nodes,
-			linked_nodes = EXCLUDED.linked_nodes,
-			staked = EXCLUDED.staked,
 			pending = EXCLUDED.pending,
 			rewards = EXCLUDED.rewards,
 			block_height = EXCLUDED.block_height
@@ -60,9 +57,9 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.Authorized,
 		v.ActiveNodes,
 		v.LinkedNodes,
-		v.Staked,
-		v.Pending,
-		v.Rewards,
+		v.Staked.String(),
+		v.Pending.String(),
+		v.Rewards.String(),
 		v.BlockHeight)
 	return err
 }
@@ -110,7 +107,10 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		var requestedAddress []byte
 		var feeRate uint64
 		var mnmDlgAmount string
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime, &mnmDlgAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &vld.Staked, &vld.Pending, &vld.Rewards, &vld.BlockHeight)
+		var staked string
+		var pending string
+		var rewards string
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime, &mnmDlgAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &staked, &pending, &rewards, &vld.BlockHeight)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +125,15 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		amnt := new(big.Int)
 		amnt.SetString(mnmDlgAmount, 10)
 		vld.MinimumDelegationAmount = amnt
-
+		stk := new(big.Int)
+		stk.SetString(staked, 10)
+		vld.Staked = stk
+		pnd := new(big.Int)
+		pnd.SetString(pending, 10)
+		vld.Pending = pnd
+		rwrd := new(big.Int)
+		rwrd.SetString(rewards, 10)
+		vld.Rewards = rwrd
 		validators = append(validators, vld)
 	}
 	return validators, nil

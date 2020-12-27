@@ -53,11 +53,11 @@ type AccountStore interface {
 }
 
 type ValidatorStatisticsStore interface {
-	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	//	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
-	//  CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
-	//	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
-	//	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
+	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 }
 
 type Store struct {
@@ -104,42 +104,25 @@ func (s *Store) GetDelegationTimeline(ctx context.Context, params structs.Delega
 	return s.driver.GetDelegationTimeline(ctx, params)
 }
 
-func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return s.driver.GetValidatorStatistics(ctx, params)
 }
 
-/*
-func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validatorId *big.Int) error {
-	params := structs.QueryParams{
-		ValidatorId:    validatorId.Uint64(),
-		ETHBlockHeight: blockHeight,
-	}
-	//TODO: add transactional commit-rollback
-	if err := s.driver.CalculateTotalStake(ctx, params); err != nil {
-		return err
-	}
-	if err := s.driver.CalculateActiveNodes(ctx, params); err != nil {
-		return err
-	}
-	if err := s.driver.CalculateLinkedNodes(ctx, params); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Store) GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return s.driver.GetValidatorStatisticsChart(ctx, params)
 }
 
-func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateTotalStake(ctx, params)
 }
 
-func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateActiveNodes(ctx, params)
 }
 
-func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
 }
-*/
 
 func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error {
 	return s.driver.SaveAccount(ctx, account)

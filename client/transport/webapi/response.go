@@ -60,16 +60,16 @@ type ValidatorAPI struct {
 	Authorized              bool           `json:"authorized"`
 	ActiveNodes             int            `json:"active_nodes"`
 	LinkedNodes             int            `json:"linked_nodes"`
-	Staked                  uint64         `json:"staked"`
-	Pending                 uint64         `json:"pending"`
-	Rewards                 uint64         `json:"rewards"`
+	Staked                  string         `json:"staked"`
+	Pending                 string         `json:"pending"`
+	Rewards                 string         `json:"rewards"`
 }
 
-// TODO: change api response with this
 type ValidatorStatisticsAPI struct {
-	ValidatorId uint64 `json:"validator_id"`
-	Amount      uint64 `json:"amount"`
-	BlockHeight uint64 `json:"block_height"`
+	ValidatorId    uint64 `json:"validator_id"`
+	Amount         string `json:"amount"`
+	BlockHeight    uint64 `json:"block_height"`
+	StatisticsType string `json:"statistics_type"`
 }
 
 type AccountAPI struct {

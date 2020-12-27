@@ -121,10 +121,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 		v.BlockHeight = ce.BlockHeight
 		v.RegistrationTime = ce.Time
-		/*  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
+		//  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
-				return fmt.Errorf("error storing validator %w", err)
-			}*/
+			return fmt.Errorf("error storing validator %w", err)
+		}
 
 		if ce.EventName == "NodeAddressWasAdded" || ce.EventName == "NodeAddressWasRemoved" {
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
@@ -140,10 +140,21 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
 				node.EventTime = ce.Time
-				// BUG(lukanus):
-				/*	if err := m.dataStore.SaveNode(ctx, node); err != nil {
+				if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
-				}*/
+				}
+			}
+			qqq := structs.ValidatorStatisticsParams{
+				ValidatorId: vID.String(),
+				BlockHeight: ce.BlockHeight,
+			}
+			err = m.dataStore.CalculateActiveNodes(ctx, qqq)
+			if err != nil {
+				return fmt.Errorf("error calculating active nodes %w", err)
+			}
+			err = m.dataStore.CalculateLinkedNodes(ctx, qqq)
+			if err != nil {
+				return fmt.Errorf("error calculating linked nodes %w", err)
 			}
 		} else if ce.EventName == "ValidatorRegistered" {
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
@@ -172,11 +183,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error storing account %w", err)
 			}
 		}
-		/*
-			if err = m.dataStore.CalculateParams(ctx, ce.BlockHeight, vID.(*big.Int)); err != nil {
-				return fmt.Errorf("error calculating validator params %w", err)
-			}
-		*/
 
 		ce.BoundType = "validator"
 		ce.BoundID = append(ce.BoundID, *vID)
@@ -230,7 +236,18 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err = m.dataStore.SaveNode(ctx, n); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
-
+		vs := structs.ValidatorStatisticsParams{
+			ValidatorId: n.ValidatorID.String(),
+			BlockHeight: ce.BlockHeight,
+		}
+		err = m.dataStore.CalculateActiveNodes(ctx, vs)
+		if err != nil {
+			return fmt.Errorf("error calculating active nodes %w", err)
+		}
+		err = m.dataStore.CalculateLinkedNodes(ctx, vs)
+		if err != nil {
+			return fmt.Errorf("error calculating linked nodes %w", err)
+		}
 		ce.BoundType = "node"
 		ce.BoundID = append(ce.BoundID, *nID)
 
@@ -362,6 +379,13 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing account %w", err)
 		}
 
+		vs := structs.ValidatorStatisticsParams{
+			ValidatorId: d.ValidatorID.String(),
+			BlockHeight: ce.BlockHeight,
+		}
+		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
+			return fmt.Errorf("error storing delegation %w", err)
+		}
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
 	case "skale_manager":

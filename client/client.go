@@ -36,8 +36,13 @@ func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationPa
 func (c *Client) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	return c.storeEng.GetDelegationTimeline(ctx, params)
 }
-func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+
+func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return c.storeEng.GetValidatorStatistics(ctx, params)
+}
+
+func (c *Client) GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return c.storeEng.GetValidatorStatisticsChart(ctx, params)
 }
 
 func (c *Client) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {

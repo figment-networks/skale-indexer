@@ -3,7 +3,6 @@ package webapi
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -21,7 +20,8 @@ type ClientContractor interface {
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
-	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 }
 
@@ -193,9 +193,9 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 			Authorized:              vld.Authorized,
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
-			Staked:                  vld.Staked,
-			Pending:                 vld.Pending,
-			Rewards:                 vld.Rewards,
+			Staked:                  vld.Staked.String(),
+			Pending:                 vld.Pending.String(),
+			Rewards:                 vld.Rewards.String(),
 		})
 	}
 
@@ -315,60 +315,75 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	id := req.URL.Query().Get("id")
-	validatorIdParam := req.URL.Query().Get("validator_id")
-	var validatorId uint64
-	var err error
-	if validatorIdParam != "" {
-		validatorId, err = strconv.ParseUint(validatorIdParam, 10, 64)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
-		}
-	}
-
-	statisticTypeParam := req.URL.Query().Get("statistic_type")
-	if statisticTypeParam == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	var statisticType structs.StatisticTypeVS
-	if statisticTypeParam == "total_stake" {
-		statisticType = structs.ValidatorStatisticsTypeTotalStake
-	} else if statisticTypeParam == "active_nodes" {
-		statisticType = structs.ValidatorStatisticsTypeActiveNodes
-	} else if statisticTypeParam == "linked_nodes" {
-		statisticType = structs.ValidatorStatisticsTypeLinkedNodes
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
-		return
-	}
-
-	params := structs.QueryParams{
-		Id:              id,
-		ValidatorId:     validatorId,
-		StatisticTypeVS: statisticType,
+	params := structs.ValidatorStatisticsParams{
+		ValidatorId:      req.URL.Query().Get("validator_id"),
+		StatisticsTypeVS: req.URL.Query().Get("statistics_type"),
 	}
 
 	res, err := c.cli.GetValidatorStatistics(req.Context(), params)
 	if err != nil {
-		if errors.Is(err, structs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(newApiError(err, http.StatusNotFound))
-			return
-		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
+	var vlds []ValidatorStatisticsAPI
+	for _, v := range res {
+		vlds = append(vlds, ValidatorStatisticsAPI{
+			StatisticsType: v.StatisticType.String(),
+			ValidatorId:    v.ValidatorId.Uint64(),
+			BlockHeight:    v.BlockHeight,
+			Amount:         v.Amount.String(),
+		})
+	}
+
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(res)
+	enc.Encode(vlds)
+}
+
+func (c *Connector) GetValidatorStatisticsChart(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	vId := req.URL.Query().Get("validator_id")
+	st := req.URL.Query().Get("statistics_type")
+
+	if vId == "" || st == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+		return
+	}
+
+	params := structs.ValidatorStatisticsParams{
+		ValidatorId:      vId,
+		StatisticsTypeVS: st,
+	}
+
+	res, err := c.cli.GetValidatorStatisticsChart(req.Context(), params)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var vlds []ValidatorStatisticsAPI
+	for _, v := range res {
+		vlds = append(vlds, ValidatorStatisticsAPI{
+			StatisticsType: v.StatisticType.String(),
+			ValidatorId:    v.ValidatorId.Uint64(),
+			BlockHeight:    v.BlockHeight,
+			Amount:         v.Amount.String(),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(vlds)
 }
 
 func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
@@ -414,6 +429,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations", c.GetDelegations)
 	mux.HandleFunc("/delegations/timeline", c.GetDelegationsTimeline)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
+	mux.HandleFunc("/validator-statistics-chart", c.GetValidatorStatisticsChart)
 	mux.HandleFunc("/accounts", c.GetAccounts)
 }
 
