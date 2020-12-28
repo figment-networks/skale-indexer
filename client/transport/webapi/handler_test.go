@@ -449,11 +449,11 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=2",
+					RawQuery: "type=validator",
 				},
 			},
 			expectedParams: structs.AccountParams{
-				Type: "2",
+				Type: "validator",
 			},
 			ttype:      "account",
 			dbResponse: structs.ErrNotFound,
@@ -464,11 +464,11 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=2",
+					RawQuery: "type=validator",
 				},
 			},
 			expectedParams: structs.AccountParams{
-				Type: "2",
+				Type: "validator",
 			},
 			dbResponse: errors.New("internal error"),
 			ttype:      "account",
@@ -479,11 +479,11 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=2",
+					RawQuery: "type=validator",
 				},
 			},
 			expectedParams: structs.AccountParams{
-				Type: "2",
+				Type: "validator",
 			},
 			ttype:          "account",
 			expectedReturn: []structs.Account{},

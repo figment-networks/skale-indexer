@@ -13,23 +13,10 @@ type Account struct {
 	AccountType AccountType    `json:"account_type"`
 }
 
-type AccountType uint
+type AccountType string
 
 const (
-	AccountTypeDefault AccountType = iota
-	AccountTypeDelegator
-	AccountTypeValidator
+	AccountTypeDefault AccountType = "default"
+	AccountTypeDelegator AccountType= "delegator"
+	AccountTypeValidator AccountType = "validator"
 )
-
-func (k AccountType) String() string {
-	switch k {
-	case AccountTypeDefault:
-		return "default"
-	case AccountTypeDelegator:
-		return "delegator"
-	case AccountTypeValidator:
-		return "validator"
-	default:
-		return "unknown"
-	}
-}
