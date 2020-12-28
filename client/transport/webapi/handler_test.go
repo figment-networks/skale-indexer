@@ -441,6 +441,104 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodPost,
 			},
+			ttype: "account",
+			code:  http.StatusMethodNotAllowed,
+		},
+		{
+			name: "record not found error for type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "type=validator",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Type: "validator",
+			},
+			ttype:      "account",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "type=validator",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Type: "validator",
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "account",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "type=validator",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Type: "validator",
+			},
+			ttype:          "account",
+			expectedReturn: []structs.Account{},
+			code:           http.StatusOK,
+		},
+		{
+			name: "record not found error for address",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "address=0xbeeb437eede0e62a796d9e9c337f62746e925832",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Address: "0xbeeb437eede0e62a796d9e9c337f62746e925832",
+			},
+			ttype:      "account",
+			dbResponse: structs.ErrNotFound,
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for address",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "address=0xbeeb437eede0e62a796d9e9c337f62746e925832",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Address: "0xbeeb437eede0e62a796d9e9c337f62746e925832",
+			},
+			ttype:      "account",
+			dbResponse: errors.New("internal error"),
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response for address",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "address=0xbeeb437eede0e62a796d9e9c337f62746e925832",
+				},
+			},
+			expectedParams: structs.AccountParams{
+				Address: "0xbeeb437eede0e62a796d9e9c337f62746e925832",
+			},
+			ttype:          "account",
+			expectedReturn: []structs.Account{{}},
+			code:           http.StatusOK,
+		},
+		{
+			name: "not allowed method",
+			req: &http.Request{
+				Method: http.MethodPost,
+			},
 			ttype: "node",
 			code:  http.StatusMethodNotAllowed,
 		},
@@ -591,6 +689,8 @@ func TestHandler(t *testing.T) {
 					} else {
 						mockDB.EXPECT().GetDelegationTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 					}
+				case structs.AccountParams:
+					mockDB.EXPECT().GetAccounts(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 				case structs.EventParams:
 					mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 				case structs.NodeParams:
@@ -604,6 +704,8 @@ func TestHandler(t *testing.T) {
 				res = http.HandlerFunc(connector.GetDelegations)
 			case "delegation_time_line":
 				res = http.HandlerFunc(connector.GetDelegationsTimeline)
+			case "account":
+				res = http.HandlerFunc(connector.GetAccounts)
 			case "event":
 				res = http.HandlerFunc(connector.GetContractEvents)
 			case "node":

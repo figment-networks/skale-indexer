@@ -22,6 +22,7 @@ type ClientContractor interface {
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -372,6 +373,40 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	enc.Encode(res)
 }
 
+func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	params := structs.AccountParams{
+		Type:    req.URL.Query().Get("type"),
+		Address: req.URL.Query().Get("address"),
+	}
+
+	res, err := c.cli.GetAccounts(req.Context(), params)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var accs []AccountAPI
+	for _, a := range res {
+		accs = append(accs, AccountAPI{
+			Address:     a.Address,
+			AccountType: string(a.AccountType),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(accs)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
@@ -381,6 +416,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations", c.GetDelegations)
 	mux.HandleFunc("/delegations/timeline", c.GetDelegationsTimeline)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
+	mux.HandleFunc("/accounts", c.GetAccounts)
 }
 
 type ScrapeContractor interface {
