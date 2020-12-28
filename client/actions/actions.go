@@ -148,7 +148,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		} else if ce.EventName == "ValidatorRegistered" {
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
 				Address:     v.ValidatorAddress,
-				AccountType: "validator",
+				AccountType: structs.AccountTypeValidator,
 			})
 			if err != nil {
 				return fmt.Errorf("error storing account %w", err)
@@ -166,7 +166,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
 				Address:     addr,
-				AccountType: "validator",
+				AccountType: structs.AccountTypeValidator,
 			})
 			if err != nil {
 				return fmt.Errorf("error storing account %w", err)
@@ -350,7 +350,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		err = m.dataStore.SaveAccount(ctx, structs.Account{
 			Address:     d.Holder,
-			AccountType: "delegator",
+			AccountType: structs.AccountTypeDelegator,
 		})
 		if err != nil {
 			return fmt.Errorf("error storing account %w", err)

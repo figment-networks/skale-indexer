@@ -398,7 +398,7 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 	for _, a := range res {
 		accs = append(accs, AccountAPI{
 			Address:     a.Address,
-			AccountType: a.AccountType,
+			AccountType: a.AccountType.String(),
 		})
 	}
 
