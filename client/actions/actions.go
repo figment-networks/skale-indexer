@@ -348,15 +348,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing delegation %w", err)
 		}
 
-		dlgs, _ := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
-		accType := "nothing"
-		if dlgs != nil && len(dlgs) > 0 {
-			accType = "delegator"
-		}
-
 		err = m.dataStore.SaveAccount(ctx, structs.Account{
 			Address:     d.Holder,
-			AccountType: accType,
+			AccountType: "delegator",
 		})
 		if err != nil {
 			return fmt.Errorf("error storing account %w", err)
