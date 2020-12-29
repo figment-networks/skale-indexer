@@ -167,6 +167,9 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 
 	params := structs.ValidatorParams{
 		ValidatorId: req.URL.Query().Get("validator_id"),
+		OrderBy:     req.URL.Query().Get("order_by"),
+		Name:        req.URL.Query().Get("name"),
+		Active:      req.URL.Query().Get("active"),
 		TimeFrom:    timeFrom,
 		TimeTo:      timeTo,
 	}

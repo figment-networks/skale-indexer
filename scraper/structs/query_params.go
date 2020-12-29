@@ -50,6 +50,9 @@ type AccountParams struct {
 
 type ValidatorParams struct {
 	ValidatorId string
+	OrderBy     string
+	Name        string
+	Active      string
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
