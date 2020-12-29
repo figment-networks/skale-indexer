@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/store"
@@ -42,4 +43,26 @@ func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.Quer
 
 func (c *Client) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
 	return c.storeEng.GetAccounts(ctx, params)
+}
+
+func (c *Client) GetAccountDetails(ctx context.Context, params structs.AccountParams) (accountDetails structs.AccountDetails, err error) {
+	account, err := c.storeEng.GetAccounts(ctx, params)
+	if err != nil {
+		return accountDetails, errors.New("error getting account")
+	}
+	if len(account) == 0 {
+		return accountDetails, errors.New("no account for address is found")
+	}
+
+	dlgParams := structs.DelegationParams{
+		Holder: params.Address,
+	}
+	delegations, err := c.storeEng.GetDelegations(ctx, dlgParams)
+	if err != nil {
+		return accountDetails, errors.New("error getting delegations")
+	}
+	return structs.AccountDetails{
+		Account:     account[0],
+		Delegations: delegations,
+	}, err
 }

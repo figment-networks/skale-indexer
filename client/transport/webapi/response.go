@@ -76,3 +76,8 @@ type AccountAPI struct {
 	Address     common.Address `json:"address"`
 	AccountType string         `json:"account_type"`
 }
+
+type AccountDetailsAPI struct {
+	Account     AccountAPI
+	Delegations []DelegationAPI
+}

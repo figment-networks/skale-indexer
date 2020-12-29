@@ -23,6 +23,7 @@ type ClientContractor interface {
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
+	GetAccountDetails(ctx context.Context, params structs.AccountParams) (accountDetails structs.AccountDetails, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -224,6 +225,7 @@ func (c *Connector) GetDelegations(w http.ResponseWriter, req *http.Request) {
 	res, err := c.cli.GetDelegations(req.Context(), structs.DelegationParams{
 		ValidatorId:  req.URL.Query().Get("validator_id"),
 		DelegationId: req.URL.Query().Get("delegation_id"),
+		Holder:       req.URL.Query().Get("holder"),
 		TimeFrom:     timeFrom,
 		TimeTo:       timeTo,
 	})
@@ -405,6 +407,60 @@ func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(accs)
 }
 
+func (c *Connector) GetAccountDetails(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+	addr := req.URL.Query().Get("address")
+	if addr == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+		return
+	}
+
+	params := structs.AccountParams{
+		Address: addr,
+	}
+
+	res, err := c.cli.GetAccountDetails(req.Context(), params)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var accDetails AccountDetailsAPI
+	accDetails.Account = AccountAPI{
+		Address:     res.Account.Address,
+		AccountType: string(res.Account.AccountType),
+	}
+	var dlgs []DelegationAPI
+	for _, dlg := range res.Delegations {
+		dlgs = append(dlgs, DelegationAPI{
+			DelegationID:     dlg.DelegationID,
+			TransactionHash:  dlg.TransactionHash,
+			Holder:           dlg.Holder,
+			ValidatorID:      dlg.ValidatorID,
+			BlockHeight:      dlg.BlockHeight,
+			Amount:           dlg.Amount,
+			DelegationPeriod: dlg.DelegationPeriod,
+			Started:          dlg.Started,
+			Created:          dlg.Created,
+			Finished:         dlg.Finished,
+			Info:             dlg.Info,
+		})
+	}
+	accDetails.Delegations = dlgs
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(accDetails)
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
@@ -415,6 +471,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations/timeline", c.GetDelegationsTimeline)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
 	mux.HandleFunc("/accounts", c.GetAccounts)
+	mux.HandleFunc("/account-details", c.GetAccountDetails)
 }
 
 type ScrapeContractor interface {

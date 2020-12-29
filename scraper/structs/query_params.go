@@ -34,6 +34,7 @@ type DelegationParams struct {
 	ValidatorId  string
 	DelegationId string
 	BlockHeight  string
+	Holder       string
 	TimeFrom     time.Time
 	TimeTo       time.Time
 }

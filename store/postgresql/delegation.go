@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
@@ -148,6 +149,11 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	if params.DelegationId != "" {
 		wherec = append(wherec, ` delegation_id = $`+strconv.Itoa(i))
 		args = append(args, params.DelegationId)
+		i++
+	}
+	if params.Holder != "" {
+		wherec = append(wherec, ` holder = $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if params.ValidatorId != "" {

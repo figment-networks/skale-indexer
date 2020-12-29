@@ -13,10 +13,15 @@ type Account struct {
 	AccountType AccountType    `json:"account_type"`
 }
 
+type AccountDetails struct {
+	Account     Account
+	Delegations []Delegation
+}
+
 type AccountType string
 
 const (
-	AccountTypeDefault AccountType = "default"
-	AccountTypeDelegator AccountType= "delegator"
+	AccountTypeDefault   AccountType = "default"
+	AccountTypeDelegator AccountType = "delegator"
 	AccountTypeValidator AccountType = "validator"
 )
