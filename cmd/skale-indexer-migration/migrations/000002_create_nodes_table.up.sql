@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS nodes
     created_at                      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     node_id                         DECIMAL(65, 0)           NOT NULL,
     name                            VARCHAR(100)             NOT NULL,
-    ip                              cidr               NOT NULL,
-    public_ip                       cidr              NOT NULL,
+    ip                              cidr                     NOT NULL,
+    public_ip                       cidr                     NOT NULL,
     port                            SMALLINT                 NOT NULL,
     start_block                     DECIMAL(65, 0)           NOT NULL,
     next_reward_date                TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -18,4 +18,5 @@ CREATE TABLE IF NOT EXISTS nodes
 );
 
 -- Indexes
-CREATE index idx_nodes_validator_id_and_start_block on nodes (validator_id, start_block);
+CREATE UNIQUE INDEX idx_n_node_id ON nodes (node_id);
+CREATE INDEX idx_nodes_validator_id ON nodes (validator_id);

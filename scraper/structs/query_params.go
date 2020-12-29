@@ -39,11 +39,17 @@ type DelegationParams struct {
 }
 
 type NodeParams struct {
+	NodeId      string
 	ValidatorId string
-	Recent      bool
 }
 
 type AccountParams struct {
 	Type    string
 	Address string
+}
+
+type ValidatorParams struct {
+	ValidatorId string
+	TimeFrom    time.Time
+	TimeTo      time.Time
 }

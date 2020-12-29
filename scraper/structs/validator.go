@@ -8,10 +8,8 @@ import (
 )
 
 type Validator struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	// TODO: remove updated_at
-	UpdatedAt               time.Time      `json:"updated_at"`
+	ID                      string         `json:"id"`
+	CreatedAt               time.Time      `json:"created_at"`
 	ValidatorID             *big.Int       `json:"validator_id"`
 	Name                    string         `json:"name"`
 	ValidatorAddress        common.Address `json:"validator_address"`
@@ -22,7 +20,6 @@ type Validator struct {
 	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool           `json:"accept_new_requests"`
 	Authorized              bool           `json:"authorized"`
-	Active                  bool           `json:"active"`
 	ActiveNodes             int            `json:"active_nodes"`
 	LinkedNodes             int            `json:"linked_nodes"`
 	Staked                  uint64         `json:"staked"`

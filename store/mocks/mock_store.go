@@ -107,7 +107,7 @@ func (mr *MockDBDriverMockRecorder) SaveValidator(ctx, validator interface{}) *g
 }
 
 // GetValidators mocks base method
-func (m *MockDBDriver) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+func (m *MockDBDriver) GetValidators(ctx context.Context, params structs.ValidatorParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -305,7 +305,7 @@ func (mr *MockDataStoreMockRecorder) SaveValidator(ctx, validator interface{}) *
 }
 
 // GetValidators mocks base method
-func (m *MockDataStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+func (m *MockDataStore) GetValidators(ctx context.Context, params structs.ValidatorParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)
@@ -549,7 +549,7 @@ func (mr *MockValidatorStoreMockRecorder) SaveValidator(ctx, validator interface
 }
 
 // GetValidators mocks base method
-func (m *MockValidatorStore) GetValidators(ctx context.Context, params structs.QueryParams) ([]structs.Validator, error) {
+func (m *MockValidatorStore) GetValidators(ctx context.Context, params structs.ValidatorParams) ([]structs.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidators", ctx, params)
 	ret0, _ := ret[0].([]structs.Validator)

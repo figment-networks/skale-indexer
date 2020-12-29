@@ -2,10 +2,11 @@ package postgresql
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
+	"strings"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -14,8 +15,20 @@ import (
 func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 	_, err := d.db.Exec(`INSERT INTO nodes
 			("node_id", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "event_time")
-			VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			ON CONFLICT (node_id)
+			DO UPDATE SET
+				name = EXCLUDED.name,
+				ip = EXCLUDED.ip,
+				public_ip = EXCLUDED.public_ip,
+				port = EXCLUDED.port,
+				start_block = EXCLUDED.start_block,
+				next_reward_date = EXCLUDED.next_reward_date,
+				last_reward_date = EXCLUDED.last_reward_date,
+				finish_time = EXCLUDED.finish_time,
+				status = EXCLUDED.status,
+				validator_id = EXCLUDED.validator_id,
+				event_time = EXCLUDED.event_time
 			`,
 		n.NodeID.String(),
 		n.Name,
@@ -34,32 +47,34 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 
 // GetNodes gets nodes
 func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
-	var q string
-	var rows *sql.Rows
-
-	q = `SELECT
+	q := `SELECT
 			id, created_at, node_id, name, ip, public_ip, port, start_block, next_reward_date, last_reward_date, finish_time, status, validator_id, event_time
 		FROM nodes `
 
-	if params.ValidatorId != "" {
-		q += ` WHERE validator_id =  $1 `
+	var (
+		args   []interface{}
+		wherec []string
+		i      = 1
+	)
+
+	if params.NodeId != "" {
+		wherec = append(wherec, ` node_id =  $`+strconv.Itoa(i))
+		args = append(args, params.NodeId)
+		i++
 	}
+	if params.ValidatorId != "" {
+		wherec = append(wherec, ` validator_id =  $`+strconv.Itoa(i))
+		args = append(args, params.ValidatorId)
+		i++
+	}
+	if len(args) > 0 {
+		q += ` WHERE `
+		q += strings.Join(wherec, " AND ")
+	}
+
 	q += ` ORDER BY node_id, event_time`
 
-	//byRecentStartBlockN = `AND start_block = (SELECT n2.start_block FROM nodes n2 WHERE n2.validator_id = $2 ORDER BY n2.start_block DESC LIMIT 1) `
-
-	//	if params.ValidatorId != "" && !params.Recent {
-	//	q = fmt.Sprintf("%s%s%s", getByStatementN, byValidatorIdN, orderByNameN)
-	//		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId)
-	//	} else if params.ValidatorId != "" && params.Recent {
-	//	q = fmt.Sprintf("%s%s%s%s", getByStatementN, byValidatorIdN, byRecentStartBlockN, orderByNameN)
-	//		rows, err = d.db.QueryContext(ctx, q, params.ValidatorId, params.ValidatorId)
-	//	} else {
-	//		q = fmt.Sprintf("%s%s", getByStatementN, orderByNameN)
-	//		rows, err = d.db.QueryContext(ctx, q)
-	//	}
-
-	rows, err = d.db.QueryContext(ctx, q)
+	rows, err := d.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

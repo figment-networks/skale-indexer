@@ -20,9 +20,8 @@ type Node struct {
 	FinishTime     *big.Int   `json:"finish_time"`
 	Status         NodeStatus `json:"node_status"`
 	ValidatorID    *big.Int   `json:"validator_id"`
-
-	EventTime   time.Time `json:"event_time"`
-	BlockHeight uint64    `json:"block_height"`
+	EventTime      time.Time  `json:"event_time"`
+	BlockHeight    uint64     `json:"block_height"`
 }
 
 type NodeStatus uint
