@@ -120,7 +120,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
 		v.BlockHeight = ce.BlockHeight
-		v.RegistrationTime = ce.Time
 		//  BUG(lukanus): error storing validator sql: converting argument $1 type: unsupported type big.Int, a struct
 		if err = m.dataStore.SaveValidator(ctx, v); err != nil {
 			return fmt.Errorf("error storing validator %w", err)
@@ -139,7 +138,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
-				node.EventTime = ce.Time
 				if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}
@@ -231,8 +229,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			// TODO: change err message from line 203
 			return errors.New("Structure is not a node")
 		}
-
-		n.EventTime = ce.Time
+		n.BlockHeight = ce.BlockHeight
 		if err = m.dataStore.SaveNode(ctx, n); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
@@ -251,7 +248,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		ce.BoundType = "node"
 		ce.BoundID = append(ce.BoundID, *nID)
 
-		// TODO(lukanus): Get Validator Nodes maybe?
 	case "punisher":
 		/*
 			@dev Emitted upon slashing condition.
