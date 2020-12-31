@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS validator_statistics
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_validator_statistics_statistics_type_and_validator_id_and_block_height ON validator_statistics (statistics_type, validator_id, block_height);
+CREATE UNIQUE INDEX idx_v_s_unique_st_vid_bh ON validator_statistics (statistics_type, validator_id, block_height);

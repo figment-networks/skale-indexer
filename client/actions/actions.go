@@ -19,6 +19,8 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/transport"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
 	"github.com/figment-networks/skale-indexer/store"
+
+	"github.com/golang/groupcache/lru"
 )
 
 var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
@@ -48,16 +50,32 @@ type BCGetter interface {
 	GetBoundContractCaller(ctx context.Context, addr common.Address, a abi.ABI) *bind.BoundContract
 }
 
+type Caches struct {
+	Account *lru.Cache
+}
+
+func NewCaches() *Caches {
+	return &Caches{Account: lru.New(1000)}
+}
+
 type Manager struct {
 	dataStore store.DataStore
 	c         Call
 	tr        transport.EthereumTransport
 	cm        *contract.Manager
 	l         *zap.Logger
+	caches    *Caches
 }
 
 func NewManager(c Call, dataStore store.DataStore, tr transport.EthereumTransport, cm *contract.Manager, l *zap.Logger) *Manager {
-	return &Manager{c: c, dataStore: dataStore, tr: tr, cm: cm, l: l}
+	return &Manager{
+		c:         c,
+		dataStore: dataStore,
+		tr:        tr,
+		cm:        cm,
+		l:         l,
+		caches:    NewCaches(),
+	}
 }
 
 func (m *Manager) GetImplementedContractNames() []string {
@@ -142,6 +160,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}
 			}
+
 			qqq := structs.ValidatorStatisticsParams{
 				ValidatorId: vID.String(),
 				BlockHeight: ce.BlockHeight,
@@ -382,12 +401,13 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
+
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
 	case "skale_manager":
 		/*
 			@dev Emitted when bounty is received.
-				event BountyReceived(
+			event BountyReceived(
 				uint indexed nodeIndex,
 				address owner,
 				uint averageDowntime,
@@ -408,6 +428,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				uint gasSpend
 			);
 		*/
+
 	case "skale_token":
 		ce.BoundType = "token"
 		if ce.EventName == "transfer" || ce.EventName == "approval" {
@@ -415,11 +436,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if err != nil {
 				return fmt.Errorf("error decoding event ERC20 %w", err)
 			}
-		} else {
-		}
+			for _, ad := range ce.BoundAddress {
+				if _, ok := m.caches.Account.Get(ad); !ok {
+					if err := m.dataStore.SaveAccount(ctx, structs.Account{Address: ad}); err != nil {
+						return err
+					}
+					m.caches.Account.Add(ad, structs.Account{Address: ad})
+				}
+			}
+		} // (lukanus): skip others for now
 
 	default:
-
 		m.l.Debug("Unknown event type", zap.String("type", ce.ContractName), zap.Any("event", ce))
 	}
 
