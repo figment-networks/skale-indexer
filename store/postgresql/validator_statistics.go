@@ -12,8 +12,7 @@ import (
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	q := `SELECT
-			DISTINCT ON (validator_id, statistics_type) 
-				id, created_at, validator_id, amount, block_height, statistics_type 
+			DISTINCT ON (validator_id, statistics_type) id, created_at, validator_id, amount, block_height, statistics_type
 			FROM validator_statistics `
 	var (
 		args   []interface{}
@@ -43,10 +42,13 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 	}
 	defer rows.Close()
 
+	var (
+		vldId  uint64
+		amount string
+	)
+
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		var vldId uint64
-		var amount string
 		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
 		if err != nil {
 			return nil, err
@@ -61,19 +63,26 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 }
 
 func (d *Driver) GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
-	q := `SELECT id, created_at, validator_id, amount, block_height, statistics_type 
-			FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 ORDER BY block_height DESC`
+
 	var rows *sql.Rows
-	rows, err = d.db.QueryContext(ctx, q, params.ValidatorId, params.StatisticsTypeVS)
+	rows, err = d.db.QueryContext(ctx,
+		`SELECT id, created_at, validator_id, amount, block_height, statistics_type
+			FROM validator_statistics
+			WHERE
+				validator_id = $1 AND statistics_type = $2
+			ORDER BY block_height DESC`, params.ValidatorId, params.StatisticsTypeVS)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	var (
+		vldId  uint64
+		amount string
+	)
+
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		var vldId uint64
-		var amount string
 		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
 		if err != nil {
 			return nil, err
@@ -88,45 +97,127 @@ func (d *Driver) GetValidatorStatisticsChart(ctx context.Context, params structs
 }
 
 func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	calculateTotalStake := `INSERT INTO validator_statistics (validator_id, amount, block_height, statistics_type)
- 								SELECT t1.validator_id, sum(t1.amount) AS amount, $1 AS block_height, $2 AS statistics_type FROM
- 									(SELECT  DISTINCT ON (delegation_id) validator_id, delegation_id, block_height, state, amount FROM delegations
- 											WHERE validator_id = $3 AND block_height <=$4 ORDER BY delegation_id, block_height DESC)  t1
- 								WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
- 							ON CONFLICT (statistics_type, validator_id, block_height)
- 							DO UPDATE SET amount = EXCLUDED.amount`
-	_, err := d.db.Exec(calculateTotalStake, params.BlockHeight, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorId, params.BlockHeight, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
-	if err == nil {
-		updateTotalStake := `UPDATE validators SET staked = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
-		_, err = d.db.Exec(updateTotalStake, params.ValidatorId, structs.ValidatorStatisticsTypeTotalStake, params.BlockHeight, params.ValidatorId)
+	tx, err := d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
 	}
-	return err
+
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, amount, block_height, statistics_type)
+										SELECT t1.validator_id, sum(t1.amount) AS amount, $1 AS block_height, $2 AS statistics_type
+									FROM
+											( SELECT DISTINCT ON (delegation_id) validator_id, delegation_id, block_height, state, amount
+											FROM delegations
+												WHERE
+													validator_id = $3 AND
+												block_height <=$4
+											ORDER BY delegation_id, block_height DESC) t1
+										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
+									ON CONFLICT (statistics_type, validator_id, block_height)
+									DO UPDATE SET amount = EXCLUDED.amount`,
+		params.BlockHeight, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorId, params.BlockHeight, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
+
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE validators
+						SET staked = (
+							 	SELECT amount
+								 FROM validator_statistics
+								 WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 )
+						WHERE validator_id = $4`,
+		params.ValidatorId, structs.ValidatorStatisticsTypeTotalStake, params.BlockHeight, params.ValidatorId)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
+
 }
 
 func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	calculateActiveNodes := `INSERT INTO validator_statistics (validator_id, amount, block_height, statistics_type)
-									(SELECT validator_id, count(*) AS amount,  $1 AS block_height, $2 AS statistics_type FROM nodes
-									WHERE validator_id = $3 AND status = $4 GROUP BY validator_id LIMIT 1)
-							ON CONFLICT (statistics_type, validator_id, block_height)
- 							DO UPDATE SET amount = EXCLUDED.amount `
-	_, err := d.db.Exec(calculateActiveNodes, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, params.ValidatorId, structs.NodeStatusActive)
-	if err == nil {
-		updateActiveNodes := `UPDATE validators SET active_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
-		_, err = d.db.Exec(updateActiveNodes, params.ValidatorId, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight, params.ValidatorId)
+	// BUG(l): This is wrong, would give random results. It either has to be calculated from  state, or nodes
+
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
 	}
-	return err
+
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+				(SELECT validator_id, $1 AS block_height, $2 AS statistics_type, count(*) AS amount,
+				FROM nodes
+				WHERE validator_id = $3 AND status = $4
+				GROUP BY validator_id LIMIT 1)
+			ON CONFLICT (validator_id, block_height, statistics_type)
+			DO UPDATE SET amount = EXCLUDED.amount `,
+		params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, params.ValidatorId, structs.NodeStatusActive)
+
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE validators
+						SET
+							active_nodes = (SELECT amount
+									FROM validator_statistics
+									WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3)
+						WHERE validator_id = $1`,
+		params.ValidatorId, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	calculateLinkedNodes := `INSERT INTO validator_statistics (validator_id, amount, block_height, statistics_type)
-									(SELECT validator_id, count(*) AS amount, $1 AS block_height, $2 AS statistics_type FROM nodes
-									WHERE validator_id = $3  GROUP BY validator_id LIMIT 1)
-							ON CONFLICT (statistics_type, validator_id, block_height)
- 							DO UPDATE SET amount = EXCLUDED.amount`
-	_, err := d.db.Exec(calculateLinkedNodes, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, params.ValidatorId)
-	if err == nil {
-		updateLinkedNodes := `UPDATE validators SET linked_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
-		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.ValidatorStatisticsTypeLinkedNodes, params.BlockHeight, params.ValidatorId)
+	// BUG(l): This is wrong, would give random results. It either has to be calculated from  state, or nodes
+	tx, err := d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
 	}
-	return err
+
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, amount, block_height, statistics_type)
+									(SELECT validator_id, count(*) AS amount, $1 AS block_height, $2 AS statistics_type
+									FROM nodes
+									WHERE validator_id = $3
+									GROUP BY validator_id LIMIT 1)
+								ON CONFLICT (statistics_type, validator_id, block_height)
+								DO UPDATE SET amount = EXCLUDED.amount`,
+		params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, params.ValidatorId, structs.NodeStatusActive)
+
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE validators
+						SET
+							linked_nodes = (SELECT amount
+											FROM validator_statistics
+											WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 )
+						WHERE validator_id = $4`,
+		params.ValidatorId, structs.ValidatorStatisticsTypeLinkedNodes, params.BlockHeight)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
 }
