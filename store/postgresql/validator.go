@@ -12,6 +12,17 @@ import (
 
 // SaveValidator saves validator
 func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
+
+	if v.Staked == nil {
+		v.Staked = big.NewInt(0)
+	}
+	if v.Pending == nil {
+		v.Pending = big.NewInt(0)
+	}
+	if v.Rewards == nil {
+		v.Rewards = big.NewInt(0)
+	}
+
 	_, err := d.db.Exec(`INSERT INTO validators (
 			"validator_id",
 			"name",

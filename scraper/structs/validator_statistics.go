@@ -20,6 +20,8 @@ const (
 	ValidatorStatisticsTypeTotalStake StatisticTypeVS = iota + 1
 	ValidatorStatisticsTypeActiveNodes
 	ValidatorStatisticsTypeLinkedNodes
+	ValidatorStatisticsTypeMDR
+	ValidatorStatisticsTypeFEE
 )
 
 func (k StatisticTypeVS) String() string {
@@ -30,6 +32,10 @@ func (k StatisticTypeVS) String() string {
 		return "ACTIVE_NODES"
 	case ValidatorStatisticsTypeLinkedNodes:
 		return "LINKED_NODES"
+	case ValidatorStatisticsTypeMDR:
+		return "MDR"
+	case ValidatorStatisticsTypeFEE:
+		return "FEE"
 	default:
 		return "unknown"
 	}

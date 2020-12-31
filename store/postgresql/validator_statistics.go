@@ -10,6 +10,23 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+	// (lukanus): Update value in validator_statistics unless the value already exists
+	_, err = d.db.ExecContext(ctx, `
+	INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+		( SELECT $1, $2, $3, $4	WHERE
+			NOT EXISTS (
+					SELECT 1 FROM validator_statistics
+					WHERE validator_id = $1 AND statistics_type = $3 AND block_height < $2 AND amount = $4
+					ORDER BY block_height DESC LIMIT 1
+					)
+		)
+		ON CONFLICT (validator_id, block_height, statistics_type)
+		DO UPDATE SET amount = EXCLUDED.amount;
+		`, validatorID.String(), blockHeight, statisticsType, amount.String())
+	return nil
+}
+
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	q := `SELECT
 			DISTINCT ON (validator_id, statistics_type) id, created_at, validator_id, amount, block_height, statistics_type
@@ -112,7 +129,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 												block_height <=$4
 											ORDER BY delegation_id, block_height DESC) t1
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
-									ON CONFLICT (statistics_type, validator_id, block_height)
+									ON CONFLICT (validator_id, block_height, statistics_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
 		params.BlockHeight, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorId, params.BlockHeight, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
@@ -194,7 +211,7 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 									FROM nodes
 									WHERE validator_id = $3
 									GROUP BY validator_id LIMIT 1)
-								ON CONFLICT (statistics_type, validator_id, block_height)
+								ON CONFLICT (validator_id, block_height, statistics_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
 		params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, params.ValidatorId, structs.NodeStatusActive)
 

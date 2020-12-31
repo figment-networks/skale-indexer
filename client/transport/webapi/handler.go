@@ -193,9 +193,9 @@ func (c *Connector) GetValidators(w http.ResponseWriter, req *http.Request) {
 			Authorized:              vld.Authorized,
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
-			Staked:                  vld.Staked.String(),
-			Pending:                 vld.Pending.String(),
-			Rewards:                 vld.Rewards.String(),
+			Staked:                  vld.Staked,
+			Pending:                 vld.Pending,
+			Rewards:                 vld.Rewards,
 		})
 	}
 
