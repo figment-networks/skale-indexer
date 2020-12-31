@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS validators
     linked_nodes                SMALLINT                 NOT NULL,
     staked                      DECIMAL(65, 0)           NOT NULL,
     pending                     DECIMAL(65, 0)           NOT NULL,
-    rewards                     DECIMAL(65, 0)           NOT NULL,
+    unclaimed_rewards           DECIMAL(65, 0)           NOT NULL,
+    claimed_rewards             DECIMAL(65, 0)           NOT NULL,
     block_height                DECIMAL(65, 0)           NOT NULL,
     PRIMARY KEY (id)
 );

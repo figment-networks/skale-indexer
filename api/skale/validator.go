@@ -54,7 +54,8 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 		AcceptNewRequests:       vraw.AcceptNewRequests,
 		Staked:                  big.NewInt(0),
 		Pending:                 big.NewInt(0),
-		Rewards:                 big.NewInt(0),
+		UnclaimedRewards:        big.NewInt(0),
+		ClaimedRewards:          big.NewInt(0),
 	}, nil
 }
 

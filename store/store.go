@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -58,6 +59,8 @@ type ValidatorStatisticsStore interface {
 	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error
+	UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error
 }
 
 type Store struct {
@@ -122,6 +125,14 @@ func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.Validat
 
 func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
+}
+
+func (s *Store) SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error {
+	return s.driver.SaveValidatorStatistics(ctx, validatorStatistics)
+}
+
+func (s *Store) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	return s.driver.UpdateUnclaimedRewards(ctx, validatorId, blockHeight)
 }
 
 func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error {

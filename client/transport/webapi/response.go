@@ -62,7 +62,8 @@ type ValidatorAPI struct {
 	LinkedNodes             int            `json:"linked_nodes"`
 	Staked                  string         `json:"staked"`
 	Pending                 string         `json:"pending"`
-	Rewards                 string         `json:"rewards"`
+	UnclaimedRewards        string         `json:"unclaimed_rewards"`
+	ClaimedRewards          string         `json:"claimed_rewards"`
 }
 
 type ValidatorStatisticsAPI struct {

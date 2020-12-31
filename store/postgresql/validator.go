@@ -27,9 +27,10 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			"linked_nodes", 
 			"staked", 
 			"pending", 
-			"rewards",
+			"unclaimed_rewards",
+			"claimed_rewards",
 			"block_height") 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) 
 		ON CONFLICT (validator_id)
 		DO UPDATE SET
 			name = EXCLUDED.name,
@@ -42,7 +43,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			accept_new_requests = EXCLUDED.accept_new_requests,
 			authorized = EXCLUDED.authorized,
 			pending = EXCLUDED.pending,
-			rewards = EXCLUDED.rewards,
 			block_height = EXCLUDED.block_height
 		`,
 		v.ValidatorID.String(),
@@ -59,14 +59,15 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.LinkedNodes,
 		v.Staked.String(),
 		v.Pending.String(),
-		v.Rewards.String(),
+		v.UnclaimedRewards.String(),
+		v.ClaimedRewards.String(),
 		v.BlockHeight)
 	return err
 }
 
 // GetValidators gets validators by params
 func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
-	q := `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, minimum_delegation_amount, accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, rewards, block_height 
+	q := `SELECT id, created_at, validator_id, name, validator_address, requested_address, description, fee_rate, registration_time, minimum_delegation_amount, accept_new_requests, authorized, active_nodes, linked_nodes, staked, pending, unclaimed_rewards, claimed_rewards, block_height 
 			FROM validators  `
 
 	var (
@@ -109,8 +110,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		var mnmDlgAmount string
 		var staked string
 		var pending string
-		var rewards string
-		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime, &mnmDlgAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &staked, &pending, &rewards, &vld.BlockHeight)
+		var unclaimedRewards string
+		var claimedRewards string
+		err = rows.Scan(&vld.ID, &vld.CreatedAt, &vldId, &vld.Name, &validatorAddress, &requestedAddress, &vld.Description, &feeRate, &vld.RegistrationTime, &mnmDlgAmount, &vld.AcceptNewRequests, &vld.Authorized, &vld.ActiveNodes, &vld.LinkedNodes, &staked, &pending, &unclaimedRewards, &claimedRewards, &vld.BlockHeight)
 		if err != nil {
 			return nil, err
 		}
@@ -131,9 +133,12 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		pnd := new(big.Int)
 		pnd.SetString(pending, 10)
 		vld.Pending = pnd
+		unrwrd := new(big.Int)
+		unrwrd.SetString(unclaimedRewards, 10)
+		vld.UnclaimedRewards = unrwrd
 		rwrd := new(big.Int)
-		rwrd.SetString(rewards, 10)
-		vld.Rewards = rwrd
+		rwrd.SetString(claimedRewards, 10)
+		vld.ClaimedRewards = rwrd
 		validators = append(validators, vld)
 	}
 	return validators, nil

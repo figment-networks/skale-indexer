@@ -24,6 +24,7 @@ type Validator struct {
 	LinkedNodes             int            `json:"linked_nodes"`
 	Staked                  *big.Int       `json:"staked"`
 	Pending                 *big.Int       `json:"pending"`
-	Rewards                 *big.Int       `json:"rewards"`
+	UnclaimedRewards        *big.Int       `json:"unclaimed_rewards"`
+	ClaimedRewards          *big.Int       `json:"claimed_rewards"`
 	BlockHeight             uint64         `json:"block_height"`
 }

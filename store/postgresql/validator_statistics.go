@@ -10,6 +10,20 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+// SaveValidatorStatistics saves validator statistics
+func (d *Driver) SaveValidatorStatistics(ctx context.Context, vs structs.ValidatorStatistics) error {
+	_, err := d.db.Exec(`INSERT INTO validator_statistics ("validator_id", "amount", "block_height", "statistics_type") 
+			VALUES ($1, $2, $3, $4) 
+			ON CONFLICT (statistics_type, validator_id, block_height)
+			DO UPDATE SET
+			amount = EXCLUDED.amount `,
+		vs.ValidatorId.String(),
+		vs.Amount.String(),
+		vs.BlockHeight,
+		vs.StatisticType)
+	return err
+}
+
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	q := `SELECT
 			DISTINCT ON (validator_id, statistics_type) 
@@ -128,5 +142,11 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 		updateLinkedNodes := `UPDATE validators SET linked_nodes = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
 		_, err = d.db.Exec(updateLinkedNodes, params.ValidatorId, structs.ValidatorStatisticsTypeLinkedNodes, params.BlockHeight, params.ValidatorId)
 	}
+	return err
+}
+
+func (d *Driver) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	updateUnclaimedRewards := `UPDATE validators SET unclaimed_rewards = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
+	_, err := d.db.Exec(updateUnclaimedRewards, validatorId.String(), structs.ValidatorStatisticsTypeUnclaimedRewards, blockHeight, validatorId.String())
 	return err
 }
