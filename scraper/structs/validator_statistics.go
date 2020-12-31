@@ -14,14 +14,15 @@ type ValidatorStatistics struct {
 	StatisticType StatisticTypeVS `json:"statistics_type"`
 }
 
-type StatisticTypeVS int
+type StatisticTypeVS uint
 
 const (
 	ValidatorStatisticsTypeTotalStake StatisticTypeVS = iota + 1
 	ValidatorStatisticsTypeActiveNodes
 	ValidatorStatisticsTypeLinkedNodes
 	ValidatorStatisticsTypeMDR
-	ValidatorStatisticsTypeFEE
+	ValidatorStatisticsTypeFee
+	ValidatorStatisticsTypeAuthorized
 )
 
 func (k StatisticTypeVS) String() string {
@@ -34,8 +35,10 @@ func (k StatisticTypeVS) String() string {
 		return "LINKED_NODES"
 	case ValidatorStatisticsTypeMDR:
 		return "MDR"
-	case ValidatorStatisticsTypeFEE:
+	case ValidatorStatisticsTypeFee:
 		return "FEE"
+	case ValidatorStatisticsTypeAuthorized:
+		return "AUTHORIZED"
 	default:
 		return "unknown"
 	}

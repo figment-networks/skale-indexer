@@ -143,6 +143,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing validator %w", err)
 		}
 
+		if err = m.saveValidatorStatChanges(ctx, v, ce.BlockHeight); err != nil {
+			return fmt.Errorf("error storing changes %w", err)
+		}
+
 		if ce.EventName == "NodeAddressWasAdded" || ce.EventName == "NodeAddressWasRemoved" {
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
 			if !ok {
@@ -482,4 +486,32 @@ func (m *Manager) getDelegationChanged(ctx context.Context, bc *bind.BoundContra
 	}
 
 	return delegation, nil
+}
+
+func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator structs.Validator, blockNumber uint64) error {
+
+	err := m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeFee, validator.FeeRate)
+	if err != nil {
+		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeFee) %w", err)
+	}
+
+	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeMDR, validator.MinimumDelegationAmount)
+	if err != nil {
+		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeMDR) %w", err)
+	}
+
+	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeAuthorized, boolToBigInt(validator.Authorized))
+	if err != nil {
+		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
+	}
+
+	return nil
+}
+
+// hehe
+func boolToBigInt(a bool) *big.Int {
+	if a {
+		return big.NewInt(1)
+	}
+	return big.NewInt(0)
 }
