@@ -5,12 +5,14 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/api/skale"
 	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/scraper"
 	clientStructures "github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
+	"github.com/stretchr/testify/require"
 
 	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
 	"github.com/golang/mock/gomock"
@@ -92,6 +94,56 @@ func TestGetLogs(t *testing.T) {
 				t.Error(err)
 				return
 			}
+		})
+	}
+}
+
+func TestCallWithBlockNumber(t *testing.T) {
+	type args struct {
+		address  string
+		contract common.Address
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantDelegations []clientStructures.Delegation
+		wantErr         bool
+	}{
+		{
+			name: "test1",
+			args: args{
+				address:  "http://localhost:8545",
+				contract: common.HexToAddress("0x06dD71dAb27C1A3e0B172d53735f00Bf1a66Eb79"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			tr := eth.NewEthTransport(tt.args.address)
+			if err := tr.Dial(ctx); err != nil {
+				t.Errorf("Error dialing %s : %w", tt.args.address, err)
+				return
+			}
+			defer tr.Close(ctx)
+
+			cm := contract.NewManager()
+			if err := cm.LoadContractsFromDir("./testFiles"); err != nil {
+				t.Error(err)
+				return
+			}
+			caller := &skale.Caller{}
+			ac, _ := cm.GetContract(tt.args.contract)
+			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
+
+			a, err := caller.GetDelegation(ctx, bc, uint64(10814408), big.NewInt(2316))
+			require.NoError(t, err)
+			require.Equal(t, a.DelegationID, big.NewInt(2316))
+			ds, err := caller.GetDelegationState(ctx, bc, uint64(10814408), big.NewInt(2316))
+			require.NoError(t, err)
+			require.Equal(t, ds, clientStructures.DelegationStateCOMPLETED)
+
 		})
 	}
 }
