@@ -49,7 +49,10 @@ type AccountParams struct {
 }
 
 type ValidatorParams struct {
-	ValidatorId string
-	TimeFrom    time.Time
-	TimeTo      time.Time
+	ValidatorId    string
+	OrderBy        string
+	OrderDirection string
+	Active         string
+	TimeFrom       time.Time
+	TimeTo         time.Time
 }
