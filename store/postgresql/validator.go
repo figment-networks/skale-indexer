@@ -83,11 +83,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		args = append(args, params.ValidatorId)
 		i++
 	}
-	if params.Name != "" {
-		wherec = append(wherec, ` LOWER(name) LIKE LOWER($`+strconv.Itoa(i)+`)`)
-		args = append(args, "%"+params.Name+"%")
-		i++
-	}
 	if params.Active != "" {
 		wherec = append(wherec, ` authorized =  $`+strconv.Itoa(i))
 		args = append(args, params.Active)
@@ -105,10 +100,11 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	}
 	q += strings.Join(wherec, " AND ")
 	q += ` ORDER BY `
-	if params.OrderBy == "staked" || params.OrderBy == "fee_rate" {
-		q += params.OrderBy + ` DESC `
-	} else if params.OrderBy == "name" {
-		q += params.OrderBy + ` ASC `
+	if params.OrderBy != "" {
+		q += params.OrderBy
+		if params.OrderDirection != "" {
+			q += ` ` + params.OrderDirection
+		}
 	} else {
 		q += ` validator_id ASC `
 	}
