@@ -8,6 +8,7 @@ import (
 	context "context"
 	structs "github.com/figment-networks/skale-indexer/scraper/structs"
 	gomock "github.com/golang/mock/gomock"
+	big "math/big"
 	reflect "reflect"
 )
 
@@ -235,6 +236,48 @@ func (m *MockDBDriver) CalculateLinkedNodes(ctx context.Context, params structs.
 func (mr *MockDBDriverMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockDBDriver)(nil).CalculateLinkedNodes), ctx, params)
+}
+
+// SaveValidatorStatistics mocks base method
+func (m *MockDBDriver) SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidatorStatistics", ctx, validatorStatistics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidatorStatistics indicates an expected call of SaveValidatorStatistics
+func (mr *MockDBDriverMockRecorder) SaveValidatorStatistics(ctx, validatorStatistics interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistics", reflect.TypeOf((*MockDBDriver)(nil).SaveValidatorStatistics), ctx, validatorStatistics)
+}
+
+// UpdateUnclaimedRewards mocks base method
+func (m *MockDBDriver) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUnclaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUnclaimedRewards indicates an expected call of UpdateUnclaimedRewards
+func (mr *MockDBDriverMockRecorder) UpdateUnclaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnclaimedRewards", reflect.TypeOf((*MockDBDriver)(nil).UpdateUnclaimedRewards), ctx, validatorId, blockHeight)
+}
+
+// UpdateClaimedRewards mocks base method
+func (m *MockDBDriver) UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClaimedRewards indicates an expected call of UpdateClaimedRewards
+func (mr *MockDBDriverMockRecorder) UpdateClaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClaimedRewards", reflect.TypeOf((*MockDBDriver)(nil).UpdateClaimedRewards), ctx, validatorId, blockHeight)
 }
 
 // SaveAccount mocks base method
@@ -490,6 +533,48 @@ func (m *MockDataStore) CalculateLinkedNodes(ctx context.Context, params structs
 func (mr *MockDataStoreMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockDataStore)(nil).CalculateLinkedNodes), ctx, params)
+}
+
+// SaveValidatorStatistics mocks base method
+func (m *MockDataStore) SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidatorStatistics", ctx, validatorStatistics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidatorStatistics indicates an expected call of SaveValidatorStatistics
+func (mr *MockDataStoreMockRecorder) SaveValidatorStatistics(ctx, validatorStatistics interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistics", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistics), ctx, validatorStatistics)
+}
+
+// UpdateUnclaimedRewards mocks base method
+func (m *MockDataStore) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUnclaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUnclaimedRewards indicates an expected call of UpdateUnclaimedRewards
+func (mr *MockDataStoreMockRecorder) UpdateUnclaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnclaimedRewards", reflect.TypeOf((*MockDataStore)(nil).UpdateUnclaimedRewards), ctx, validatorId, blockHeight)
+}
+
+// UpdateClaimedRewards mocks base method
+func (m *MockDataStore) UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClaimedRewards indicates an expected call of UpdateClaimedRewards
+func (mr *MockDataStoreMockRecorder) UpdateClaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClaimedRewards", reflect.TypeOf((*MockDataStore)(nil).UpdateClaimedRewards), ctx, validatorId, blockHeight)
 }
 
 // SaveAccount mocks base method
@@ -889,4 +974,46 @@ func (m *MockValidatorStatisticsStore) CalculateLinkedNodes(ctx context.Context,
 func (mr *MockValidatorStatisticsStoreMockRecorder) CalculateLinkedNodes(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).CalculateLinkedNodes), ctx, params)
+}
+
+// SaveValidatorStatistics mocks base method
+func (m *MockValidatorStatisticsStore) SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveValidatorStatistics", ctx, validatorStatistics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveValidatorStatistics indicates an expected call of SaveValidatorStatistics
+func (mr *MockValidatorStatisticsStoreMockRecorder) SaveValidatorStatistics(ctx, validatorStatistics interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistics", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).SaveValidatorStatistics), ctx, validatorStatistics)
+}
+
+// UpdateUnclaimedRewards mocks base method
+func (m *MockValidatorStatisticsStore) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUnclaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUnclaimedRewards indicates an expected call of UpdateUnclaimedRewards
+func (mr *MockValidatorStatisticsStoreMockRecorder) UpdateUnclaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnclaimedRewards", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).UpdateUnclaimedRewards), ctx, validatorId, blockHeight)
+}
+
+// UpdateClaimedRewards mocks base method
+func (m *MockValidatorStatisticsStore) UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClaimedRewards", ctx, validatorId, blockHeight)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClaimedRewards indicates an expected call of UpdateClaimedRewards
+func (mr *MockValidatorStatisticsStoreMockRecorder) UpdateClaimedRewards(ctx, validatorId, blockHeight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClaimedRewards", reflect.TypeOf((*MockValidatorStatisticsStore)(nil).UpdateClaimedRewards), ctx, validatorId, blockHeight)
 }

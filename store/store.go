@@ -61,6 +61,7 @@ type ValidatorStatisticsStore interface {
 	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error
 	UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error
+	UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error
 }
 
 type Store struct {
@@ -133,6 +134,10 @@ func (s *Store) SaveValidatorStatistics(ctx context.Context, validatorStatistics
 
 func (s *Store) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
 	return s.driver.UpdateUnclaimedRewards(ctx, validatorId, blockHeight)
+}
+
+func (s *Store) UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	return s.driver.UpdateClaimedRewards(ctx, validatorId, blockHeight)
 }
 
 func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error {

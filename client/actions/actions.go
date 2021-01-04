@@ -337,6 +337,43 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if !ok {
 			return fmt.Errorf("error updating unclaimed rewards function %w", err)
 		}
+
+		if ce.EventName == "WithdrawFee" {
+			amntI, ok := ce.Params["amount"]
+			if !ok {
+				return errors.New("Structure is not an amount")
+			}
+			amnt, ok := amntI.(*big.Int)
+			if !ok {
+				return errors.New("Structure is not an amount")
+			}
+			params := structs.ValidatorStatisticsParams{
+				ValidatorId: vID.(*big.Int).String(),
+				StatisticsTypeVS: structs.ValidatorStatisticsTypeClaimedRewards.String(),
+			}
+			vldStatistics , err := m.dataStore.GetValidatorStatistics(ctx, params)
+			if err != nil {
+				return fmt.Errorf("error getting validator statistics %w", err)
+			}
+			if vldStatistics != nil {
+				amnt.Add(amnt, vldStatistics[0].Amount)
+			}
+			vs := structs.ValidatorStatistics{
+				ValidatorId:   vID.(*big.Int),
+				Amount:        amnt,
+				BlockHeight:   ce.BlockHeight,
+				StatisticType: structs.ValidatorStatisticsTypeClaimedRewards,
+			}
+			err = m.dataStore.SaveValidatorStatistics(ctx, vs)
+			if !ok {
+				return fmt.Errorf("error saving validator statistics function %w", err)
+			}
+			err = m.dataStore.UpdateClaimedRewards(ctx, vs.ValidatorId, vs.BlockHeight)
+			if !ok {
+				return fmt.Errorf("error updating unclaimed rewards function %w", err)
+			}
+		}
+
 	case "delegation_controller":
 		/*
 			@dev Emitted when a delegation is proposed to a validator.

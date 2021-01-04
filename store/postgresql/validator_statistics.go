@@ -150,3 +150,9 @@ func (d *Driver) UpdateUnclaimedRewards(ctx context.Context, validatorId *big.In
 	_, err := d.db.Exec(updateUnclaimedRewards, validatorId.String(), structs.ValidatorStatisticsTypeUnclaimedRewards, blockHeight, validatorId.String())
 	return err
 }
+
+func (d *Driver) UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error {
+	updateClaimedRewards := `UPDATE validators SET claimed_rewards = (SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 ) WHERE validator_id = $4`
+	_, err := d.db.Exec(updateClaimedRewards, validatorId.String(), structs.ValidatorStatisticsTypeClaimedRewards, blockHeight, validatorId.String())
+	return err
+}
