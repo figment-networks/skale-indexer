@@ -15,6 +15,7 @@ type DBDriver interface {
 	ValidatorStore
 	DelegationStore
 	ValidatorStatisticsStore
+	DelegatorStatisticsStore
 	AccountStore
 }
 
@@ -24,6 +25,7 @@ type DataStore interface {
 	ValidatorStore
 	DelegationStore
 	ValidatorStatisticsStore
+	DelegatorStatisticsStore
 	AccountStore
 }
 
@@ -62,6 +64,11 @@ type ValidatorStatisticsStore interface {
 	SaveValidatorStatistics(ctx context.Context, validatorStatistics structs.ValidatorStatistics) error
 	UpdateUnclaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error
 	UpdateClaimedRewards(ctx context.Context, validatorId *big.Int, blockHeight uint64) error
+}
+
+type DelegatorStatisticsStore interface {
+	SaveDelegatorStatistics(ctx context.Context, delegatorStatistics structs.DelegatorStatistics) error
+	GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error)
 }
 
 type Store struct {
@@ -146,4 +153,12 @@ func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error 
 
 func (s *Store) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
 	return s.driver.GetAccounts(ctx, params)
+}
+
+func (s *Store) SaveDelegatorStatistics(ctx context.Context, delegatorStatistics structs.DelegatorStatistics) error {
+	return s.driver.SaveDelegatorStatistics(ctx, delegatorStatistics)
+}
+
+func (s *Store) GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error) {
+	return s.driver.GetDelegatorStatistics(ctx, params)
 }

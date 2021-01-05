@@ -20,7 +20,7 @@ func (d *Driver) SaveValidatorStatistics(ctx context.Context, vs structs.Validat
 		vs.ValidatorId.String(),
 		vs.Amount.String(),
 		vs.BlockHeight,
-		vs.StatisticType)
+		vs.StatisticsType)
 	return err
 }
 
@@ -61,7 +61,7 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 		vs := structs.ValidatorStatistics{}
 		var vldId uint64
 		var amount string
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticsType)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (d *Driver) GetValidatorStatisticsChart(ctx context.Context, params structs
 		vs := structs.ValidatorStatistics{}
 		var vldId uint64
 		var amount string
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticsType)
 		if err != nil {
 			return nil, err
 		}

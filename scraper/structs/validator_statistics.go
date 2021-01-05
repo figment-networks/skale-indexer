@@ -6,25 +6,25 @@ import (
 )
 
 type ValidatorStatistics struct {
-	ID            string          `json:"id"`
-	CreatedAt     time.Time       `json:"created_at"`
-	ValidatorId   *big.Int        `json:"validator_id"`
-	Amount        *big.Int        `json:"amount"`
-	BlockHeight   uint64          `json:"block_height"`
-	StatisticType StatisticTypeVS `json:"statistics_type"`
+	ID             string           `json:"id"`
+	CreatedAt      time.Time        `json:"created_at"`
+	ValidatorId    *big.Int         `json:"validator_id"`
+	Amount         *big.Int         `json:"amount"`
+	BlockHeight    uint64           `json:"block_height"`
+	StatisticsType StatisticsTypeVS `json:"statistics_type"`
 }
 
-type StatisticTypeVS int
+type StatisticsTypeVS int
 
 const (
-	ValidatorStatisticsTypeTotalStake StatisticTypeVS = iota + 1
+	ValidatorStatisticsTypeTotalStake StatisticsTypeVS = iota + 1
 	ValidatorStatisticsTypeActiveNodes
 	ValidatorStatisticsTypeLinkedNodes
 	ValidatorStatisticsTypeUnclaimedRewards
 	ValidatorStatisticsTypeClaimedRewards
 )
 
-func (k StatisticTypeVS) String() string {
+func (k StatisticsTypeVS) String() string {
 	switch k {
 	case ValidatorStatisticsTypeTotalStake:
 		return "TOTAL_STAKE"
