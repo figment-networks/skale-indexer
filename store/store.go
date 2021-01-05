@@ -69,6 +69,7 @@ type ValidatorStatisticsStore interface {
 type DelegatorStatisticsStore interface {
 	SaveDelegatorStatistics(ctx context.Context, delegatorStatistics structs.DelegatorStatistics) error
 	GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error)
+	GetDelegatorStatisticsChart(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error)
 }
 
 type Store struct {
@@ -161,4 +162,8 @@ func (s *Store) SaveDelegatorStatistics(ctx context.Context, delegatorStatistics
 
 func (s *Store) GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error) {
 	return s.driver.GetDelegatorStatistics(ctx, params)
+}
+
+func (s *Store) GetDelegatorStatisticsChart(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error) {
+	return s.driver.GetDelegatorStatisticsChart(ctx, params)
 }

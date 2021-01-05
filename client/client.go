@@ -45,6 +45,14 @@ func (c *Client) GetValidatorStatisticsChart(ctx context.Context, params structs
 	return c.storeEng.GetValidatorStatisticsChart(ctx, params)
 }
 
+func (c *Client) GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error) {
+	return c.storeEng.GetDelegatorStatistics(ctx, params)
+}
+
+func (c *Client) GetDelegatorStatisticsChart(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error) {
+	return c.storeEng.GetDelegatorStatisticsChart(ctx, params)
+}
+
 func (c *Client) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
 	return c.storeEng.GetAccounts(ctx, params)
 }

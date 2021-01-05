@@ -688,8 +688,6 @@ func TestHandler(t *testing.T) {
 			},
 			code: http.StatusOK,
 		},
-
-
 		{
 			name: "not allowed method",
 			req: &http.Request{
@@ -743,8 +741,122 @@ func TestHandler(t *testing.T) {
 			},
 			code: http.StatusOK,
 		},
+		{
+			name: "not allowed method",
+			req: &http.Request{
+				Method: http.MethodPost,
+			},
+			ttype: "delegator_statistics",
+			code:  http.StatusMethodNotAllowed,
+		},
+		{
+			name: "no parameter is valid",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL:    &url.URL{},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{},
+			dbResponse:     errors.New("internal error"),
+			ttype:          "delegator_statistics",
+			code:           http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for holder",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=test",
+				},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{
+				Holder: "test",
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "delegator_statistics",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "internal server error for holder and statistics_type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=test&statistics_type=test",
+				},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{
+				Holder:           "test",
+				StatisticsTypeDS: "test",
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "delegator_statistics",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=1903&statistics_type=1",
+				},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{
+				Holder:           "1903",
+				StatisticsTypeDS: "1",
+			},
+			ttype:          "delegator_statistics",
+			expectedReturn: []structs.DelegatorStatistics{},
+			code:           http.StatusOK,
+		},
+		{
+			name: "not allowed method",
+			req: &http.Request{
+				Method: http.MethodPost,
+			},
+			ttype: "delegator_statistics_chart",
+			code:  http.StatusMethodNotAllowed,
+		},
+		{
+			name: "missing parameter",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL:    &url.URL{},
+			},
+			ttype: "delegator_statistics_chart",
+			code:  http.StatusBadRequest,
+		},
+		{
+			name: "internal server error for holder and statistics_type",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=1&statistics_type=test",
+				},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{
+				Holder:           "1",
+				StatisticsTypeDS: "test",
+			},
+			dbResponse: errors.New("internal error"),
+			ttype:      "delegator_statistics_chart",
+			code:       http.StatusInternalServerError,
+		},
+		{
+			name: "success response",
+			req: &http.Request{
+				Method: http.MethodGet,
+				URL: &url.URL{
+					RawQuery: "holder=1903&statistics_type=1",
+				},
+			},
+			expectedParams: structs.DelegatorStatisticsParams{
+				Holder:           "1903",
+				StatisticsTypeDS: "1",
+			},
+			ttype: "delegator_statistics_chart",
+			expectedReturn: []structs.DelegatorStatistics{},
+			code: http.StatusOK,
+		},
 	}
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.ttype+" - "+tt.name, func(t *testing.T) {
@@ -778,6 +890,12 @@ func TestHandler(t *testing.T) {
 					} else {
 						mockDB.EXPECT().GetValidatorStatisticsChart(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 					}
+				case structs.DelegatorStatisticsParams:
+					if tt.ttype == "delegator_statistics" {
+						mockDB.EXPECT().GetDelegatorStatistics(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					} else {
+						mockDB.EXPECT().GetDelegatorStatisticsChart(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					}
 				}
 			}
 
@@ -799,6 +917,10 @@ func TestHandler(t *testing.T) {
 				res = http.HandlerFunc(connector.GetValidatorStatistics)
 			case "validator_statistics_chart":
 				res = http.HandlerFunc(connector.GetValidatorStatisticsChart)
+			case "delegator_statistics":
+				res = http.HandlerFunc(connector.GetDelegatorStatistics)
+			case "delegator_statistics_chart":
+				res = http.HandlerFunc(connector.GetDelegatorStatisticsChart)
 			}
 
 			rr := httptest.NewRecorder()
