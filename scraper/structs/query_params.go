@@ -18,6 +18,7 @@ type DelegationParams struct {
 	ValidatorId  string
 	DelegationId string
 	BlockHeight  string
+	Holder       string
 	TimeFrom     time.Time
 	TimeTo       time.Time
 }
@@ -41,6 +42,14 @@ type ValidatorParams struct {
 type ValidatorStatisticsParams struct {
 	ValidatorId      string
 	StatisticsTypeVS string
+	BlockHeight      uint64
+	TimeFrom         time.Time
+	TimeTo           time.Time
+}
+
+type DelegatorStatisticsParams struct {
+	Holder           string
+	StatisticsTypeDS string
 	BlockHeight      uint64
 	TimeFrom         time.Time
 	TimeTo           time.Time
