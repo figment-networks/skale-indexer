@@ -315,30 +315,30 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			);
 		*/
 
-		vID, ok := ce.Params["validatorId"]
-		if !ok {
-			return errors.New("Structure is not a validator")
-		}
-		earned, _, err := m.c.GetEarnedFeeAmountOf(ctx, bc, ce.BlockHeight, vID.(*big.Int))
-		if err != nil {
-			return fmt.Errorf("error calling getEarnedFeeAmountOf function %w", err)
-		}
-		vs := structs.ValidatorStatistics{
-			ValidatorId:    vID.(*big.Int),
-			Amount:         earned,
-			BlockHeight:    ce.BlockHeight,
-			StatisticsType: structs.ValidatorStatisticsTypeUnclaimedRewards,
-		}
-		err = m.dataStore.SaveValidatorStatistics(ctx, vs)
-		if !ok {
-			return fmt.Errorf("error saving validator statistics function %w", err)
-		}
-		err = m.dataStore.UpdateUnclaimedRewards(ctx, vs.ValidatorId, vs.BlockHeight)
-		if !ok {
-			return fmt.Errorf("error updating unclaimed rewards function %w", err)
-		}
-
 		if ce.EventName == "WithdrawFee" {
+			vID, ok := ce.Params["validatorId"]
+			if !ok {
+				return errors.New("Structure is not a validator")
+			}
+			earned, _, err := m.c.GetEarnedFeeAmountOf(ctx, bc, ce.BlockHeight, vID.(*big.Int))
+			if err != nil {
+				return fmt.Errorf("error calling getEarnedFeeAmountOf function %w", err)
+			}
+			vs := structs.ValidatorStatistics{
+				ValidatorId:    vID.(*big.Int),
+				Amount:         earned,
+				BlockHeight:    ce.BlockHeight,
+				StatisticsType: structs.ValidatorStatisticsTypeUnclaimedRewards,
+			}
+			err = m.dataStore.SaveValidatorStatistics(ctx, vs)
+			if !ok {
+				return fmt.Errorf("error saving validator statistics function %w", err)
+			}
+			err = m.dataStore.UpdateUnclaimedRewards(ctx, vs.ValidatorId, vs.BlockHeight)
+			if !ok {
+				return fmt.Errorf("error updating unclaimed rewards function %w", err)
+			}
+
 			amntI, ok := ce.Params["amount"]
 			if !ok {
 				return errors.New("Structure is not an amount")
@@ -358,7 +358,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if vldStatistics != nil {
 				amnt.Add(amnt, vldStatistics[0].Amount)
 			}
-			vs := structs.ValidatorStatistics{
+			vs = structs.ValidatorStatistics{
 				ValidatorId:    vID.(*big.Int),
 				Amount:         amnt,
 				BlockHeight:    ce.BlockHeight,
