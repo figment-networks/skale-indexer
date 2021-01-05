@@ -22,6 +22,8 @@ type ClientContractor interface {
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetDelegatorStatistics(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error)
+	GetDelegatorStatisticsChart(ctx context.Context, params structs.DelegatorStatisticsParams) (delegatorStatistics []structs.DelegatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 }
 
@@ -331,7 +333,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	var vlds []ValidatorStatisticsAPI
 	for _, v := range res {
 		vlds = append(vlds, ValidatorStatisticsAPI{
-			StatisticsType: v.StatisticType.String(),
+			StatisticsType: v.StatisticsType.String(),
 			ValidatorId:    v.ValidatorId.Uint64(),
 			BlockHeight:    v.BlockHeight,
 			Amount:         v.Amount.String(),
@@ -375,7 +377,7 @@ func (c *Connector) GetValidatorStatisticsChart(w http.ResponseWriter, req *http
 	var vlds []ValidatorStatisticsAPI
 	for _, v := range res {
 		vlds = append(vlds, ValidatorStatisticsAPI{
-			StatisticsType: v.StatisticType.String(),
+			StatisticsType: v.StatisticsType.String(),
 			ValidatorId:    v.ValidatorId.Uint64(),
 			BlockHeight:    v.BlockHeight,
 			Amount:         v.Amount.String(),
@@ -385,6 +387,85 @@ func (c *Connector) GetValidatorStatisticsChart(w http.ResponseWriter, req *http
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
 	enc.Encode(vlds)
+}
+
+func (c *Connector) GetDelegatorStatistics(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	params := structs.DelegatorStatisticsParams{
+		Holder:           req.URL.Query().Get("holder"),
+		StatisticsTypeDS: req.URL.Query().Get("statistics_type"),
+	}
+
+	res, err := c.cli.GetDelegatorStatistics(req.Context(), params)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var dlgs []DelegatorStatisticsAPI
+	for _, d := range res {
+		dlgs = append(dlgs, DelegatorStatisticsAPI{
+			StatisticsType: d.StatisticsTypeDS.String(),
+			Holder:         d.Holder,
+			BlockHeight:    d.BlockHeight,
+			Amount:         d.Amount.String(),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(dlgs)
+}
+
+func (c *Connector) GetDelegatorStatisticsChart(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if req.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	holder := req.URL.Query().Get("holder")
+	st := req.URL.Query().Get("statistics_type")
+
+	if holder == "" || st == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+		return
+	}
+
+	params := structs.DelegatorStatisticsParams{
+		Holder:           holder,
+		StatisticsTypeDS: st,
+	}
+
+	res, err := c.cli.GetDelegatorStatisticsChart(req.Context(), params)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	var dlgs []DelegatorStatisticsAPI
+	for _, d := range res {
+		dlgs = append(dlgs, DelegatorStatisticsAPI{
+			StatisticsType: d.StatisticsTypeDS.String(),
+			Holder:         d.Holder,
+			BlockHeight:    d.BlockHeight,
+			Amount:         d.Amount.String(),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	enc.Encode(dlgs)
 }
 
 func (c *Connector) GetAccounts(w http.ResponseWriter, req *http.Request) {
@@ -431,6 +512,8 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations/timeline", c.GetDelegationsTimeline)
 	mux.HandleFunc("/validator-statistics", c.GetValidatorStatistics)
 	mux.HandleFunc("/validator-statistics-chart", c.GetValidatorStatisticsChart)
+	mux.HandleFunc("/delegator-statistics", c.GetDelegatorStatistics)
+	mux.HandleFunc("/delegator-statistics-chart", c.GetDelegatorStatisticsChart)
 	mux.HandleFunc("/accounts", c.GetAccounts)
 }
 

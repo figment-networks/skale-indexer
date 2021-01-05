@@ -73,6 +73,13 @@ type ValidatorStatisticsAPI struct {
 	StatisticsType string `json:"statistics_type"`
 }
 
+type DelegatorStatisticsAPI struct {
+	Holder         common.Address `json:"holder"`
+	Amount         string         `json:"amount"`
+	BlockHeight    uint64         `json:"block_height"`
+	StatisticsType string         `json:"statistics_type"`
+}
+
 type AccountAPI struct {
 	Address     common.Address `json:"address"`
 	AccountType string         `json:"account_type"`
