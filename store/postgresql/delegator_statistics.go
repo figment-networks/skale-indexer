@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"math/big"
 	"strconv"
@@ -35,7 +36,7 @@ func (d *Driver) GetDelegatorStatistics(ctx context.Context, params structs.Dele
 	)
 	if params.Holder != "" {
 		wherec = append(wherec, ` holder =  $`+strconv.Itoa(i))
-		args = append(args, params.Holder)
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if params.StatisticsTypeDS != "" {
@@ -47,7 +48,7 @@ func (d *Driver) GetDelegatorStatistics(ctx context.Context, params structs.Dele
 		q += ` WHERE `
 	}
 	q += strings.Join(wherec, " AND ")
-	q += ` ORDER BY delegator_id ASC, statistics_type, block_height DESC`
+	q += ` ORDER BY holder ASC, statistics_type, block_height DESC`
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)
@@ -79,7 +80,7 @@ func (d *Driver) GetDelegatorStatisticsChart(ctx context.Context, params structs
 	q := `SELECT id, created_at, holder, amount, block_height, statistics_type 
 			FROM delegator_statistics WHERE holder = $1 AND statistics_type = $2 ORDER BY block_height DESC`
 	var rows *sql.Rows
-	rows, err = d.db.QueryContext(ctx, q, params.Holder, params.StatisticsTypeDS)
+	rows, err = d.db.QueryContext(ctx, q, common.HexToAddress(params.Holder).Hash().Big().String(), params.StatisticsTypeDS)
 	if err != nil {
 		return nil, err
 	}

@@ -852,9 +852,9 @@ func TestHandler(t *testing.T) {
 				Holder:           "1903",
 				StatisticsTypeDS: "1",
 			},
-			ttype: "delegator_statistics_chart",
+			ttype:          "delegator_statistics_chart",
 			expectedReturn: []structs.DelegatorStatistics{},
-			code: http.StatusOK,
+			code:           http.StatusOK,
 		},
 	}
 	for _, tt := range tests {

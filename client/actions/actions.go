@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -21,7 +22,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 )
 
-var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
+var implementedContractNames = []string{"distributor"}
 
 type Call interface {
 	// Validator
@@ -347,9 +348,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if !ok {
 				return errors.New("Structure is not an amount")
 			}
+			var t = int(structs.ValidatorStatisticsTypeClaimedRewards)
 			params := structs.ValidatorStatisticsParams{
 				ValidatorId:      vID.(*big.Int).String(),
-				StatisticsTypeVS: structs.ValidatorStatisticsTypeClaimedRewards.String(),
+				StatisticsTypeVS: string(t),
 			}
 			vldStatistics, err := m.dataStore.GetValidatorStatistics(ctx, params)
 			if err != nil {
@@ -391,9 +393,10 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if !ok {
 				return errors.New("Structure is not an amount")
 			}
+			var t = int(structs.DelegatorStatisticsTypeClaimedRewards)
 			params := structs.DelegatorStatisticsParams{
-				Holder:           holder.Hash().Big().String(),
-				StatisticsTypeDS: structs.DelegatorStatisticsTypeClaimedRewards.String(),
+				Holder:           holder.String(),
+				StatisticsTypeDS: strconv.Itoa(t),
 			}
 			dlgStatistics, err := m.dataStore.GetDelegatorStatistics(ctx, params)
 			if err != nil {
