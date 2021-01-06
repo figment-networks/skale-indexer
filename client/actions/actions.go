@@ -22,7 +22,7 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 )
 
-var implementedContractNames = []string{"distributor"}
+var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
 
 type Call interface {
 	// Validator
