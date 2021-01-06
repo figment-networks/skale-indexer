@@ -57,7 +57,7 @@ type ValidatorStatisticsStore interface {
 	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
 
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
@@ -111,8 +111,8 @@ func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.Valid
 	return s.driver.GetValidatorStatistics(ctx, params)
 }
 
-func (s *Store) GetValidatorStatisticsChart(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
-	return s.driver.GetValidatorStatisticsChart(ctx, params)
+func (s *Store) GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return s.driver.GetValidatorStatisticsTimeline(ctx, params)
 }
 
 func (s *Store) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {

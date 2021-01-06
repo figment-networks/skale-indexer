@@ -14,8 +14,6 @@ type ValidatorStatistics struct {
 	StatisticType StatisticTypeVS `json:"statistics_type"`
 }
 
-type StatisticTypeVS uint
-
 const (
 	ValidatorStatisticsTypeTotalStake StatisticTypeVS = iota + 1
 	ValidatorStatisticsTypeActiveNodes
@@ -23,7 +21,29 @@ const (
 	ValidatorStatisticsTypeMDR
 	ValidatorStatisticsTypeFee
 	ValidatorStatisticsTypeAuthorized
+	ValidatorStatisticsTypeValidatorAddress
+	ValidatorStatisticsTypeRequestedAddress
 )
+
+var (
+	StatisticTypes = map[string]StatisticTypeVS{
+		"TOTAL_STAKE":       ValidatorStatisticsTypeTotalStake,
+		"ACTIVE_NODES":      ValidatorStatisticsTypeActiveNodes,
+		"LINKED_NODES":      ValidatorStatisticsTypeLinkedNodes,
+		"MDR":               ValidatorStatisticsTypeMDR,
+		"FEE":               ValidatorStatisticsTypeFee,
+		"AUTHORIZED":        ValidatorStatisticsTypeAuthorized,
+		"VALIDATOR_ADDRESS": ValidatorStatisticsTypeValidatorAddress,
+		"REQUESTED_ADDRESS": ValidatorStatisticsTypeRequestedAddress,
+	}
+)
+
+func GetTypeFromString(s string) (StatisticTypeVS, bool) {
+	t, ok := StatisticTypes[s]
+	return t, ok
+}
+
+type StatisticTypeVS uint
 
 func (k StatisticTypeVS) String() string {
 	switch k {
@@ -39,6 +59,10 @@ func (k StatisticTypeVS) String() string {
 		return "FEE"
 	case ValidatorStatisticsTypeAuthorized:
 		return "AUTHORIZED"
+	case ValidatorStatisticsTypeValidatorAddress:
+		return "VALIDATOR_ADDRESS"
+	case ValidatorStatisticsTypeRequestedAddress:
+		return "REQUESTED_ADDRESS"
 	default:
 		return "unknown"
 	}

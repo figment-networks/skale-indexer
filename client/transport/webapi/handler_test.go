@@ -2,17 +2,18 @@ package webapi
 
 import (
 	"errors"
-	"github.com/figment-networks/skale-indexer/client"
-	"github.com/figment-networks/skale-indexer/scraper/structs"
-	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
+	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
@@ -545,7 +546,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorParams{
-				ValidatorId: "test",
+				ValidatorID: "test",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
@@ -562,7 +563,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorParams{
-				ValidatorId: "1903",
+				ValidatorID: "1903",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
@@ -646,7 +647,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId: "test",
+				ValidatorID: "test",
 			},
 			dbResponse: errors.New("internal error"),
 			ttype:      "validator_statistics",
@@ -661,7 +662,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1",
+				ValidatorID:      "1",
 				StatisticsTypeVS: "test",
 			},
 			dbResponse: errors.New("internal error"),
@@ -677,7 +678,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1903",
+				ValidatorID:      "1903",
 				StatisticsTypeVS: "1",
 			},
 			ttype: "validator_statistics",
@@ -688,7 +689,6 @@ func TestHandler(t *testing.T) {
 			},
 			code: http.StatusOK,
 		},
-
 
 		{
 			name: "not allowed method",
@@ -716,7 +716,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1",
+				ValidatorID:      "1",
 				StatisticsTypeVS: "test",
 			},
 			dbResponse: errors.New("internal error"),
@@ -732,7 +732,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1903",
+				ValidatorID:      "1903",
 				StatisticsTypeVS: "1",
 			},
 			ttype: "validator_statistics_chart",
@@ -776,7 +776,7 @@ func TestHandler(t *testing.T) {
 					if tt.ttype == "validator_statistics" {
 						mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 					} else {
-						mockDB.EXPECT().GetValidatorStatisticsChart(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+						mockDB.EXPECT().GetValidatorStatisticsTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
 					}
 				}
 			}
@@ -792,9 +792,9 @@ func TestHandler(t *testing.T) {
 			case "event":
 				res = http.HandlerFunc(connector.GetContractEvents)
 			case "node":
-				res = http.HandlerFunc(connector.GetNodes)
+				res = http.HandlerFunc(connector.GetNode)
 			case "validator":
-				res = http.HandlerFunc(connector.GetValidators)
+				res = http.HandlerFunc(connector.GetValidator)
 			case "validator_statistics":
 				res = http.HandlerFunc(connector.GetValidatorStatistics)
 			case "validator_statistics_chart":

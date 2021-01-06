@@ -166,7 +166,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 
 			qqq := structs.ValidatorStatisticsParams{
-				ValidatorId: vID.String(),
+				ValidatorID: vID.String(),
 				BlockHeight: ce.BlockHeight,
 			}
 			err = m.dataStore.CalculateActiveNodes(ctx, qqq)
@@ -257,7 +257,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing nodes %w", err)
 		}
 		vs := structs.ValidatorStatisticsParams{
-			ValidatorId: n.ValidatorID.String(),
+			ValidatorID: n.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
 		}
 		err = m.dataStore.CalculateActiveNodes(ctx, vs)
@@ -399,11 +399,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 
 		vs := structs.ValidatorStatisticsParams{
-			ValidatorId: d.ValidatorID.String(),
+			ValidatorID: d.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
 		}
 		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
-			return fmt.Errorf("error storing delegation %w", err)
+			return fmt.Errorf("error calculating total stake %w", err)
 		}
 
 		ce.BoundType = "delegation"
@@ -503,6 +503,20 @@ func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator struct
 	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeAuthorized, boolToBigInt(validator.Authorized))
 	if err != nil {
 		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
+	}
+
+	if validator.ValidatorAddress.String() != "" {
+		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeValidatorAddress, validator.ValidatorAddress.Hash().Big())
+		if err != nil {
+			return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
+		}
+	}
+
+	if validator.RequestedAddress.String() != "" {
+		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, structs.ValidatorStatisticsTypeRequestedAddress, validator.RequestedAddress.Hash().Big())
+		if err != nil {
+			return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
+		}
 	}
 
 	return nil

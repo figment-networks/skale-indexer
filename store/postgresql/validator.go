@@ -104,9 +104,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		i      = 1
 	)
 
-	if params.ValidatorId != "" {
+	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
-		args = append(args, params.ValidatorId)
+		args = append(args, params.ValidatorID)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -131,16 +131,18 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 
 	var (
 		vldID        uint64
-		feeRate      uint64
-		mnmDlgAmount uint64
-		staked       uint64
+		feeRate      string
+		mnmDlgAmount string
+		staked       string
 		pending      uint64
 		rewards      uint64
 	)
 	for rows.Next() {
 		vld := structs.Validator{}
-		var validatorAddress []byte
-		var requestedAddress []byte
+		var (
+			validatorAddress []byte
+			requestedAddress []byte
+		)
 		err = rows.Scan(&vld.ID,
 			&vld.CreatedAt,
 			&vldID,
@@ -169,9 +171,9 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		vInt.SetString(string(validatorAddress), 10)
 		vld.ValidatorAddress.SetBytes(vInt.Bytes())
 
-		vld.FeeRate = new(big.Int).SetUint64(feeRate)
-		vld.MinimumDelegationAmount = new(big.Int).SetUint64(mnmDlgAmount)
-		vld.Staked = new(big.Int).SetUint64(staked)
+		vld.FeeRate, _ = new(big.Int).SetString(feeRate, 10)
+		vld.MinimumDelegationAmount, _ = new(big.Int).SetString(mnmDlgAmount, 10)
+		vld.Staked, _ = new(big.Int).SetString(staked, 10)
 		vld.Pending = new(big.Int).SetUint64(pending)
 		vld.Rewards = new(big.Int).SetUint64(rewards)
 		validators = append(validators, vld)

@@ -167,19 +167,19 @@ func (mr *MockDataStoreMockRecorder) GetValidatorStatistics(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatistics", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatistics), arg0, arg1)
 }
 
-// GetValidatorStatisticsChart mocks base method
-func (m *MockDataStore) GetValidatorStatisticsChart(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) ([]structs.ValidatorStatistics, error) {
+// GetValidatorStatisticsTimeline mocks base method
+func (m *MockDataStore) GetValidatorStatisticsTimeline(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) ([]structs.ValidatorStatistics, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValidatorStatisticsChart", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetValidatorStatisticsTimeline", arg0, arg1)
 	ret0, _ := ret[0].([]structs.ValidatorStatistics)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetValidatorStatisticsChart indicates an expected call of GetValidatorStatisticsChart
-func (mr *MockDataStoreMockRecorder) GetValidatorStatisticsChart(arg0, arg1 interface{}) *gomock.Call {
+// GetValidatorStatisticsTimeline indicates an expected call of GetValidatorStatisticsTimeline
+func (mr *MockDataStoreMockRecorder) GetValidatorStatisticsTimeline(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatisticsChart", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatisticsChart), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorStatisticsTimeline", reflect.TypeOf((*MockDataStore)(nil).GetValidatorStatisticsTimeline), arg0, arg1)
 }
 
 // GetValidators mocks base method
