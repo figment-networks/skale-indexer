@@ -10,17 +10,25 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
+var zerobig = big.NewInt(0)
+
 // SaveValidator saves validator
 func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 
 	if v.Staked == nil {
-		v.Staked = big.NewInt(0)
+		v.Staked = zerobig
 	}
 	if v.Pending == nil {
-		v.Pending = big.NewInt(0)
+		v.Pending = zerobig
 	}
 	if v.Rewards == nil {
-		v.Rewards = big.NewInt(0)
+		v.Rewards = zerobig
+	}
+	if v.FeeRate == nil {
+		v.FeeRate = zerobig
+	}
+	if v.MinimumDelegationAmount == nil {
+		v.MinimumDelegationAmount = zerobig
 	}
 
 	_, err := d.db.Exec(`INSERT INTO validators (
@@ -134,8 +142,8 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		feeRate      string
 		mnmDlgAmount string
 		staked       string
-		pending      uint64
-		rewards      uint64
+		pending      string
+		rewards      string
 	)
 	for rows.Next() {
 		vld := structs.Validator{}
@@ -174,8 +182,8 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		vld.FeeRate, _ = new(big.Int).SetString(feeRate, 10)
 		vld.MinimumDelegationAmount, _ = new(big.Int).SetString(mnmDlgAmount, 10)
 		vld.Staked, _ = new(big.Int).SetString(staked, 10)
-		vld.Pending = new(big.Int).SetUint64(pending)
-		vld.Rewards = new(big.Int).SetUint64(rewards)
+		vld.Pending, _ = new(big.Int).SetString(pending, 10)
+		vld.Rewards, _ = new(big.Int).SetString(rewards, 10)
 		validators = append(validators, vld)
 	}
 	return validators, nil

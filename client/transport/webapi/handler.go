@@ -206,7 +206,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			timeTo, _ = m["to"]
 		}
 		var errFrom, errTo error
-		if timeFrom != "" {
+		if !(timeFrom == "" && timeTo == "") {
 			params.TimeFrom, errFrom = time.Parse(structs.Layout, timeFrom)
 			params.TimeTo, errTo = time.Parse(structs.Layout, timeTo)
 		}
@@ -344,7 +344,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	for _, v := range res {
 		vlds = append(vlds, ValidatorStatisticsAPI{
 			StatisticsType: v.StatisticType.String(),
-			ValidatorId:    v.ValidatorId.Uint64(),
+			ValidatorID:    v.ValidatorId.Uint64(),
 			BlockHeight:    v.BlockHeight,
 			Amount:         v.Amount.String(),
 		})

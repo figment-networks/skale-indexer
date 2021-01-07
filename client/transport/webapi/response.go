@@ -66,7 +66,7 @@ type ValidatorAPI struct {
 }
 
 type ValidatorStatisticsAPI struct {
-	ValidatorId    uint64 `json:"validator_id"`
+	ValidatorID    uint64 `json:"validator_id"`
 	Amount         string `json:"amount"`
 	BlockHeight    uint64 `json:"block_height"`
 	StatisticsType string `json:"statistics_type"`
