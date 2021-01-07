@@ -63,7 +63,7 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=validator&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "type=validator",
 				},
 			},
 			ttype: "event",
@@ -74,7 +74,7 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=2&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=2",
 				},
 			},
 			ttype: "event",
@@ -85,7 +85,7 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=validator&id=wrong_parameter&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "type=validator&id=wrong_parameter",
 				},
 			},
 			ttype: "event",

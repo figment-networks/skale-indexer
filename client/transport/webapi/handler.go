@@ -270,6 +270,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		return
 
 	}
+
 	res, err := c.cli.GetValidators(req.Context(), structs.ValidatorParams{
 		ValidatorID: params.ValidatorID,
 		TimeFrom:    params.TimeFrom,
@@ -476,23 +477,19 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 				dId = d
 			}
 		}
+		params.ValidatorId = vId
+		params.DelegationId = dId
 
-		timeFrom, errFrom := time.Parse(structs.Layout, from)
-		timeTo, errTo := time.Parse(structs.Layout, to)
-
+		var errFrom, errTo error
+		if from != "" && to != "" {
+			params.TimeFrom, errFrom = time.Parse(structs.Layout, from)
+			params.TimeTo, errTo = time.Parse(structs.Layout, to)
+		}
 		if errFrom != nil || errTo != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 			return
 		}
-
-		params = structs.DelegationParams{
-			ValidatorId:  vId,
-			DelegationId: dId,
-			TimeFrom:     timeFrom,
-			TimeTo:       timeTo,
-		}
-
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
