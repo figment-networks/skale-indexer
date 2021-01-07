@@ -272,10 +272,33 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if !ok {
 				return errors.New("Structure is not a validator")
 			}
-
 			vID, ok := vIDI.(*big.Int)
 			if !ok {
 				return errors.New("Structure is not a validator")
+			}
+			amntI, ok := ce.Params["amount"]
+			if !ok {
+				return errors.New("Structure is not an amount")
+			}
+			amnt, ok := amntI.(*big.Int)
+			if !ok {
+				return errors.New("Structure is not an amount")
+			}
+			var t = int(structs.ValidatorStatisticsTypeUnclaimedRewards)
+			params := structs.ValidatorStatisticsParams{
+				ValidatorId:      vID.String(),
+				StatisticsTypeVS: string(t),
+			}
+			vldStatistics, err := m.dataStore.GetValidatorStatistics(ctx, params)
+			if err != nil {
+				return fmt.Errorf("error getting validator statistics %w", err)
+			}
+			if vldStatistics != nil {
+				amnt.Sub(vldStatistics[0].Amount, amnt)
+			}
+			err = m.updateUnclaimedRewardsValidator(ctx, vID, amnt, ce.BlockHeight)
+			if err != nil {
+				return fmt.Errorf("error updating unclaimed rewards for validator function %w", err)
 			}
 
 			ce.BoundType = "validator"
@@ -358,15 +381,18 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 
 		} else if ce.EventName == "WithdrawBounty" {
-			// for holder
+			// update unclaimed delegator zero
 			holderI, ok := ce.Params["holder"]
 			if !ok {
 				return errors.New("Structure is not a holder")
 			}
-
 			holder, ok := holderI.(common.Address)
 			if !ok {
 				return errors.New("Structure is not a holder")
+			}
+			err = m.updateUnclaimedRewardsDelegator(ctx, holder, big.NewInt(0), ce.BlockHeight)
+			if err != nil {
+				return fmt.Errorf("error updating unclaimed delegator statistics %w", err)
 			}
 
 			amntI, ok := ce.Params["amount"]
@@ -389,17 +415,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if dlgStatistics != nil {
 				amnt.Add(amnt, dlgStatistics[0].Amount)
 			}
-			ds := structs.DelegatorStatistics{
-				Holder:           holder,
-				Amount:           amnt,
-				BlockHeight:      ce.BlockHeight,
-				StatisticsTypeDS: structs.DelegatorStatisticsTypeClaimedRewards,
-			}
-			err = m.dataStore.SaveDelegatorStatistics(ctx, ds)
-			if !ok {
-				return fmt.Errorf("error saving delegator statistics function %w", err)
+			err = m.updateClaimedRewardsDelegator(ctx, holder, amnt, ce.BlockHeight)
+			if err != nil {
+				return fmt.Errorf("error getting delegator statistics %w", err)
 			}
 		} else if ce.EventName == "BountyWasPaid" {
+			// update unclaimed rewards validator
 			vIDI, ok := ce.Params["validatorId"]
 			if !ok {
 				return errors.New("Structure is not a validator")
@@ -416,7 +437,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if !ok {
 				return errors.New("Structure is not an amount")
 			}
-
 			cV, ok := m.cm.GetContractByNameVersion("validator_service", c.Version)
 			if !ok {
 				return errors.New("Node contract is not found for version :" + c.Version)
@@ -426,8 +446,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error running validatorChanged  %w", err)
 			}
 			fee := big.NewInt(0)
-			fee = fee.Mul(amnt, v.FeeRate)
-			fee = fee.Div(fee, big.NewInt(100))
+			fee.Mul(amnt, v.FeeRate)
+			fee.Div(fee, big.NewInt(100))
 
 			var t = int(structs.ValidatorStatisticsTypeUnclaimedRewards)
 			params := structs.ValidatorStatisticsParams{
@@ -510,6 +530,46 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 		ce.BoundType = "delegation"
 		ce.BoundID = []big.Int{*dID, *d.ValidatorID}
+
+		if ce.EventName == "DelegationAccepted" || ce.EventName == "UndelegationRequested" {
+			dlgs, _ := m.c.GetHolderDelegations(ctx, bc, ce.BlockHeight, d.Holder)
+			sumH := big.NewInt(0)
+			for _, dlg := range dlgs {
+				if dlg.ValidatorID == d.ValidatorID {
+					sumH.Add(sumH, dlg.Amount)
+				}
+			}
+
+			dlgs, _ = m.c.GetValidatorDelegations(ctx, bc, ce.BlockHeight, d.ValidatorID)
+			sumT := big.NewInt(0)
+			for _, dlg := range dlgs {
+				sumT.Add(sumT, dlg.Amount)
+			}
+			bounty := big.NewInt(0)
+			bounty.Div(sumH, sumT)
+
+			var t = int(structs.DelegatorStatisticsTypeUnclaimedRewards)
+			params := structs.DelegatorStatisticsParams{
+				Holder:           d.Holder.String(),
+				StatisticsTypeDS: string(t),
+			}
+			dlgStatistics, err := m.dataStore.GetDelegatorStatistics(ctx, params)
+			if err != nil {
+				return fmt.Errorf("error getting delegator statistics %w", err)
+			}
+			if dlgStatistics != nil {
+				if ce.EventName == "DelegationAccepted" {
+					bounty.Add(dlgStatistics[0].Amount, bounty)
+				} else {
+					bounty.Sub(dlgStatistics[0].Amount, bounty)
+				}
+			}
+
+			err = m.updateUnclaimedRewardsDelegator(ctx, d.Holder, bounty, ce.BlockHeight)
+			if err != nil {
+				return fmt.Errorf("error updating unclaimed delegator statistics %w", err)
+			}
+		}
 	case "skale_manager":
 		/*
 			@dev Emitted when bounty is received.
@@ -615,6 +675,34 @@ func (m *Manager) updateClaimedRewardsValidator(ctx context.Context, validatorID
 	err = m.dataStore.UpdateClaimedRewards(ctx, vs.ValidatorId, vs.BlockHeight)
 	if err != nil {
 		return fmt.Errorf("error updating unclaimed rewards function %w", err)
+	}
+	return nil
+}
+
+func (m *Manager) updateUnclaimedRewardsDelegator(ctx context.Context, holder common.Address, amount *big.Int, blockHeight uint64, ) error {
+	ds := structs.DelegatorStatistics{
+		Holder:           holder,
+		Amount:           amount,
+		BlockHeight:      blockHeight,
+		StatisticsTypeDS: structs.DelegatorStatisticsTypeUnclaimedRewards,
+	}
+	err := m.dataStore.SaveDelegatorStatistics(ctx, ds)
+	if err != nil {
+		return fmt.Errorf("error saving delegator statistics function %w", err)
+	}
+	return nil
+}
+
+func (m *Manager) updateClaimedRewardsDelegator(ctx context.Context, holder common.Address, amount *big.Int, blockHeight uint64, ) error {
+	ds := structs.DelegatorStatistics{
+		Holder:           holder,
+		Amount:           amount,
+		BlockHeight:      blockHeight,
+		StatisticsTypeDS: structs.DelegatorStatisticsTypeClaimedRewards,
+	}
+	err := m.dataStore.SaveDelegatorStatistics(ctx, ds)
+	if err != nil {
+		return fmt.Errorf("error saving delegator statistics function %w", err)
 	}
 	return nil
 }
