@@ -22,6 +22,7 @@ const (
 	ValidatorStatisticsTypeLinkedNodes
 	ValidatorStatisticsTypeUnclaimedRewards
 	ValidatorStatisticsTypeClaimedRewards
+	ValidatorStatisticsTypeBounty
 )
 
 func (k StatisticsTypeVS) String() string {
@@ -36,6 +37,8 @@ func (k StatisticsTypeVS) String() string {
 		return "UNCLAIMED_REWARDS"
 	case ValidatorStatisticsTypeClaimedRewards:
 		return "CLAIMED_REWARDS"
+	case ValidatorStatisticsTypeBounty:
+		return "BOUNTY"
 	default:
 		return "unknown"
 	}
