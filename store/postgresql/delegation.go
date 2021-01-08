@@ -58,32 +58,35 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 // GetDelegationTimeline gets all delegation information over time
 func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	q := `SELECT id, delegation_id, holder, validator_id, block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state
-			FROM delegations WHERE `
+			FROM delegations `
 
 	var (
 		args   []interface{}
-		wherec []string
+		whereC []string
 		i      = 1
 	)
 
-	if params.DelegationId != "" {
-		wherec = append(wherec, ` delegation_id = $`+strconv.Itoa(i))
-		args = append(args, params.DelegationId)
+	if params.DelegationID != "" {
+		whereC = append(whereC, ` delegation_id = $`+strconv.Itoa(i))
+		args = append(args, params.DelegationID)
 		i++
 	}
-	if params.ValidatorId != "" {
-		wherec = append(wherec, ` validator_id = $`+strconv.Itoa(i))
-		args = append(args, params.ValidatorId)
+	if params.ValidatorID != "" {
+		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
+		args = append(args, params.ValidatorID)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
-		wherec = append(wherec, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
+		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
 		args = append(args, params.TimeTo)
 		i += 2
 	}
 
-	q += strings.Join(wherec, " AND ")
+	if len(whereC) > 0 {
+		q += " WHERE "
+	}
+	q += strings.Join(whereC, " AND ")
 	q += `ORDER BY block_height DESC`
 
 	if err != nil {
@@ -100,16 +103,16 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		dlg := structs.Delegation{}
 		var (
 			th        []byte
-			dlgId     uint64
+			dlgID     uint64
 			holder    []byte
-			vldId     uint64
+			vldID     uint64
 			amount    []byte
 			started   uint64
 			finished  uint64
 			dlgPeriod uint64
 		)
 
-		if err := rows.Scan(&dlg.ID, &dlgId, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
+		if err := rows.Scan(&dlg.ID, &dlgID, &holder, &vldID, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
 			return nil, err
 		}
 
@@ -123,8 +126,8 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		h.SetString(string(amount), 10)
 		dlg.Amount = h
 
-		dlg.ValidatorID = new(big.Int).SetUint64(vldId)
-		dlg.DelegationID = new(big.Int).SetUint64(dlgId)
+		dlg.ValidatorID = new(big.Int).SetUint64(vldID)
+		dlg.DelegationID = new(big.Int).SetUint64(dlgID)
 		dlg.DelegationPeriod = new(big.Int).SetUint64(dlgPeriod)
 		dlg.Started = new(big.Int).SetUint64(started)
 		dlg.Finished = new(big.Int).SetUint64(finished)
@@ -137,7 +140,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	q := `SELECT
 			DISTINCT ON (delegation_id)
 				delegation_id, id, holder, validator_id, block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state
-			FROM delegations WHERE `
+			FROM delegations `
 
 	var (
 		args   []interface{}
@@ -145,14 +148,14 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		i      = 1
 	)
 
-	if params.DelegationId != "" {
+	if params.DelegationID != "" {
 		wherec = append(wherec, ` delegation_id = $`+strconv.Itoa(i))
-		args = append(args, params.DelegationId)
+		args = append(args, params.DelegationID)
 		i++
 	}
-	if params.ValidatorId != "" {
+	if params.ValidatorID != "" {
 		wherec = append(wherec, ` validator_id = $`+strconv.Itoa(i))
-		args = append(args, params.ValidatorId)
+		args = append(args, params.ValidatorID)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -161,7 +164,9 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		args = append(args, params.TimeTo)
 		i += 2
 	}
-
+	if len(wherec) > 0 {
+		q += " WHERE "
+	}
 	q += strings.Join(wherec, " AND ")
 	q += `ORDER BY delegation_id DESC, block_height DESC`
 

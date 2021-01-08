@@ -13,15 +13,15 @@ import (
 func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
 	// (lukanus): Update value in validator_statistics unless the value already exists
 	_, err = d.db.ExecContext(ctx, `
-	INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+	INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 		( SELECT $1, $2, $3, $4	WHERE
 			NOT EXISTS (
 					SELECT 1 FROM validator_statistics
-					WHERE validator_id = $1 AND statistics_type = $3 AND block_height < $2 AND amount = $4
+					WHERE validator_id = $1 AND statistic_type = $3 AND block_height < $2 AND amount = $4
 					ORDER BY block_height DESC LIMIT 1
 					)
 		)
-		ON CONFLICT (validator_id, block_height, statistics_type)
+		ON CONFLICT (validator_id, block_height, statistic_type)
 		DO UPDATE SET amount = EXCLUDED.amount;
 		`, validatorID.String(), blockHeight, statisticsType, amount.String())
 	return nil
@@ -29,7 +29,7 @@ func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.In
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	q := `SELECT
-			DISTINCT ON (validator_id, statistics_type) id, created_at, validator_id, amount, block_height, statistics_type
+			DISTINCT ON (validator_id, statistic_type) id, created_at, validator_id, amount, block_height, statistic_type
 			FROM validator_statistics `
 	var (
 		args   []interface{}
@@ -41,16 +41,16 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 		args = append(args, params.ValidatorID)
 		i++
 	}
-	if params.StatisticsTypeVS > 0 {
-		wherec = append(wherec, ` statistics_type =  $`+strconv.Itoa(i))
-		args = append(args, params.StatisticsTypeVS)
+	if params.Type > 0 {
+		wherec = append(wherec, ` statistic_type =  $`+strconv.Itoa(i))
+		args = append(args, params.Type)
 		i++
 	}
 	if len(args) > 0 {
 		q += ` WHERE `
 	}
 	q += strings.Join(wherec, " AND ")
-	q += ` ORDER BY validator_id ASC, statistics_type, block_height DESC`
+	q += ` ORDER BY validator_id ASC, statistic_type, block_height DESC`
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)
@@ -66,11 +66,11 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Type)
 		if err != nil {
 			return nil, err
 		}
-		vs.ValidatorId = new(big.Int).SetUint64(vldId)
+		vs.ValidatorID = new(big.Int).SetUint64(vldId)
 		amnt := new(big.Int)
 		amnt.SetString(amount, 10)
 		vs.Amount = amnt
@@ -83,11 +83,11 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx,
-		`SELECT id, created_at, validator_id, amount, block_height, statistics_type
+		`SELECT id, created_at, validator_id, amount, block_height, statistic_type
 			FROM validator_statistics
 			WHERE
-				validator_id = $1 AND statistics_type = $2
-			ORDER BY block_height DESC`, params.ValidatorID, params.StatisticsTypeVS)
+				validator_id = $1 AND statistic_type = $2
+			ORDER BY block_height DESC`, params.ValidatorID, params.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +100,11 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.StatisticType)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Type)
 		if err != nil {
 			return nil, err
 		}
-		vs.ValidatorId = new(big.Int).SetUint64(vldId)
+		vs.ValidatorID = new(big.Int).SetUint64(vldId)
 		amnt := new(big.Int)
 		amnt.SetString(amount, 10)
 		vs.Amount = amnt
@@ -119,7 +119,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 										SELECT $3, $1, $2, sum(t1.amount) AS amount
 									FROM
 											( SELECT DISTINCT ON (delegation_id) validator_id, delegation_id, block_height, state, amount
@@ -127,7 +127,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 												WHERE validator_id = $3 AND block_height <=$4
 												ORDER BY delegation_id, block_height DESC) t1
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
-									ON CONFLICT (validator_id, block_height, statistics_type)
+									ON CONFLICT (validator_id, block_height, statistic_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
 		params.BlockHeight, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorID, params.BlockHeight, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
@@ -142,7 +142,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 						SET staked = (
 							 	SELECT amount
 								 FROM validator_statistics
-								 WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3 )
+								 WHERE validator_id = $1 AND statistic_type = $2 AND block_height = $3 )
 						WHERE validator_id = $4`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.BlockHeight, params.ValidatorID)
 	if err != nil {
@@ -164,12 +164,12 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 				(SELECT $1, $2, $3, count(*) AS amount
 					FROM nodes
 					WHERE validator_id = $1 AND status = $4
 					GROUP BY validator_id LIMIT 1)
-			ON CONFLICT (validator_id, block_height, statistics_type)
+			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
 		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive)
 
@@ -183,7 +183,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 	_, err = tx.Exec(`UPDATE validators
 						SET active_nodes = (SELECT amount
 									FROM validator_statistics
-									WHERE validator_id = $1 AND statistics_type = $2 AND block_height = $3)
+									WHERE validator_id = $1 AND statistic_type = $2 AND block_height = $3)
 						WHERE validator_id = $1`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight)
 	if err != nil {
@@ -203,12 +203,12 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistics_type, amount)
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 									(SELECT  $1, $2 , $3, count(*) AS amount
 									FROM nodes
 									WHERE validator_id = $1
 									GROUP BY validator_id LIMIT 1)
-								ON CONFLICT (validator_id, block_height, statistics_type)
+								ON CONFLICT (validator_id, block_height, statistic_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
 		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes)
 
@@ -223,7 +223,7 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 						SET
 							linked_nodes = (SELECT amount
 											FROM validator_statistics
-											WHERE validator_id = $1 AND block_height = $2 AND statistics_type = $3 )
+											WHERE validator_id = $1 AND block_height = $2 AND statistic_type = $3 )
 						WHERE validator_id = $1`,
 		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes)
 	if err != nil {

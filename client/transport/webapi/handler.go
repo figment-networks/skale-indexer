@@ -32,7 +32,7 @@ type Connector struct {
 	cli ClientContractor
 }
 
-// NewConnector is  Connector constructor
+// NewConnector is Connector constructor
 func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
@@ -44,7 +44,7 @@ func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
 
 func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-	params := structs.EventParams{}
+	params := EventParams{}
 	switch req.Method {
 	case http.MethodGet:
 		m, err := pathParams(strings.Replace(req.URL.Path, "/event/", "", -1))
@@ -98,6 +98,13 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 		}
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
 
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -105,16 +112,21 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	res, err := c.cli.GetContractEvents(req.Context(), params)
+	res, err := c.cli.GetContractEvents(req.Context(), structs.EventParams{
+		Id:       params.Id,
+		Type:     params.Type,
+		TimeFrom: params.TimeFrom,
+		TimeTo:   params.TimeTo,
+	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
-	var ceva []ContractEventAPI
+	var ceva []ContractEvent
 	for _, r := range res {
-		ceva = append(ceva, ContractEventAPI{
+		ceva = append(ceva, ContractEvent{
 			ID:              r.ID,
 			ContractName:    r.ContractName,
 			ContractAddress: r.ContractAddress,
@@ -134,7 +146,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 
 func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-	params := structs.NodeParams{}
+	params := NodeParams{}
 	switch req.Method {
 	case http.MethodGet:
 		m, err := pathParams(strings.Replace(req.URL.Path, "/node/", "", -1))
@@ -144,33 +156,42 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		params.NodeId = req.URL.Query().Get("node_id")
-		params.ValidatorId = req.URL.Query().Get("validator_id")
+		params.NodeID = req.URL.Query().Get("id")
+		params.ValidatorID = req.URL.Query().Get("validator_id")
 
 		if m != nil {
-			if nodeId, ok := m["node_id"]; ok {
-				params.NodeId = nodeId
+			if nodeId, ok := m["id"]; ok {
+				params.NodeID = nodeId
 			}
 			if validatorId, ok := m["validator_id"]; ok {
-				params.ValidatorId = validatorId
+				params.ValidatorID = validatorId
 			}
+		}
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
 		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-
-	res, err := c.cli.GetNodes(req.Context(), params)
+	res, err := c.cli.GetNodes(req.Context(), structs.NodeParams{
+		NodeId:      params.NodeID,
+		ValidatorId: params.ValidatorID,
+	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
 
-	var nodes []NodeAPI
+	var nodes []Node
 	for _, n := range res {
-		nodes = append(nodes, NodeAPI{
+		nodes = append(nodes, Node{
 			NodeID:         n.NodeID,
 			Name:           n.Name,
 			IP:             n.IP.String(),
@@ -282,9 +303,9 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var vlds []ValidatorAPI
+	var vlds []Validator
 	for _, vld := range res {
-		vlds = append(vlds, ValidatorAPI{
+		vlds = append(vlds, Validator{
 			ValidatorID:             vld.ValidatorID,
 			Name:                    vld.Name,
 			ValidatorAddress:        vld.ValidatorAddress,
@@ -325,14 +346,14 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	switch req.Method {
 	case http.MethodGet:
 		params.ValidatorID = req.URL.Query().Get("id")
-		params.StatisticsTypeVS = req.URL.Query().Get("statistics_type")
+		params.Type = req.URL.Query().Get("type")
 		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
 			}
 			if typ, ok := m["type"]; ok {
-				params.StatisticsTypeVS = typ
+				params.Type = typ
 			}
 			if _, ok := m["timeline"]; ok {
 				params.Timeline = true
@@ -355,12 +376,11 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	vparams := structs.ValidatorStatisticsParams{
 		ValidatorID: params.ValidatorID,
-		Timeline:    params.Timeline,
 	}
 
-	if params.StatisticsTypeVS != "" || params.Timeline {
+	if params.Type != "" || params.Timeline {
 		var ok bool
-		if vparams.StatisticsTypeVS, ok = structs.GetTypeFromString(params.StatisticsTypeVS); !ok {
+		if vparams.Type, ok = structs.GetTypeFromString(params.Type); !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(errors.New("Statistic type is wrong"), http.StatusBadRequest))
 			return
@@ -380,13 +400,13 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	var vlds []ValidatorStatisticsAPI
+	var vlds []ValidatorStatistic
 	for _, v := range res {
-		vlds = append(vlds, ValidatorStatisticsAPI{
-			StatisticsType: v.StatisticType.String(),
-			ValidatorID:    v.ValidatorId.Uint64(),
-			BlockHeight:    v.BlockHeight,
-			Amount:         v.Amount.String(),
+		vlds = append(vlds, ValidatorStatistic{
+			Type:        v.Type.String(),
+			ValidatorID: v.ValidatorID.Uint64(),
+			BlockHeight: v.BlockHeight,
+			Amount:      v.Amount.String(),
 		})
 	}
 
@@ -421,13 +441,23 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 				params.Address = address
 			}
 		}
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
 
-	res, err := c.cli.GetAccounts(req.Context(), params)
+	res, err := c.cli.GetAccounts(req.Context(), structs.AccountParams{
+		Address: params.Address,
+		Type:    params.Type,
+	})
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -435,9 +465,9 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var accs []AccountAPI
+	var accs []Account
 	for _, a := range res {
-		accs = append(accs, AccountAPI{
+		accs = append(accs, Account{
 			Address:     a.Address,
 			AccountType: a.AccountType,
 		})
@@ -445,15 +475,19 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(accs)
+	if err := enc.Encode(accs); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
 }
 
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-	params := structs.DelegationParams{}
+
+	params := DelegationParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/event/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/delegation/", "", -1))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -461,8 +495,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		}
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
-		vId := req.URL.Query().Get("validator_id")
-		dId := req.URL.Query().Get("delegation_id")
+		vID := req.URL.Query().Get("validator_id")
+		dID := req.URL.Query().Get("id")
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -471,14 +505,14 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 				to = t
 			}
 			if v, ok := m["validator_id"]; ok {
-				vId = v
+				vID = v
 			}
-			if d, ok := m["delegation_id"]; ok {
-				dId = d
+			if d, ok := m["id"]; ok {
+				dID = d
 			}
 		}
-		params.ValidatorId = vId
-		params.DelegationId = dId
+		params.ValidatorID = vID
+		params.DelegationID = dID
 
 		var errFrom, errTo error
 		if from != "" && to != "" {
@@ -490,20 +524,34 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 			return
 		}
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
+
+	dparams := structs.DelegationParams{
+		ValidatorID:  params.ValidatorID,
+		DelegationID: params.DelegationID,
+		TimeFrom:     params.TimeFrom,
+		TimeTo:       params.TimeTo,
+	}
+
 	var (
 		res []structs.Delegation
 		err error
 	)
-
 	if req.URL.Query().Get("timeline") != "" {
-		res, err = c.cli.GetDelegationTimeline(req.Context(), params)
+		res, err = c.cli.GetDelegationTimeline(req.Context(), dparams)
 	} else {
-		res, err = c.cli.GetDelegations(req.Context(), params)
+		res, err = c.cli.GetDelegations(req.Context(), dparams)
 	}
 
 	if err != nil {
@@ -512,9 +560,9 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var dlgs []DelegationAPI
+	var dlgs []Delegation
 	for _, dlg := range res {
-		dlgs = append(dlgs, DelegationAPI{
+		dlgs = append(dlgs, Delegation{
 			DelegationID:     dlg.DelegationID,
 			TransactionHash:  dlg.TransactionHash,
 			Holder:           dlg.Holder,
@@ -531,7 +579,10 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
-	enc.Encode(dlgs)
+	if err := enc.Encode(dlgs); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
 }
 
 // AttachToHandler attaches handlers to http server's mux

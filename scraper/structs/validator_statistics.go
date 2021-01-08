@@ -6,12 +6,12 @@ import (
 )
 
 type ValidatorStatistics struct {
-	ID            string          `json:"id"`
-	CreatedAt     time.Time       `json:"created_at"`
-	ValidatorId   *big.Int        `json:"validator_id"`
-	Amount        *big.Int        `json:"amount"`
-	BlockHeight   uint64          `json:"block_height"`
-	StatisticType StatisticTypeVS `json:"statistics_type"`
+	ID          string          `json:"id"`
+	CreatedAt   time.Time       `json:"created_at"`
+	ValidatorID *big.Int        `json:"validator_id"`
+	Amount      *big.Int        `json:"amount"`
+	BlockHeight uint64          `json:"block_height"`
+	Type        StatisticTypeVS `json:"type"`
 }
 
 const (
