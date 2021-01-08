@@ -7,7 +7,6 @@ import (
 const Layout = time.RFC3339
 
 type EventParams struct {
-	RecordId string
 	Id       uint64
 	Type     string
 	TimeFrom time.Time
@@ -15,9 +14,8 @@ type EventParams struct {
 }
 
 type DelegationParams struct {
-	ValidatorId  string
-	DelegationId string
-	BlockHeight  string
+	ValidatorID  string
+	DelegationID string
 	TimeFrom     time.Time
 	TimeTo       time.Time
 }
@@ -33,15 +31,15 @@ type AccountParams struct {
 }
 
 type ValidatorParams struct {
-	ValidatorId string
+	ValidatorID string
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
 
 type ValidatorStatisticsParams struct {
-	ValidatorId      string
-	StatisticsTypeVS string
-	BlockHeight      uint64
-	TimeFrom         time.Time
-	TimeTo           time.Time
+	ValidatorID string
+	Type        StatisticTypeVS
+	BlockHeight uint64
+	TimeFrom    time.Time
+	TimeTo      time.Time
 }

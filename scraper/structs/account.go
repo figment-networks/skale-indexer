@@ -1,9 +1,10 @@
 package structs
 
 import (
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
-	"time"
 )
 
 type Account struct {

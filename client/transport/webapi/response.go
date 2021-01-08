@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type ContractEventAPI struct {
+type ContractEvent struct {
 	ID              uuid.UUID              `json:"id"`
 	ContractName    string                 `json:"contract_name"`
 	EventName       string                 `json:"event_name"`
@@ -20,7 +20,7 @@ type ContractEventAPI struct {
 	Params          map[string]interface{} `json:"params"`
 }
 
-type DelegationAPI struct {
+type Delegation struct {
 	DelegationID     *big.Int       `json:"delegation_id"`
 	Holder           common.Address `json:"holder"`
 	TransactionHash  common.Hash    `json:"transaction_hash"`
@@ -34,7 +34,7 @@ type DelegationAPI struct {
 	Info             string         `json:"info"`
 }
 
-type NodeAPI struct {
+type Node struct {
 	NodeID         *big.Int  `json:"node_id"`
 	Name           string    `json:"name"`
 	IP             string    `json:"ip"`
@@ -47,32 +47,32 @@ type NodeAPI struct {
 	ValidatorID    *big.Int  `json:"validator_id"`
 }
 
-type ValidatorAPI struct {
+type Validator struct {
 	ValidatorID             *big.Int       `json:"validator_id"`
 	Name                    string         `json:"name"`
+	Description             string         `json:"description"`
 	ValidatorAddress        common.Address `json:"validator_address"`
 	RequestedAddress        common.Address `json:"requested_address"`
-	Description             string         `json:"description"`
 	FeeRate                 *big.Int       `json:"fee_rate"`
 	RegistrationTime        time.Time      `json:"registration_time"`
 	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool           `json:"accept_new_requests"`
 	Authorized              bool           `json:"authorized"`
-	ActiveNodes             int            `json:"active_nodes"`
-	LinkedNodes             int            `json:"linked_nodes"`
-	Staked                  string         `json:"staked"`
-	Pending                 string         `json:"pending"`
-	Rewards                 string         `json:"rewards"`
+	ActiveNodes             uint           `json:"active_nodes"`
+	LinkedNodes             uint           `json:"linked_nodes"`
+	Staked                  *big.Int       `json:"staked"`
+	Pending                 *big.Int       `json:"pending"`
+	Rewards                 *big.Int       `json:"rewards"`
 }
 
-type ValidatorStatisticsAPI struct {
-	ValidatorId    uint64 `json:"validator_id"`
-	Amount         string `json:"amount"`
-	BlockHeight    uint64 `json:"block_height"`
-	StatisticsType string `json:"statistics_type"`
+type ValidatorStatistic struct {
+	ValidatorID uint64 `json:"validator_id"`
+	Amount      string `json:"amount"`
+	BlockHeight uint64 `json:"block_height"`
+	Type        string `json:"type"`
 }
 
-type AccountAPI struct {
+type Account struct {
 	Address     common.Address `json:"address"`
 	AccountType string         `json:"account_type"`
 }

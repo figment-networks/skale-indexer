@@ -13,8 +13,9 @@ import (
 
 // SaveNode saves node
 func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
+	// TODO(lulanus): save only if newer version
 	_, err := d.db.Exec(`INSERT INTO nodes
-			("node_id", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "event_time")
+			("node_id", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "block_height")
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			ON CONFLICT (node_id)
 			DO UPDATE SET
@@ -28,7 +29,7 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 				finish_time = EXCLUDED.finish_time,
 				status = EXCLUDED.status,
 				validator_id = EXCLUDED.validator_id,
-				event_time = EXCLUDED.event_time
+				block_height = EXCLUDED.block_height
 			`,
 		n.NodeID.String(),
 		n.Name,
@@ -41,14 +42,14 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 		n.FinishTime.String(),
 		n.Status,
 		n.ValidatorID.String(),
-		n.EventTime)
+		n.BlockHeight)
 	return err
 }
 
 // GetNodes gets nodes
 func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	q := `SELECT
-			id, created_at, node_id, name, ip, public_ip, port, start_block, next_reward_date, last_reward_date, finish_time, status, validator_id, event_time
+			id, created_at, node_id, name, ip, public_ip, port, start_block, next_reward_date, last_reward_date, finish_time, status, validator_id
 		FROM nodes `
 
 	var (
@@ -72,7 +73,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		q += strings.Join(wherec, " AND ")
 	}
 
-	q += ` ORDER BY node_id, event_time`
+	q += ` ORDER BY node_id, start_block`
 
 	rows, err := d.db.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -89,7 +90,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		var IP string
 		var publicIP string
 
-		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &n.Status, &validatorId, &n.EventTime)
+		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &n.Status, &validatorId)
 		if err != nil {
 			return nil, err
 		}

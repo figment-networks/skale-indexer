@@ -109,7 +109,7 @@ func main() {
 	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()
 
-	cli := client.NewClient(storeDB)
+	cli := client.NewClient(logger.GetLogger(), storeDB)
 	hCli := webapi.NewClientConnector(cli)
 	hCli.AttachToHandler(mux)
 

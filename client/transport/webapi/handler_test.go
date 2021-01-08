@@ -2,49 +2,47 @@ package webapi
 
 import (
 	"errors"
-	"github.com/figment-networks/skale-indexer/client"
-	"github.com/figment-networks/skale-indexer/scraper/structs"
-	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/figment-networks/skale-indexer/client"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
+	storeMocks "github.com/figment-networks/skale-indexer/store/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
+
+// TODO(lukanus): Add REAL returns
 
 func TestHandler(t *testing.T) {
 	from, _ := time.Parse(structs.Layout, "2006-01-02T15:04:05.000Z")
 	to, _ := time.Parse(structs.Layout, "2106-01-02T15:04:05.000Z")
-	validatorId := uint64(2)
+	validatorID := uint64(2)
 
 	tests := []struct {
-		name           string
-		ttype          string
-		req            *http.Request
-		expectedParams interface{}
-		expectedReturn interface{}
-		dbResponse     error
-		code           int
+		name             string
+		ttype            string
+		req              *http.Request
+		expectedParams   interface{}
+		expectedDBReturn interface{}
+		dbResponse       error
+		code             int
 	}{
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "event",
-			code:  http.StatusMethodNotAllowed,
-		},
 		{
 			name: "missing parameters all",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			ttype: "event",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "event",
+			code:           http.StatusBadRequest,
 		},
 		{
 			name: "bad parameter from and to first check",
@@ -54,41 +52,45 @@ func TestHandler(t *testing.T) {
 					RawQuery: "from=2006&to=2106",
 				},
 			},
-			ttype: "event",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "event",
+			code:           http.StatusBadRequest,
 		},
 		{
 			name: "missing parameter id when type is available",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=validator&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "type=validator",
 				},
 			},
-			ttype: "event",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "event",
+			code:           http.StatusBadRequest,
 		},
 		{
 			name: "missing parameter type when id is available",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "id=2&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=2",
 				},
 			},
-			ttype: "event",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "event",
+			code:           http.StatusBadRequest,
 		},
 		{
 			name: "bad parameter id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "type=validator&id=wrong_parameter&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "type=validator&id=wrong_parameter",
 				},
 			},
-			ttype: "event",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "event",
+			code:           http.StatusBadRequest,
 		},
 		{
 			name: "internal server error",
@@ -102,7 +104,7 @@ func TestHandler(t *testing.T) {
 			expectedParams: structs.EventParams{
 				TimeFrom: from,
 				TimeTo:   to,
-				Id:       validatorId,
+				Id:       validatorID,
 				Type:     "validator",
 			},
 			ttype: "event",
@@ -119,29 +121,12 @@ func TestHandler(t *testing.T) {
 			expectedParams: structs.EventParams{
 				TimeFrom: from,
 				TimeTo:   to,
-				Id:       validatorId,
+				Id:       validatorID,
 				Type:     "validator",
 			},
-			expectedReturn: []structs.ContractEvent{{}},
-			code:           http.StatusOK,
-			ttype:          "event",
-		},
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "delegation",
-			code:  http.StatusMethodNotAllowed,
-		},
-		{
-			name: "missing parameter all",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL:    &url.URL{},
-			},
-			ttype: "delegation",
-			code:  http.StatusBadRequest,
+			expectedDBReturn: []structs.ContractEvent{{}},
+			code:             http.StatusOK,
+			ttype:            "event",
 		},
 		{
 			name: "invalid date from and to",
@@ -159,11 +144,11 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				DelegationId: "test",
+				DelegationID: "test",
 				TimeFrom:     from,
 				TimeTo:       to,
 			},
@@ -176,17 +161,17 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				DelegationId: "1903",
+				DelegationID: "1903",
 				TimeFrom:     from,
 				TimeTo:       to,
 			},
-			ttype:          "delegation",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error for created time range",
@@ -197,7 +182,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				ValidatorId: "100",
+				ValidatorID: "100",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
@@ -214,13 +199,13 @@ func TestHandler(t *testing.T) {
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				ValidatorId: "100",
+				ValidatorID: "100",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
-			ttype:          "delegation",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "success response for created time range without validator_id",
@@ -234,86 +219,70 @@ func TestHandler(t *testing.T) {
 				TimeFrom: from,
 				TimeTo:   to,
 			},
-			ttype:          "delegation",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
-		},
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "delegation_time_line",
-			code:  http.StatusMethodNotAllowed,
-		},
-		{
-			name: "missing parameter all",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL:    &url.URL{},
-			},
-			ttype: "delegation_time_line",
-			code:  http.StatusBadRequest,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "invalid date from and to",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "from=2006&to=2106",
+					RawQuery: "from=2006&to=2106&timeline=1",
 				},
 			},
-			ttype: "delegation_time_line",
-			code:  http.StatusBadRequest,
+			expectedParams: nil,
+			ttype:          "delegation",
+			code:           http.StatusBadRequest,
 		},
 		{
-			name: "internal server error for delegation_id",
+			name: "internal server error for delegation id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z&timeline=1",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				DelegationId: "test",
+				DelegationID: "test",
 				TimeFrom:     from,
 				TimeTo:       to,
 			},
 			dbResponse: errors.New("internal error"),
-			ttype:      "delegation_time_line",
+			ttype:      "delegation",
 			code:       http.StatusInternalServerError,
 		},
 		{
-			name: "success response for delegation_id",
+			name: "success response for delegation id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "delegation_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z&timeline=1",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				DelegationId: "1903",
+				DelegationID: "1903",
 				TimeFrom:     from,
 				TimeTo:       to,
 			},
-			ttype:          "delegation_time_line",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error for created time range",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z&timeline=1",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				ValidatorId: "100",
+				ValidatorID: "100",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
-			ttype:      "delegation_time_line",
+			ttype:      "delegation",
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
 		},
@@ -322,41 +291,33 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "validator_id=100&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z&timeline=1",
 				},
 			},
 			expectedParams: structs.DelegationParams{
-				ValidatorId: "100",
+				ValidatorID: "100",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
-			ttype:          "delegation_time_line",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "success response for created time range without validator_id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z&timeline=1",
 				},
 			},
 			expectedParams: structs.DelegationParams{
 				TimeFrom: from,
 				TimeTo:   to,
 			},
-			ttype:          "delegation_time_line",
-			expectedReturn: []structs.Delegation{{}},
-			code:           http.StatusOK,
-		},
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "account",
-			code:  http.StatusMethodNotAllowed,
+			ttype:            "delegation",
+			expectedDBReturn: []structs.Delegation{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error for type",
@@ -384,9 +345,9 @@ func TestHandler(t *testing.T) {
 			expectedParams: structs.AccountParams{
 				Type: "validator",
 			},
-			ttype:          "account",
-			expectedReturn: []structs.Account{},
-			code:           http.StatusOK,
+			ttype:            "account",
+			expectedDBReturn: []structs.Account{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error for address",
@@ -414,17 +375,9 @@ func TestHandler(t *testing.T) {
 			expectedParams: structs.AccountParams{
 				Address: "0xbeeb437eede0e62a796d9e9c337f62746e925832",
 			},
-			ttype:          "account",
-			expectedReturn: []structs.Account{{}},
-			code:           http.StatusOK,
-		},
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "node",
-			code:  http.StatusMethodNotAllowed,
+			ttype:            "account",
+			expectedDBReturn: []structs.Account{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error",
@@ -443,10 +396,10 @@ func TestHandler(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			ttype:          "node",
-			expectedParams: structs.NodeParams{},
-			expectedReturn: []structs.Node{{}},
-			code:           http.StatusOK,
+			ttype:            "node",
+			expectedParams:   structs.NodeParams{},
+			expectedDBReturn: []structs.Node{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error with validator_id",
@@ -475,15 +428,15 @@ func TestHandler(t *testing.T) {
 			expectedParams: structs.NodeParams{
 				ValidatorId: "2",
 			},
-			expectedReturn: []structs.Node{{}},
-			code:           http.StatusOK,
+			expectedDBReturn: []structs.Node{{}},
+			code:             http.StatusOK,
 		},
 		{
-			name: "internal server error with node_id",
+			name: "internal server error with node id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "node_id=2",
+					RawQuery: "id=2",
 				},
 			},
 			ttype: "node",
@@ -494,36 +447,19 @@ func TestHandler(t *testing.T) {
 			code:       http.StatusInternalServerError,
 		},
 		{
-			name: "success response with node_id",
+			name: "success response with node id",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "node_id=2",
+					RawQuery: "id=2",
 				},
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
 				NodeId: "2",
 			},
-			expectedReturn: []structs.Node{{}},
-			code:           http.StatusOK,
-		},
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "validator",
-			code:  http.StatusMethodNotAllowed,
-		},
-		{
-			name: "missing parameter all",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL:    &url.URL{},
-			},
-			ttype: "validator",
-			code:  http.StatusBadRequest,
+			expectedDBReturn: []structs.Node{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "invalid date from and to",
@@ -541,11 +477,11 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=test&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.ValidatorParams{
-				ValidatorId: "test",
+				ValidatorID: "test",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
@@ -558,17 +494,17 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
+					RawQuery: "id=1903&from=2006-01-02T15:04:05.000Z&to=2106-01-02T15:04:05.000Z",
 				},
 			},
 			expectedParams: structs.ValidatorParams{
-				ValidatorId: "1903",
+				ValidatorID: "1903",
 				TimeFrom:    from,
 				TimeTo:      to,
 			},
-			ttype:          "validator",
-			expectedReturn: []structs.Validator{},
-			code:           http.StatusOK,
+			ttype:            "validator",
+			expectedDBReturn: []structs.Validator{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "internal server error for created time range",
@@ -598,9 +534,9 @@ func TestHandler(t *testing.T) {
 				TimeFrom: from,
 				TimeTo:   to,
 			},
-			ttype:          "validator",
-			expectedReturn: []structs.Validator{},
-			code:           http.StatusOK,
+			ttype:            "validator",
+			expectedDBReturn: []structs.Validator{{}},
+			code:             http.StatusOK,
 		},
 		{
 			name: "success response for created time range without validator_id",
@@ -614,20 +550,12 @@ func TestHandler(t *testing.T) {
 				TimeFrom: from,
 				TimeTo:   to,
 			},
-			ttype:          "validator",
-			expectedReturn: []structs.Validator{{}},
-			code:           http.StatusOK,
+			ttype:            "validator",
+			expectedDBReturn: []structs.Validator{{}},
+			code:             http.StatusOK,
 		},
 		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "validator_statistics",
-			code:  http.StatusMethodNotAllowed,
-		},
-		{
-			name: "no parameter is valid",
+			name: "parameters are invalid",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL:    &url.URL{},
@@ -642,27 +570,27 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=test",
+					RawQuery: "id=123",
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId: "test",
+				ValidatorID: "123",
 			},
 			dbResponse: errors.New("internal error"),
 			ttype:      "validator_statistics",
 			code:       http.StatusInternalServerError,
 		},
 		{
-			name: "internal server error for validator_id and statistics_type",
+			name: "internal server error for validator_id and type",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=1&statistics_type=test",
+					RawQuery: "id=1903&type=FEE",
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1",
-				StatisticsTypeVS: "test",
+				ValidatorID: "1903",
+				Type:        structs.ValidatorStatisticsTypeFee,
 			},
 			dbResponse: errors.New("internal error"),
 			ttype:      "validator_statistics",
@@ -673,54 +601,31 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=1903&statistics_type=1",
+					RawQuery: "id=1903&type=FEE",
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1903",
-				StatisticsTypeVS: "1",
+				ValidatorID: "1903",
+				Type:        structs.ValidatorStatisticsTypeFee,
 			},
-			ttype: "validator_statistics",
-			expectedReturn: []structs.ValidatorStatistics{
-				{
-					ValidatorId: big.NewInt(0),
-				},
-			},
-			code: http.StatusOK,
-		},
-
-
-		{
-			name: "not allowed method",
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			ttype: "validator_statistics_chart",
-			code:  http.StatusMethodNotAllowed,
+			ttype:            "validator_statistics",
+			expectedDBReturn: []structs.ValidatorStatistics{{ValidatorID: big.NewInt(1903)}},
+			code:             http.StatusOK,
 		},
 		{
-			name: "missing parameter",
-			req: &http.Request{
-				Method: http.MethodGet,
-				URL:    &url.URL{},
-			},
-			ttype: "validator_statistics_chart",
-			code:  http.StatusBadRequest,
-		},
-		{
-			name: "internal server error for validator_id and statistics_type",
+			name: "internal server error for validator_id and type",
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=1&statistics_type=test",
+					RawQuery: "id=1&type=FEE&timeline=true",
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1",
-				StatisticsTypeVS: "test",
+				ValidatorID: "1",
+				Type:        structs.ValidatorStatisticsTypeFee,
 			},
 			dbResponse: errors.New("internal error"),
-			ttype:      "validator_statistics_chart",
+			ttype:      "validator_statistics",
 			code:       http.StatusInternalServerError,
 		},
 		{
@@ -728,55 +633,52 @@ func TestHandler(t *testing.T) {
 			req: &http.Request{
 				Method: http.MethodGet,
 				URL: &url.URL{
-					RawQuery: "validator_id=1903&statistics_type=1",
+					RawQuery: "id=1903&type=FEE&timeline=1",
 				},
 			},
 			expectedParams: structs.ValidatorStatisticsParams{
-				ValidatorId:      "1903",
-				StatisticsTypeVS: "1",
+				ValidatorID: "1903",
+				Type:        structs.ValidatorStatisticsTypeFee,
 			},
-			ttype: "validator_statistics_chart",
-			expectedReturn: []structs.ValidatorStatistics{
-				{
-					ValidatorId: big.NewInt(0),
-				},
-			},
-			code: http.StatusOK,
+			ttype:            "validator_statistics",
+			expectedDBReturn: []structs.ValidatorStatistics{{Type: structs.ValidatorStatisticsTypeFee, ValidatorID: big.NewInt(1903)}},
+			code:             http.StatusOK,
 		},
 	}
 
 	for _, tt := range tests {
-		tt := tt
+		//	tt := tt
 		t.Run(tt.ttype+" - "+tt.name, func(t *testing.T) {
-			t.Parallel()
+			//		t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
 			mockDB := storeMocks.NewMockDataStore(mockCtrl)
-			contractor := *client.NewClient(mockDB)
+			zl := zaptest.NewLogger(t)
+			contractor := *client.NewClient(zl, mockDB)
 			connector := NewClientConnector(&contractor)
 
 			if tt.expectedParams != nil {
 				switch tt.expectedParams.(type) {
 				case structs.DelegationParams:
-					if tt.ttype == "delegation" {
-						mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					if strings.Contains(tt.req.URL.RawQuery, "timeline") {
+						mockDB.EXPECT().GetDelegationTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 					} else {
-						mockDB.EXPECT().GetDelegationTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+						mockDB.EXPECT().GetDelegations(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 					}
 				case structs.AccountParams:
-					mockDB.EXPECT().GetAccounts(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					mockDB.EXPECT().GetAccounts(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 				case structs.EventParams:
-					mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					mockDB.EXPECT().GetContractEvents(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 				case structs.NodeParams:
-					mockDB.EXPECT().GetNodes(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					mockDB.EXPECT().GetNodes(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 				case structs.ValidatorParams:
-					mockDB.EXPECT().GetValidators(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					mockDB.EXPECT().GetValidators(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 				case structs.ValidatorStatisticsParams:
-					if tt.ttype == "validator_statistics" {
-						mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+					if strings.Contains(tt.req.URL.RawQuery, "timeline") {
+						mockDB.EXPECT().GetValidatorStatisticsTimeline(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 					} else {
-						mockDB.EXPECT().GetValidatorStatisticsChart(tt.req.Context(), tt.expectedParams).Return(tt.expectedReturn, tt.dbResponse)
+						mockDB.EXPECT().GetValidatorStatistics(tt.req.Context(), tt.expectedParams).Return(tt.expectedDBReturn, tt.dbResponse)
 					}
 				}
 			}
@@ -784,26 +686,23 @@ func TestHandler(t *testing.T) {
 			var res http.HandlerFunc
 			switch tt.ttype {
 			case "delegation":
-				res = http.HandlerFunc(connector.GetDelegations)
-			case "delegation_time_line":
-				res = http.HandlerFunc(connector.GetDelegationsTimeline)
+				res = http.HandlerFunc(connector.GetDelegation)
 			case "account":
-				res = http.HandlerFunc(connector.GetAccounts)
+				res = http.HandlerFunc(connector.GetAccount)
 			case "event":
 				res = http.HandlerFunc(connector.GetContractEvents)
 			case "node":
-				res = http.HandlerFunc(connector.GetNodes)
+				res = http.HandlerFunc(connector.GetNode)
 			case "validator":
-				res = http.HandlerFunc(connector.GetValidators)
+				res = http.HandlerFunc(connector.GetValidator)
 			case "validator_statistics":
 				res = http.HandlerFunc(connector.GetValidatorStatistics)
-			case "validator_statistics_chart":
-				res = http.HandlerFunc(connector.GetValidatorStatisticsChart)
 			}
 
 			rr := httptest.NewRecorder()
 			res.ServeHTTP(rr, tt.req)
-			assert.True(t, rr.Code == tt.code)
+			require.Equal(t, rr.Code, tt.code)
+
 		})
 	}
 }
