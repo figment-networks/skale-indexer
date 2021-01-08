@@ -118,7 +118,7 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		i++
 	}
 	if params.Active != "" {
-		wherec = append(wherec, ` authorized =  $`+strconv.Itoa(i))
+		whereC = append(whereC, ` authorized =  $`+strconv.Itoa(i))
 		args = append(args, params.Active)
 		i++
 	}
@@ -131,8 +131,8 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 
 	if len(args) > 0 {
 		q += ` WHERE `
-	} 
-	q += strings.Join(wherec, " AND ")
+	}
+	q += strings.Join(whereC, " AND ")
 	q += ` ORDER BY `
 	if params.OrderBy != "" {
 		q += params.OrderBy

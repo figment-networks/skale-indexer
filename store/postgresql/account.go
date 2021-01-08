@@ -2,23 +2,24 @@ package postgresql
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
 // SaveAccount saves account
 func (d *Driver) SaveAccount(ctx context.Context, a structs.Account) error {
-	_, err := d.db.Exec(`INSERT INTO accounts ("address", "account_type") 
-			VALUES ($1, $2) 
+	_, err := d.db.Exec(`INSERT INTO accounts ("address", "account_type")
+			VALUES ($1, $2)
 			ON CONFLICT (address)
 			DO UPDATE SET
-			account_type = EXCLUDED.account_type 
+			account_type = EXCLUDED.account_type
 			WHERE accounts.account_type < EXCLUDED.account_type `,
 		a.Address.Hash().Big().String(),
-		a.AccountType)
+		a.Type)
 	return err
 }
 
@@ -57,7 +58,7 @@ func (d *Driver) GetAccounts(ctx context.Context, params structs.AccountParams) 
 	for rows.Next() {
 		a := structs.Account{}
 		var addr []byte
-		if err = rows.Scan(&a.ID, &a.CreatedAt, &addr, &a.AccountType); err != nil {
+		if err = rows.Scan(&a.ID, &a.CreatedAt, &addr, &a.Type); err != nil {
 			return nil, err
 		}
 		p := new(big.Int)

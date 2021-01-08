@@ -94,7 +94,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 			params.Id, err = strconv.ParseUint(idParam, 10, 64)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
+				w.Write(newApiError(errors.New("id parameter given in wrong format"), http.StatusBadRequest))
 				return
 			}
 		}
@@ -248,7 +248,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
- 
+
 	params := ValidatorParams{}
 	switch req.Method {
 	case http.MethodGet:
@@ -289,7 +289,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
- 
+
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), structs.ValidatorParams{
@@ -468,8 +468,8 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	var accs []Account
 	for _, a := range res {
 		accs = append(accs, Account{
-			Address:     a.Address,
-			AccountType: a.AccountType,
+			Address: a.Address,
+			Type:    string(a.Type),
 		})
 	}
 
@@ -559,21 +559,21 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
- 
+
 	var dlgs []Delegation
 	for _, dlg := range res {
 		dlgs = append(dlgs, Delegation{
-			DelegationID:     dlg.DelegationID,
-			TransactionHash:  dlg.TransactionHash,
-			Holder:           dlg.Holder,
-			ValidatorID:      dlg.ValidatorID,
-			BlockHeight:      dlg.BlockHeight,
-			Amount:           dlg.Amount,
-			DelegationPeriod: dlg.DelegationPeriod,
-			Started:          dlg.Started,
-			Created:          dlg.Created,
-			Finished:         dlg.Finished,
-			Info:             dlg.Info,
+			DelegationID:    dlg.DelegationID,
+			TransactionHash: dlg.TransactionHash,
+			Holder:          dlg.Holder,
+			ValidatorID:     dlg.ValidatorID,
+			BlockHeight:     dlg.BlockHeight,
+			Amount:          dlg.Amount,
+			Period:          dlg.DelegationPeriod,
+			Started:         dlg.Started,
+			Created:         dlg.Created,
+			Finished:        dlg.Finished,
+			Info:            dlg.Info,
 		})
 	}
 
@@ -588,12 +588,12 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
-	mux.HandleFunc("/event", c.GetContractEvents)
-	mux.HandleFunc("/node", c.GetNode)
+	mux.HandleFunc("/event/", c.GetContractEvents)
+	mux.HandleFunc("/node/", c.GetNode)
 	mux.HandleFunc("/validator/", c.GetValidator)
 	mux.HandleFunc("/validator/statistics/", c.GetValidatorStatistics)
 	mux.HandleFunc("/delegation/", c.GetDelegation)
-	mux.HandleFunc("/account", c.GetAccount)
+	mux.HandleFunc("/account/", c.GetAccount)
 }
 
 type ScrapeContractor interface {

@@ -21,21 +21,21 @@ type ContractEvent struct {
 }
 
 type Delegation struct {
-	DelegationID     *big.Int       `json:"delegation_id"`
-	Holder           common.Address `json:"holder"`
-	TransactionHash  common.Hash    `json:"transaction_hash"`
-	ValidatorID      *big.Int       `json:"validator_id"`
-	BlockHeight      uint64         `json:"block_height"`
-	Amount           *big.Int       `json:"amount"`
-	DelegationPeriod *big.Int       `json:"delegation_period"`
-	Created          time.Time      `json:"created"`
-	Started          *big.Int       `json:"started"`
-	Finished         *big.Int       `json:"finished"`
-	Info             string         `json:"info"`
+	DelegationID    *big.Int       `json:"id"`
+	Holder          common.Address `json:"holder"`
+	TransactionHash common.Hash    `json:"transaction_hash"`
+	ValidatorID     *big.Int       `json:"validator_id"`
+	BlockHeight     uint64         `json:"block_height"`
+	Amount          *big.Int       `json:"amount"`
+	Period          *big.Int       `json:"period"`
+	Created         time.Time      `json:"created"`
+	Started         *big.Int       `json:"started"`
+	Finished        *big.Int       `json:"finished"`
+	Info            string         `json:"info"`
 }
 
 type Node struct {
-	NodeID         *big.Int  `json:"node_id"`
+	NodeID         *big.Int  `json:"id"`
 	Name           string    `json:"name"`
 	IP             string    `json:"ip"`
 	PublicIP       string    `json:"public_ip"`
@@ -48,7 +48,7 @@ type Node struct {
 }
 
 type Validator struct {
-	ValidatorID             *big.Int       `json:"validator_id"`
+	ValidatorID             *big.Int       `json:"id"`
 	Name                    string         `json:"name"`
 	Description             string         `json:"description"`
 	ValidatorAddress        common.Address `json:"validator_address"`
@@ -66,13 +66,13 @@ type Validator struct {
 }
 
 type ValidatorStatistic struct {
-	ValidatorID uint64 `json:"validator_id"`
+	ValidatorID uint64 `json:"id"`
 	Amount      string `json:"amount"`
 	BlockHeight uint64 `json:"block_height"`
 	Type        string `json:"type"`
 }
 
 type Account struct {
-	Address     common.Address `json:"address"`
-	AccountType string         `json:"account_type"`
+	Address common.Address `json:"address"`
+	Type    string         `json:"type"`
 }
