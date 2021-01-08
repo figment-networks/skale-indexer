@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -53,11 +54,13 @@ type AccountStore interface {
 }
 
 type ValidatorStatisticsStore interface {
-	GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	//	CalculateParams(ctx context.Context, height uint64, vID *big.Int) error
-	//  CalculateTotalStake(ctx context.Context, params structs.QueryParams) error
-	//	CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error
-	//	CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error
+	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
+
+	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
+	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 }
 
 type Store struct {
@@ -104,42 +107,25 @@ func (s *Store) GetDelegationTimeline(ctx context.Context, params structs.Delega
 	return s.driver.GetDelegationTimeline(ctx, params)
 }
 
-func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.QueryParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+func (s *Store) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	return s.driver.GetValidatorStatistics(ctx, params)
 }
 
-/*
-func (s *Store) CalculateParams(ctx context.Context, blockHeight uint64, validatorId *big.Int) error {
-	params := structs.QueryParams{
-		ValidatorId:    validatorId.Uint64(),
-		ETHBlockHeight: blockHeight,
-	}
-	//TODO: add transactional commit-rollback
-	if err := s.driver.CalculateTotalStake(ctx, params); err != nil {
-		return err
-	}
-	if err := s.driver.CalculateActiveNodes(ctx, params); err != nil {
-		return err
-	}
-	if err := s.driver.CalculateLinkedNodes(ctx, params); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Store) GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
+	return s.driver.GetValidatorStatisticsTimeline(ctx, params)
 }
 
-func (s *Store) CalculateTotalStake(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateTotalStake(ctx, params)
 }
 
-func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateActiveNodes(ctx, params)
 }
 
-func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.QueryParams) error {
+func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	return s.driver.CalculateLinkedNodes(ctx, params)
 }
-*/
 
 func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error {
 	return s.driver.SaveAccount(ctx, account)
@@ -147,4 +133,8 @@ func (s *Store) SaveAccount(ctx context.Context, account structs.Account) error 
 
 func (s *Store) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
 	return s.driver.GetAccounts(ctx, params)
+}
+
+func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount)
 }

@@ -2,28 +2,11 @@ package structs
 
 import (
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 const Layout = time.RFC3339
 
-type QueryParams struct {
-	Id              string
-	ValidatorId     uint64
-	DelegationId    uint64
-	Recent          bool
-	Holder          common.Address
-	ETHBlockHeight  uint64
-	StatisticTypeVS StatisticTypeVS
-	BoundType       string
-	BoundId         []uint64
-	TimeFrom        time.Time
-	TimeTo          time.Time
-}
-
 type EventParams struct {
-	RecordId string
 	Id       uint64
 	Type     string
 	TimeFrom time.Time
@@ -31,9 +14,8 @@ type EventParams struct {
 }
 
 type DelegationParams struct {
-	ValidatorId  string
-	DelegationId string
-	BlockHeight  string
+	ValidatorID  string
+	DelegationID string
 	TimeFrom     time.Time
 	TimeTo       time.Time
 }
@@ -49,10 +31,18 @@ type AccountParams struct {
 }
 
 type ValidatorParams struct {
-	ValidatorId    string
+	ValidatorID    string
 	OrderBy        string
 	OrderDirection string
 	Active         string
 	TimeFrom       time.Time
 	TimeTo         time.Time
+}
+
+type ValidatorStatisticsParams struct {
+	ValidatorID string
+	Type        StatisticTypeVS
+	BlockHeight uint64
+	TimeFrom    time.Time
+	TimeTo      time.Time
 }

@@ -20,10 +20,10 @@ type Validator struct {
 	MinimumDelegationAmount *big.Int       `json:"minimum_delegation_amount"`
 	AcceptNewRequests       bool           `json:"accept_new_requests"`
 	Authorized              bool           `json:"authorized"`
-	ActiveNodes             int            `json:"active_nodes"`
-	LinkedNodes             int            `json:"linked_nodes"`
-	Staked                  uint64         `json:"staked"`
-	Pending                 uint64         `json:"pending"`
-	Rewards                 uint64         `json:"rewards"`
+	ActiveNodes             uint           `json:"active_nodes"`
+	LinkedNodes             uint           `json:"linked_nodes"`
+	Staked                  *big.Int       `json:"staked"`
+	Pending                 *big.Int       `json:"pending"`
+	Rewards                 *big.Int       `json:"rewards"`
 	BlockHeight             uint64         `json:"block_height"`
 }

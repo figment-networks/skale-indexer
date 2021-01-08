@@ -86,6 +86,7 @@ func TestGetLogs(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			mockDB := storeMocks.NewMockDataStore(mockCtrl)
+
 			am := actions.NewManager(caller, mockDB, tr, cm, zl)
 			eAPI := scraper.NewEthereumAPI(zl, tr, am)
 
