@@ -497,6 +497,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
+		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -509,6 +510,9 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			}
 			if d, ok := m["id"]; ok {
 				dID = d
+			}
+			if _, ok := m["timeline"]; ok {
+				params.Timeline = true
 			}
 		}
 		params.ValidatorID = vID
@@ -548,7 +552,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		res []structs.Delegation
 		err error
 	)
-	if req.URL.Query().Get("timeline") != "" {
+	if params.Timeline {
 		res, err = c.cli.GetDelegationTimeline(req.Context(), dparams)
 	} else {
 		res, err = c.cli.GetDelegations(req.Context(), dparams)
