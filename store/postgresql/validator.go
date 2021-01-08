@@ -117,6 +117,11 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		args = append(args, params.ValidatorID)
 		i++
 	}
+	if params.Active != "" {
+		wherec = append(wherec, ` authorized =  $`+strconv.Itoa(i))
+		args = append(args, params.Active)
+		i++
+	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` registration_time BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
@@ -126,9 +131,17 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 
 	if len(args) > 0 {
 		q += ` WHERE `
+	} 
+	q += strings.Join(wherec, " AND ")
+	q += ` ORDER BY `
+	if params.OrderBy != "" {
+		q += params.OrderBy
+		if params.OrderDirection != "" {
+			q += ` ` + params.OrderDirection
+		}
+	} else {
+		q += ` validator_id ASC `
 	}
-	q += strings.Join(whereC, " AND ")
-	q += ` ORDER BY validator_id ASC`
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)

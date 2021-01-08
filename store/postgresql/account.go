@@ -16,7 +16,7 @@ func (d *Driver) SaveAccount(ctx context.Context, a structs.Account) error {
 			ON CONFLICT (address)
 			DO UPDATE SET
 			account_type = EXCLUDED.account_type 
-			WHERE accounts.account_type = 'nothing' AND EXCLUDED.account_type = 'delegator' `,
+			WHERE accounts.account_type < EXCLUDED.account_type `,
 		a.Address.Hash().Big().String(),
 		a.AccountType)
 	return err

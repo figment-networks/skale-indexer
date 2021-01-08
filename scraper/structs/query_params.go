@@ -30,16 +30,20 @@ type AccountParams struct {
 	Address string
 }
 
+
 type ValidatorParams struct {
-	ValidatorID string
-	TimeFrom    time.Time
-	TimeTo      time.Time
+	ValidatorId    string
+	OrderBy        string
+	OrderDirection string
+	Active         string
+	TimeFrom       time.Time
+	TimeTo         time.Time 
 }
 
+ 
 type ValidatorStatisticsParams struct {
 	ValidatorID string
-	Type        StatisticTypeVS
-	BlockHeight uint64
+	Type        StatisticTypeVS 
 	TimeFrom    time.Time
-	TimeTo      time.Time
+	TimeTo      time.Time 
 }

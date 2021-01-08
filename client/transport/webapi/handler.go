@@ -248,7 +248,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(err, http.StatusBadRequest))
 		return
 	}
-
+ 
 	params := ValidatorParams{}
 	switch req.Method {
 	case http.MethodGet:
@@ -289,7 +289,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
-
+ 
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), structs.ValidatorParams{
@@ -559,7 +559,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
 	}
-
+ 
 	var dlgs []Delegation
 	for _, dlg := range res {
 		dlgs = append(dlgs, Delegation{
