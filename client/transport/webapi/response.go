@@ -206,7 +206,10 @@ type Validator struct {
 // ValidatorStatistic a set of fields to show returned validator statistics by search
 type ValidatorStatistic struct {
 	// ValidatorID - the index of validator in SKALE deployed smart contract
-	ValidatorID uint64 `json:"id"`
+	//
+	// package: math/big
+	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
+	ValidatorID *big.Int `json:"id"`
 	// Amount - statistics amount
 	Amount string `json:"amount"`
 	// BlockHeight - starting block height on ETH mainnet

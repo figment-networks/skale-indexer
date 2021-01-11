@@ -459,7 +459,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	for _, v := range res {
 		vlds = append(vlds, ValidatorStatistic{
 			Type:        v.Type.String(),
-			ValidatorID: v.ValidatorID.Uint64(),
+			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
 			Amount:      v.Amount.String(),
 		})
