@@ -3,9 +3,9 @@ CREATE TABLE IF NOT EXISTS validator_statistics
     id                      UUID DEFAULT   uuid_generate_v4(),
     created_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     validator_id            DECIMAL(65, 0)           NOT NULL,
-    amount                  NUMERIC(125)           NOT NULL,
+    amount                  NUMERIC(125)             NOT NULL,
     block_height            DECIMAL(65, 0)           NOT NULL,
-    statistic_type         SMALLINT                 NOT NULL,
+    statistic_type          SMALLINT                 NOT NULL,
     PRIMARY KEY (id)
 );
 

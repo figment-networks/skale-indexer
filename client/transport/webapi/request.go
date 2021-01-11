@@ -40,6 +40,10 @@ type NodeParams struct {
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"validator_id"`
+	// Status - node status
+	//
+	// example: "Active", "Left" etc...
+	Status string `json:"status"`
 }
 
 // AccountParams a set of fields to be used for accounts search

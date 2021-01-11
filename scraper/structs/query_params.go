@@ -21,8 +21,9 @@ type DelegationParams struct {
 }
 
 type NodeParams struct {
-	NodeId      string
-	ValidatorId string
+	NodeID      string
+	ValidatorID string
+	Status      NodeStatus
 }
 
 type AccountParams struct {

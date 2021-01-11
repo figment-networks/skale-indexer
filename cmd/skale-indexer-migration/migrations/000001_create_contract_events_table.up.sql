@@ -9,8 +9,6 @@ BEGIN
     --more types here...
 END$$;
 
-
-
 CREATE TABLE IF NOT EXISTS contract_events
 (
     id                      UUID                     DEFAULT   uuid_generate_v4(),

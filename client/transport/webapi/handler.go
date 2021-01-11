@@ -204,6 +204,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 
 		params.NodeID = req.URL.Query().Get("id")
 		params.ValidatorID = req.URL.Query().Get("validator_id")
+		params.Status = req.URL.Query().Get("status")
 
 		if m != nil {
 			if nodeId, ok := m["id"]; ok {
@@ -211,6 +212,9 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			}
 			if validatorId, ok := m["validator_id"]; ok {
 				params.ValidatorID = validatorId
+			}
+			if status, ok := m["status"]; ok {
+				params.Status = status
 			}
 		}
 	case http.MethodPost:
@@ -225,10 +229,21 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-	res, err := c.cli.GetNodes(req.Context(), structs.NodeParams{
-		NodeId:      params.NodeID,
-		ValidatorId: params.ValidatorID,
-	})
+	nParams := structs.NodeParams{
+		NodeID:      params.NodeID,
+		ValidatorID: params.ValidatorID,
+		Status:      structs.NodeStatusUnknown,
+	}
+	if params.Status != "" {
+		var ok bool
+		if nParams.Status, ok = structs.GetTypeFromStringN(params.Status); !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("node type is wrong"), http.StatusBadRequest))
+			return
+		}
+	}
+
+	res, err := c.cli.GetNodes(req.Context(), nParams)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
@@ -248,6 +263,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			LastRewardDate: n.LastRewardDate,
 			FinishTime:     n.FinishTime,
 			ValidatorID:    n.ValidatorID,
+			Status:         n.Status.String(),
 		})
 	}
 
@@ -402,7 +418,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	case http.MethodGet:
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline = req.URL.Query().Get("timeline") != ""
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
@@ -429,24 +445,24 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	vparams := structs.ValidatorStatisticsParams{
+	vParams := structs.ValidatorStatisticsParams{
 		ValidatorID: params.ValidatorID,
 	}
 
 	if params.Type != "" || params.Timeline {
 		var ok bool
-		if vparams.Type, ok = structs.GetTypeFromString(params.Type); !ok {
+		if vParams.Type, ok = structs.GetTypeFromStringVS(params.Type); !ok {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(errors.New("Statistic type is wrong"), http.StatusBadRequest))
+			w.Write(newApiError(errors.New("statistic type is wrong"), http.StatusBadRequest))
 			return
 		}
 	}
 
 	var res []structs.ValidatorStatistics
 	if params.Timeline {
-		res, err = c.cli.GetValidatorStatisticsTimeline(req.Context(), vparams)
+		res, err = c.cli.GetValidatorStatisticsTimeline(req.Context(), vParams)
 	} else {
-		res, err = c.cli.GetValidatorStatistics(req.Context(), vparams)
+		res, err = c.cli.GetValidatorStatistics(req.Context(), vParams)
 	}
 
 	if err != nil {
@@ -591,7 +607,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline = req.URL.Query().Get("timeline") != ""
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -635,7 +651,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	dparams := structs.DelegationParams{
+	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
 		TimeFrom:     params.TimeFrom,
@@ -647,9 +663,9 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		err error
 	)
 	if params.Timeline {
-		res, err = c.cli.GetDelegationTimeline(req.Context(), dparams)
+		res, err = c.cli.GetDelegationTimeline(req.Context(), dParams)
 	} else {
-		res, err = c.cli.GetDelegations(req.Context(), dparams)
+		res, err = c.cli.GetDelegations(req.Context(), dParams)
 	}
 
 	if err != nil {

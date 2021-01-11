@@ -23,6 +23,7 @@ type Node struct {
 	BlockHeight    uint64     `json:"block_height"`
 }
 
+//TODO: get by status string
 type NodeStatus uint
 
 const (
@@ -30,7 +31,23 @@ const (
 	NodeStatusLeaving
 	NodeStatusLeft
 	NodeStatusInMaintenance
+	NodeStatusUnknown
 )
+
+var (
+	NodeStatusTypes = map[string]NodeStatus{
+		"Active":         NodeStatusActive,
+		"Leaving":        NodeStatusLeaving,
+		"Left":           NodeStatusLeft,
+		"In_Maintenance": NodeStatusInMaintenance,
+		"Unknown":        NodeStatusUnknown,
+	}
+)
+
+func GetTypeFromStringN(s string) (NodeStatus, bool) {
+	t, ok := NodeStatusTypes[s]
+	return t, ok
+}
 
 func (k NodeStatus) String() string {
 	switch k {

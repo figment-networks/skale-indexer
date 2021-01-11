@@ -58,14 +58,19 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		i      = 1
 	)
 
-	if params.NodeId != "" {
+	if params.NodeID != "" {
 		wherec = append(wherec, ` node_id =  $`+strconv.Itoa(i))
-		args = append(args, params.NodeId)
+		args = append(args, params.NodeID)
 		i++
 	}
-	if params.ValidatorId != "" {
+	if params.ValidatorID != "" {
 		wherec = append(wherec, ` validator_id =  $`+strconv.Itoa(i))
-		args = append(args, params.ValidatorId)
+		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Status != structs.NodeStatusUnknown {
+		wherec = append(wherec, ` status =  $`+strconv.Itoa(i))
+		args = append(args, params.Status)
 		i++
 	}
 	if len(args) > 0 {

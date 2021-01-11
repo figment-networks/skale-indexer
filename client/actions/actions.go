@@ -125,12 +125,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		vIDI, ok := ce.Params["validatorId"]
 		if !ok {
-			return errors.New("Structure is not a validator")
+			return errors.New("structure is not a validator")
 		}
-
 		vID, ok := vIDI.(*big.Int)
 		if !ok {
-			return errors.New("Structure is not a validator")
+			return errors.New("structure is not a validator")
 		}
 
 		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID)
@@ -151,7 +150,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
 			if !ok {
 				return errors.New("Node contract is not found for version :" + c.Version)
-
 			}
 			nodes, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID)
 			if err != nil {
@@ -165,15 +163,15 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				}
 			}
 
-			qqq := structs.ValidatorStatisticsParams{
+			vsp := structs.ValidatorStatisticsParams{
 				ValidatorID: vID.String(),
 				BlockHeight: ce.BlockHeight,
 			}
-			err = m.dataStore.CalculateActiveNodes(ctx, qqq)
+			err = m.dataStore.CalculateActiveNodes(ctx, vsp)
 			if err != nil {
 				return fmt.Errorf("error calculating active nodes %w", err)
 			}
-			err = m.dataStore.CalculateLinkedNodes(ctx, qqq)
+			err = m.dataStore.CalculateLinkedNodes(ctx, vsp)
 			if err != nil {
 				return fmt.Errorf("error calculating linked nodes %w", err)
 			}
@@ -188,12 +186,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		} else if ce.EventName == "ValidatorAddressChanged" {
 			newAddrI, ok := ce.Params["newAddress"]
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
-
 			addr, ok := newAddrI.(common.Address)
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
 
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
@@ -240,17 +237,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		nIDI, ok := ce.Params["nodeIndex"]
 		if !ok {
-			return errors.New("Structure is not a node")
+			return errors.New("structure is not a node")
 		}
 		nID, ok := nIDI.(*big.Int)
 		if !ok {
-			return errors.New("Structure is not a validator")
+			return errors.New("structure is not a validator")
 		}
 
 		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, nID)
 		if err != nil {
 			// TODO: change err message from line 203
-			return errors.New("Structure is not a node")
+			return errors.New("structure is not a node")
 		}
 		n.BlockHeight = ce.BlockHeight
 		if err = m.dataStore.SaveNode(ctx, n); err != nil {
@@ -288,12 +285,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		case "slash":
 			vIDI, ok := ce.Params["validatorId"]
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
-
 			vID, ok := vIDI.(*big.Int)
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
 
 			ce.BoundType = "validator"
@@ -301,12 +297,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		case "forgive":
 			wAddrI, ok := ce.Params["wallet"]
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
-
 			wAddr, ok := wAddrI.(common.Address)
 			if !ok {
-				return errors.New("Structure is not a validator")
+				return errors.New("structure is not a validator")
 			}
 
 			ce.BoundAddress = append(ce.BoundAddress, wAddr)
@@ -366,11 +361,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		dIDI, ok := ce.Params["delegationId"]
 		if !ok {
-			return errors.New("Structure is not a delegation")
+			return errors.New("structure is not a delegation")
 		}
 		dID, ok := dIDI.(*big.Int)
 		if !ok {
-			return errors.New("Structure is not a delegation")
+			return errors.New("structure is not a delegation")
 		}
 
 		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID)
@@ -516,7 +511,6 @@ func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator struct
 	return nil
 }
 
-// hehe
 func boolToBigInt(a bool) *big.Int {
 	if a {
 		return big.NewInt(1)

@@ -146,6 +146,8 @@ type Node struct {
 	// package: math/big
 	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"validator_id"`
+	// Status - node status
+	Status string `json:"status"`
 }
 
 // Validator a set of fields to show returned validators by search
