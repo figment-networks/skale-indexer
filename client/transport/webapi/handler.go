@@ -39,7 +39,7 @@ func NewClientConnector(cli ClientContractor) *Connector {
 }
 
 /**
- * Health check end point
+ * Health check endpoint
  *
  * Method: any method
  * Success 200
@@ -50,17 +50,17 @@ func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
 }
 
 /**
- * Gets contract events
+ * Contract events endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see EventParams
  *   required:
- *	   @from: event time from
- *     @to: event time to
+ *	   @from: the inclusive beginning of the time range for event time
+ *     @to: the inclusive ending of the time range for event time
  *   optional:
  *     @type: Event type (required when id is provided)
- *     @id: Bound id (required when id is type)
+ *     @id: Bound id (required when type is provided)
  *
  * Error:
  *     http code: 400, 405, 500
@@ -173,14 +173,14 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 }
 
 /**
- * Gets nodes
+ * Nodes endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see NodeParams
  *   optional:
- *     @id: node Id on SKALE network
- *     @validator_id: validator Id on SKALE network
+ *     @id: the index of node in SKALE deployed smart contract
+ *     @validator_id: the index of validator in SKALE deployed smart contract
  *
  * Error:
  *     http code: 400, 405, 500
@@ -257,15 +257,15 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 }
 
 /**
- * Gets validators
+ * Validators endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see ValidatorParams
  *   optional:
- *     @id: validator Id on SKALE network
- *     @from: registration time from
- *     @to: registration time to
+ *     @id: the index of validator in SKALE deployed smart contract
+ *     @from: the inclusive beginning of the time range for registration time
+ *     @to: the inclusive ending of the time range for registration time
  *
  * Error:
  *     http code: 400, 405, 500
@@ -369,15 +369,15 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 }
 
 /**
- * Gets validator statistics
+ * Validator statistics endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see ValidatorStatisticsParams
  *   optional:
- *     @id: validator Id on SKALE network
+ *     @id: the index of validator in SKALE deployed smart contract
  *     @type: statistics type
- *     @timeline: fetching whether the latest or time chart
+ *     @timeline: returns whether the latest or statistics changes timeline
  *
  * Error:
  *     http code: 400, 405, 500
@@ -474,9 +474,9 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 }
 
 /**
- * Gets accounts
+ * Accounts endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see AccountParams
  *   optional:
@@ -555,17 +555,17 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 }
 
 /**
- * Gets delegations
+ * Delegations endpoint
  *
- * Method: GET
+ * Method: GET, POST
  * Params:
  *   see DelegationParams
  *   optional:
- *     @id: delegation Id on SKALE network
- *     @validator_id: validator Id on SKALE network
- *     @from: delegation created time from
- *     @to: delegation created time to
- *     @timeline: fetching whether the latest or time chart
+ *     @id: the index of delegation in SKALE deployed smart contract
+ *     @validator_id: the index of validator in SKALE deployed smart contract
+ *     @from: the inclusive beginning of the time range for delegation created time
+ *     @to: the inclusive ending of the time range for delegation created time
+ *     @timeline: returns whether the latest or delegation changes timeline
  *
  * Error:
  *     http code: 400, 405, 500
@@ -716,7 +716,7 @@ func (sc *ScrapeConnector) AttachToHandler(mux *http.ServeMux) {
 }
 
 /*
- * Gets logs from node
+ * Gets logs from node endpoint
  */
 func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")

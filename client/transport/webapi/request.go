@@ -14,14 +14,14 @@ type EventParams struct {
 	// supposed to used together with Id, i.e. required when Id is used
 	// example: "validator", "delegation", "node", "token"
 	Type string
-	// TimeFrom - filtering events by event time from
+	// TimeFrom - the inclusive beginning of the time range for event time
 	//
 	// supposed to be sent with time to
 	// required: true
 	// time format: RFC3339
 	// example: "2006-01-02T15:04:05Z07:00"
 	TimeFrom time.Time
-	// TimeTo - filtering events by events time to
+	// TimeTo - the inclusive ending of the time range for event time
 	//
 	// supposed to be sent with time from
 	// required: true
@@ -32,11 +32,11 @@ type EventParams struct {
 
 // NodeParams a set of fields to be used for nodes search
 type NodeParams struct {
-	// NodeID - node Id on SKALE network
+	// NodeID - the index of node in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	NodeID string `json:"id"`
-	// ValidatorID - node Id on SKALE network
+	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"validator_id"`
@@ -56,27 +56,27 @@ type AccountParams struct {
 
 // DelegationParams a set of fields to be used for accounts search
 type DelegationParams struct {
-	// DelegationID - delegation Id on SKALE network
+	// DelegationID - the index of delegation in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	DelegationID string `json:"id"`
-	// ValidatorID - delegation Id on SKALE network
+	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"validator_id"`
-	// TimeFrom - filtering delegations by created time from
+	// TimeFrom - the inclusive beginning of the time range for delegation created time
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
 	// example: "2006-01-02T15:04:05Z07:00"
 	TimeFrom time.Time `json:"from"`
-	// TimeTo - filtering delegations by created time to
+	// TimeTo - the inclusive ending of the time range for delegation created time
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
 	// example: "2006-01-02T15:04:05Z07:00"
 	TimeTo time.Time `json:"to"`
-	// Timeline - fetching whether the latest or time chart for filtered delegations
+	// Timeline - returns whether the latest or delegation changes timeline
 	//
 	// case false to fetch recent info for filtered delegations
 	// case true to fetch whole delegations for the filter
@@ -85,17 +85,17 @@ type DelegationParams struct {
 
 // ValidatorParams a set of fields to be used for validators search
 type ValidatorParams struct {
-	// ValidatorID - delegation Id on SKALE network
+	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"id"`
-	// TimeFrom - filtering validators by registration time from
+	// TimeFrom - the inclusive beginning of the time range for registration time
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
 	// example: "2006-01-02T15:04:05Z07:00"
 	TimeFrom time.Time `json:"from"`
-	// TimeTo - filtering validators by registration time to
+	// TimeTo - the inclusive ending of the time range for registration time
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
@@ -105,19 +105,19 @@ type ValidatorParams struct {
 
 // ValidatorStatisticsParams a set of fields to be used for validator statistics search
 type ValidatorStatisticsParams struct {
-	// ValidatorID - delegation Id on SKALE network
+	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"id"`
 	// Type - statistics type
 	//
-	// example: "TOTAL_STAKE", "ACTIVE_NODES"
+	// example: "TOTAL_STAKE", "ACTIVE_NODES" etc...
 	Type string `json:"type"`
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64    `json:"height"`
 	TimeFrom    time.Time `json:"from"`
 	TimeTo      time.Time `json:"to"`
-	// Timeline - fetching whether the latest or time chart for filtered statistics
+	// Timeline - returns whether the latest or statistics changes timeline
 	//
 	// case false to fetch recent info for filtered statistics
 	// case true to fetch whole statistics for the filter
