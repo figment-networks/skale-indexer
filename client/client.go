@@ -39,27 +39,47 @@ func (c *Client) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 func (c *Client) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
 	v, err := c.storeEng.GetValidators(ctx, params)
 	if err != nil {
-		c.log.Error("[CLIENT] Error in GetValidators", zap.Any("params", params), zap.Error(err))
+		c.log.Error("[CLIENT] Error in GetValidators:", zap.Any("params", params), zap.Error(err))
 	}
 	return v, err
 }
 
 func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	return c.storeEng.GetDelegations(ctx, params)
+	d, err := c.storeEng.GetDelegations(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetDelegations:", zap.Any("params", params), zap.Error(err))
+	}
+	return d, err
 }
 
 func (c *Client) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	return c.storeEng.GetDelegationTimeline(ctx, params)
+	d, err := c.storeEng.GetDelegationTimeline(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetDelegationTimeline:", zap.Any("params", params), zap.Error(err))
+	}
+	return d, err
 }
 
 func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
-	return c.storeEng.GetValidatorStatistics(ctx, params)
+	vs, err := c.storeEng.GetValidatorStatistics(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetValidatorStatistics:", zap.Any("params", params), zap.Error(err))
+	}
+	return vs, err
 }
 
 func (c *Client) GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
-	return c.storeEng.GetValidatorStatisticsTimeline(ctx, params)
+	vs, err := c.storeEng.GetValidatorStatisticsTimeline(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetValidatorStatisticsTimeline:", zap.Any("params", params), zap.Error(err))
+	}
+	return vs, err
 }
 
 func (c *Client) GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error) {
-	return c.storeEng.GetAccounts(ctx, params)
+	a, err := c.storeEng.GetAccounts(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetAccounts:", zap.Any("params", params), zap.Error(err))
+	}
+	return a, err
 }
