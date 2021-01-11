@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 )
 
+// apiError a set of fields to show error
 type apiError struct {
+	// Error - error message from api
 	Error string `json:"error"`
-	Code  int    `json:"code"`
+	// Code - http code
+	Code int `json:"code"`
 }
 
 func newApiError(err error, code int) []byte {

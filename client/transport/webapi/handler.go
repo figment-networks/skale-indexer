@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ClientContractor - method signatures for Connector
 type ClientContractor interface {
 	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
@@ -32,16 +33,43 @@ type Connector struct {
 	cli ClientContractor
 }
 
-// NewConnector is Connector constructor
+// NewClientConnector is connector constructor
 func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
 
+/**
+ * Health check endpoint
+ *
+ * Method: any method
+ * Success 200
+**/
 func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
+/**
+ * Contract events endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see EventParams
+ *   required:
+ *	   @from: the inclusive beginning of the time range for event time
+ *     @to: the inclusive ending of the time range for event time
+ *   optional:
+ *     @type: Event type (required when id is provided)
+ *     @id: Bound id (required when type is provided)
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success
+ *     http code: 200
+ *     response: see ContractEvent struct
+**/
 func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	params := EventParams{}
@@ -144,6 +172,24 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	enc.Encode(ceva)
 }
 
+/**
+ * Nodes endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see NodeParams
+ *   optional:
+ *     @id: the index of node in SKALE deployed smart contract
+ *     @validator_id: the index of validator in SKALE deployed smart contract
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success:
+ *     http code: 200
+ *     response: see Node struct
+**/
 func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	params := NodeParams{}
@@ -210,35 +256,25 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(nodes)
 }
 
-func pathParams(path string) (map[string]string, error) {
-	p := strings.Split(path, "/")
-	p2 := []string{}
-	for _, k := range p {
-		if k != "" {
-			p2 = append(p2, k)
-		}
-	}
-
-	switch len(p2) {
-	case 0:
-		return nil, nil
-	case 1:
-		return map[string]string{"id": p2[0]}, nil
-	default:
-		if len(p2)%2 == 1 {
-			return nil, errors.New("path has to be in key/value pair format")
-		}
-		a := map[string]string{}
-		for k, v := range p2 {
-			if k%2 == 0 {
-				a[v] = p2[k+1]
-			}
-		}
-		return a, nil
-	}
-
-}
-
+/**
+ * Validators endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see ValidatorParams
+ *   optional:
+ *     @id: the index of validator in SKALE deployed smart contract
+ *     @from: the inclusive beginning of the time range for registration time
+ *     @to: the inclusive ending of the time range for registration time
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success:
+ *     http code: 200
+ *     response: see Validator struct
+**/
 func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -332,6 +368,25 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+/**
+ * Validator statistics endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see ValidatorStatisticsParams
+ *   optional:
+ *     @id: the index of validator in SKALE deployed smart contract
+ *     @type: statistics type
+ *     @timeline: returns whether the latest or statistics changes timeline
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success:
+ *     http code: 200
+ *     response: see ValidatorStatistic struct
+**/
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -418,6 +473,24 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	}
 }
 
+/**
+ * Accounts endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see AccountParams
+ *   optional:
+ *     @type: account type
+ *     @address: account address
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success:
+ *     http code: 200
+ *     response: see Account struct
+**/
 func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -481,6 +554,27 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+/**
+ * Delegations endpoint
+ *
+ * Method: GET, POST
+ * Params:
+ *   see DelegationParams
+ *   optional:
+ *     @id: the index of delegation in SKALE deployed smart contract
+ *     @validator_id: the index of validator in SKALE deployed smart contract
+ *     @from: the inclusive beginning of the time range for delegation created time
+ *     @to: the inclusive ending of the time range for delegation created time
+ *     @timeline: returns whether the latest or delegation changes timeline
+ *
+ * Error:
+ *     http code: 400, 405, 500
+ *     response: see apiError struct
+ *
+ * Success:
+ *     http code: 200
+ *     response: see Delegation struct
+**/
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -611,7 +705,7 @@ type ScrapeConnector struct {
 	ccs map[common.Address]contract.ContractsContents
 }
 
-// NewConnector is  Connector constructor
+// NewScrapeConnector is  Connector constructor
 func NewScrapeConnector(l *zap.Logger, sc ScrapeContractor, ccs map[common.Address]contract.ContractsContents) *ScrapeConnector {
 	return &ScrapeConnector{l, sc, ccs}
 }
@@ -621,6 +715,9 @@ func (sc *ScrapeConnector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/getLogs", sc.GetLogs)
 }
 
+/*
+ * Gets logs from node endpoint
+ */
 func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
@@ -653,4 +750,33 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func pathParams(path string) (map[string]string, error) {
+	p := strings.Split(path, "/")
+	p2 := []string{}
+	for _, k := range p {
+		if k != "" {
+			p2 = append(p2, k)
+		}
+	}
+
+	switch len(p2) {
+	case 0:
+		return nil, nil
+	case 1:
+		return map[string]string{"id": p2[0]}, nil
+	default:
+		if len(p2)%2 == 1 {
+			return nil, errors.New("path has to be in key/value pair format")
+		}
+		a := map[string]string{}
+		for k, v := range p2 {
+			if k%2 == 0 {
+				a[v] = p2[k+1]
+			}
+		}
+		return a, nil
+	}
+
 }
