@@ -194,10 +194,7 @@ type Validator struct {
 	// LinkedNodes - number of all nodes attached to the validator
 	LinkedNodes uint `json:"linked_nodes"`
 	// Staked - total stake amount
-	//
-	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
-	Staked  *big.Int `json:"staked"`
+	Staked  string   `json:"staked"`
 	Pending *big.Int `json:"pending"`
 	Rewards *big.Int `json:"rewards"`
 }

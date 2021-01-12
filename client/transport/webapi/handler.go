@@ -325,7 +325,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 
 		if errFrom != nil || errTo != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(errors.New("Error parsing time format (from/to) parameters"), http.StatusBadRequest))
+			w.Write(newApiError(errors.New("error parsing time format (from/to) parameters"), http.StatusBadRequest))
 			return
 		}
 	case http.MethodOptions:
@@ -341,7 +341,6 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
-
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), structs.ValidatorParams{
@@ -351,7 +350,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		w.Write(newApiError(errors.New("error during server query"), http.StatusInternalServerError))
 		return
 	}
 
@@ -370,7 +369,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			Authorized:              vld.Authorized,
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
-			Staked:                  vld.Staked,
+			Staked:                  vld.Staked.String(),
 			Pending:                 vld.Pending,
 			Rewards:                 vld.Rewards,
 		})
@@ -418,7 +417,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	case http.MethodGet:
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
-		params.Timeline = req.URL.Query().Get("timeline") != ""
+		timeline := req.URL.Query().Get("timeline")
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
@@ -426,9 +425,25 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if typ, ok := m["type"]; ok {
 				params.Type = typ
 			}
-			if _, ok := m["timeline"]; ok {
-				params.Timeline = true
+			if t, ok := m["timeline"]; ok {
+				timeline = t
 			}
+		}
+
+		if timeline != "" {
+			t, err := strconv.ParseBool(timeline)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
+			params.Timeline = t
+		}
+
+		if params.Timeline && params.ValidatorID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("validator id must be provided for timeline"), http.StatusBadRequest))
+			return
 		}
 	case http.MethodOptions:
 		// TODO(lukanus): add options preflight headers
@@ -780,7 +795,7 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 
 func pathParams(path string) (map[string]string, error) {
 	p := strings.Split(path, "/")
-	p2 := []string{}
+	var p2 []string
 	for _, k := range p {
 		if k != "" {
 			p2 = append(p2, k)
