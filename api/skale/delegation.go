@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Delegation structure - abi.Convert Types is dumb as f****
+// Delegation structure - abi.Convert Types
 // and it is decoding data using... field order. this is why we cannot change field order
 type DelegationRaw struct {
 	Holder           common.Address `json:"holder"`
@@ -62,8 +62,6 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		Info:             results[7].(string),
 		State:            structs.DelegationStateUNKNOWN,
 	}
-
-	//log.Printf("gotDelegations %+v", dg)
 
 	// BUG(lukanus): recover from panic after format update!
 	return dg, nil

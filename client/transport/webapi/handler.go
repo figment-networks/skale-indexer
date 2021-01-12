@@ -607,7 +607,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
-		params.Timeline = req.URL.Query().Get("timeline") != ""
+		timeline := req.URL.Query().Get("timeline")
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -621,8 +621,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			if d, ok := m["id"]; ok {
 				dID = d
 			}
-			if _, ok := m["timeline"]; ok {
-				params.Timeline = true
+			if t, ok := m["timeline"]; ok {
+				timeline = t
 			}
 		}
 		params.ValidatorID = vID
@@ -638,6 +638,16 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 			return
 		}
+		if timeline != "" {
+			t, err := strconv.ParseBool(timeline)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
+			params.Timeline = t
+		}
+
 	case http.MethodPost:
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
@@ -682,7 +692,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			Holder:          dlg.Holder,
 			ValidatorID:     dlg.ValidatorID,
 			BlockHeight:     dlg.BlockHeight,
-			Amount:          dlg.Amount,
+			Amount:          dlg.Amount.String(),
 			Period:          dlg.DelegationPeriod,
 			Started:         dlg.Started,
 			Created:         dlg.Created,

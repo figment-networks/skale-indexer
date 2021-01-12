@@ -78,10 +78,7 @@ type Delegation struct {
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
 	// Amount - delegation amount SKL unit
-	//
-	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
-	Amount *big.Int `json:"amount"`
+	Amount string `json:"amount"`
 	// Period - The duration delegation as chosen by the delegator
 	//
 	// package: math/big
