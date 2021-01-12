@@ -417,7 +417,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	case http.MethodGet:
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
-		timeline := req.URL.Query().Get("timeline")
+		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
@@ -425,19 +425,9 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if typ, ok := m["type"]; ok {
 				params.Type = typ
 			}
-			if t, ok := m["timeline"]; ok {
-				timeline = t
+			if _, ok := m["timeline"]; ok {
+				params.Timeline = true
 			}
-		}
-
-		if timeline != "" {
-			t, err := strconv.ParseBool(timeline)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
-				return
-			}
-			params.Timeline = t
 		}
 
 		if params.Timeline && params.ValidatorID == "" {
@@ -622,7 +612,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
-		timeline := req.URL.Query().Get("timeline")
+		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -636,8 +626,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			if d, ok := m["id"]; ok {
 				dID = d
 			}
-			if t, ok := m["timeline"]; ok {
-				timeline = t
+			if _, ok := m["timeline"]; ok {
+				params.Timeline = true
 			}
 		}
 		params.ValidatorID = vID
@@ -652,15 +642,6 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 			return
-		}
-		if timeline != "" {
-			t, err := strconv.ParseBool(timeline)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(err, http.StatusBadRequest))
-				return
-			}
-			params.Timeline = t
 		}
 
 	case http.MethodPost:

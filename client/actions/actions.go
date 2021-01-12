@@ -125,11 +125,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		vIDI, ok := ce.Params["validatorId"]
 		if !ok {
-			return errors.New("structure is not a validator")
+			return errors.New("structure is not a validator, it does not have valiadtorId")
 		}
 		vID, ok := vIDI.(*big.Int)
 		if !ok {
-			return errors.New("structure is not a validator")
+			return errors.New("structure is not a validator, it does not have valiadtorId")
 		}
 
 		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID)
@@ -186,11 +186,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		} else if ce.EventName == "ValidatorAddressChanged" {
 			newAddrI, ok := ce.Params["newAddress"]
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not for ValidatorAddressChanged, it does not have newAddress")
 			}
 			addr, ok := newAddrI.(common.Address)
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not for ValidatorAddressChanged, it does not have newAddress")
 			}
 
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
@@ -237,11 +237,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		nIDI, ok := ce.Params["nodeIndex"]
 		if !ok {
-			return errors.New("structure is not a node")
+			return errors.New("structure is not a node, it does not have nodeIndex")
 		}
 		nID, ok := nIDI.(*big.Int)
 		if !ok {
-			return errors.New("structure is not a validator")
+			return errors.New("structure is not a node, it does not have nodeIndex")
 		}
 
 		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, nID)
@@ -285,11 +285,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		case "slash":
 			vIDI, ok := ce.Params["validatorId"]
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not a slash, it does not have validatorId")
 			}
 			vID, ok := vIDI.(*big.Int)
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not a slash, it does not have validatorId")
 			}
 
 			ce.BoundType = "validator"
@@ -297,7 +297,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		case "forgive":
 			wAddrI, ok := ce.Params["wallet"]
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not a forgive, it does not have wallet")
 			}
 			wAddr, ok := wAddrI.(common.Address)
 			if !ok {
@@ -361,11 +361,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		dIDI, ok := ce.Params["delegationId"]
 		if !ok {
-			return errors.New("structure is not a delegation")
+			return errors.New("structure is not a delegation, it does not have delegationId")
 		}
 		dID, ok := dIDI.(*big.Int)
 		if !ok {
-			return errors.New("structure is not a delegation")
+			return errors.New("structure is not a delegation, it does not have delegationId")
 		}
 
 		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID)
