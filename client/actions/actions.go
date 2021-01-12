@@ -355,7 +355,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
 				Height:    ce.BlockHeight,
 				Time:      ce.Time,
-				Kind:      structs.SysEvtTypeSlashed,
+				Kind:      structs.SysEvtTypeForgiven,
 				Recipient: wAddr,
 				After:     *am,
 			}); err != nil {
