@@ -236,7 +236,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	}
 	if params.Status != "" {
 		var ok bool
-		if nParams.Status, ok = structs.GetTypeFromStringN(params.Status); !ok {
+		if nParams.Status, ok = structs.GetTypeForNode(params.Status); !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(errors.New("node type is wrong"), http.StatusBadRequest))
 			return
@@ -451,7 +451,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	if params.Type != "" || params.Timeline {
 		var ok bool
-		if vParams.Type, ok = structs.GetTypeFromStringVS(params.Type); !ok {
+		if vParams.Type, ok = structs.GetTypeForValidatorStatistics(params.Type); !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(errors.New("statistic type is wrong"), http.StatusBadRequest))
 			return
