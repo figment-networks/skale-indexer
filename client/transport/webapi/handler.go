@@ -18,7 +18,6 @@ import (
 
 // ClientContractor - method signatures for Connector
 type ClientContractor interface {
-	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
@@ -26,6 +25,9 @@ type ClientContractor interface {
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
+
+	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
+	GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -75,7 +77,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	params := EventParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/event/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/event/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -195,7 +197,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	params := NodeParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/node/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/node/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -272,6 +274,35 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(nodes)
 }
 
+func pathParams(path, key string) (map[string]string, error) {
+	p := strings.Split(path, "/")
+	p2 := []string{}
+	for _, k := range p {
+		if k != "" {
+			p2 = append(p2, k)
+		}
+	}
+
+	switch len(p2) {
+	case 0:
+		return nil, nil
+	case 1:
+		return map[string]string{key: p2[0]}, nil
+	default:
+		if len(p2)%2 == 1 {
+			return nil, errors.New("path has to be in key/value pair format")
+		}
+		a := map[string]string{}
+		for k, v := range p2 {
+			if k%2 == 0 {
+				a[v] = p2[k+1]
+			}
+		}
+		return a, nil
+	}
+
+}
+
 /**
  * Validators endpoint
  *
@@ -294,7 +325,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/", "", -1))
+	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/", "", -1), "id")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(err, http.StatusBadRequest))
@@ -405,7 +436,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/statistics/", "", -1))
+	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/statistics/", "", -1), "id")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(err, http.StatusBadRequest))
@@ -518,7 +549,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	params := structs.AccountParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/account/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/account/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -602,7 +633,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	params := DelegationParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/delegation/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/delegation/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -705,6 +736,104 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
+	m, err := pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(err, http.StatusBadRequest))
+		return
+	}
+
+	/*
+	   type SystemEventParams struct {
+	   	After   uint64 `json:"after"`
+	   	Kind    string `json:"kind"`
+	   	Address string `json:"address"`
+	   }*/
+
+	params := SystemEventParams{}
+	switch req.Method {
+	case http.MethodGet:
+		params.Address = req.URL.Query().Get("address")
+		params.Kind = req.URL.Query().Get("kind")
+		after := req.URL.Query().Get("after")
+
+		if m != nil {
+			if ad, ok := m["address"]; ok {
+				params.Address = ad
+			}
+			if k, ok := m["kind"]; ok {
+				params.Kind = k
+			}
+			if a, ok := m["after"]; ok {
+				after = a
+			}
+		}
+
+		if after != "" {
+			var err error
+			if params.After, err = strconv.ParseUint(after, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("Error parsing after parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+	case http.MethodOptions:
+		// TODO(lukanus): add options preflight headers
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	res, err := c.cli.GetSystemEvents(req.Context(), structs.SystemEventParams{
+		After:      params.After,
+		Kind:       params.Kind,
+		Address:    params.Address,
+		SenderID:   params.SenderID,
+		ReceiverID: params.ReceiverID,
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		return
+	}
+
+	var sEvts []SystemEvent
+	for _, evt := range res {
+		sevt, _ := structs.SysEvtTypes[evt.Kind]
+		sEvts = append(sEvts, SystemEvent{
+			Height:      evt.Height,
+			Time:        evt.Time,
+			Kind:        sevt,
+			Sender:      evt.Sender,
+			Recipient:   evt.Recipient,
+			SenderID:    evt.SenderID.Uint64(),
+			RecipientID: evt.RecipientID.Uint64(),
+			Data: SystemEventData{
+				After:  evt.After,
+				Before: evt.Before,
+			},
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	if err := enc.Encode(sEvts); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
@@ -714,6 +843,8 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/validator/statistics/", c.GetValidatorStatistics)
 	mux.HandleFunc("/delegation/", c.GetDelegation)
 	mux.HandleFunc("/account/", c.GetAccount)
+
+	mux.HandleFunc("/system_events/", c.GetSystemEvents)
 }
 
 type ScrapeContractor interface {

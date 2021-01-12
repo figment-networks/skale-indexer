@@ -125,3 +125,11 @@ type ValidatorStatisticsParams struct {
 	// case true to fetch whole statistics for the filter
 	Timeline bool `json:"timeline"`
 }
+
+type SystemEventParams struct {
+	After      uint64 `json:"after"`
+	Kind       string `json:"kind"`
+	Address    string `json:"address"`
+	SenderID   uint64 `json:"sender_id"`
+	ReceiverID uint64 `json:"receiver_id"`
+}

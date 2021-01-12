@@ -175,6 +175,25 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if err != nil {
 				return fmt.Errorf("error calculating linked nodes %w", err)
 			}
+
+			sysEvt := structs.SystemEvent{
+				Height: ce.BlockHeight,
+				Time:   ce.Time,
+			}
+			switch ce.EventName {
+			case "ValidatorWasEnabled":
+				sysEvt.Kind = structs.SysEvtTypeNewDelegation
+				sysEvt.RecipientID = *vID
+			case "ValidatorWasDisabled":
+				sysEvt.Kind = structs.SysEvtTypeDelegationAccepted
+				sysEvt.RecipientID = *vID
+			}
+
+			err = m.dataStore.SaveSystemEvent(ctx, sysEvt)
+			if err != nil {
+				return fmt.Errorf("error storing system event %w", err)
+			}
+
 		} else if ce.EventName == "ValidatorRegistered" {
 			err = m.dataStore.SaveAccount(ctx, structs.Account{
 				Address: v.ValidatorAddress,
@@ -292,6 +311,25 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return errors.New("structure is not a slash, it does not have validatorId")
 			}
 
+			amountI, ok := ce.Params["amount"]
+			if !ok {
+				return errors.New("Structure is not a slash")
+			}
+
+			am, ok := amountI.(*big.Int)
+			if !ok {
+				return errors.New("Structure is not a slash")
+			}
+
+			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
+				Height: ce.BlockHeight,
+				Time:   ce.Time,
+				Kind:   structs.SysEvtTypeSlashed,
+				After:  *am,
+			}); err != nil {
+				return fmt.Errorf("error storing system event %w", err)
+			}
+
 			ce.BoundType = "validator"
 			ce.BoundID = append(ce.BoundID, *vID)
 		case "forgive":
@@ -302,6 +340,26 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			wAddr, ok := wAddrI.(common.Address)
 			if !ok {
 				return errors.New("structure is not a validator")
+			}
+
+			amountI, ok := ce.Params["amount"]
+			if !ok {
+				return errors.New("Structure is not a slash")
+			}
+
+			am, ok := amountI.(*big.Int)
+			if !ok {
+				return errors.New("Structure is not a slash")
+			}
+
+			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
+				Height:    ce.BlockHeight,
+				Time:      ce.Time,
+				Kind:      structs.SysEvtTypeSlashed,
+				Recipient: wAddr,
+				After:     *am,
+			}); err != nil {
+				return fmt.Errorf("error storing system forgive %w", err)
 			}
 
 			ce.BoundAddress = append(ce.BoundAddress, wAddr)
@@ -342,7 +400,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 	case "delegation_controller":
 		/*
 			@dev Emitted when a delegation is proposed to a validator.
-				event DelegationProposed(
+			event DelegationProposed(
 				uint delegationId
 			);
 			@dev Emitted when a delegation is accepted by a validator.
@@ -393,6 +451,35 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
 			return fmt.Errorf("error calculating total stake %w", err)
+		}
+
+		sysEvt := structs.SystemEvent{
+			Height: ce.BlockHeight,
+			Time:   ce.Time,
+			After:  *d.Amount,
+		}
+		switch ce.EventName {
+		case "DelegationProposed":
+			sysEvt.Kind = structs.SysEvtTypeNewDelegation
+			sysEvt.Sender = d.Holder
+			sysEvt.RecipientID = *d.ValidatorID
+		case "DelegationAccepted":
+			sysEvt.Kind = structs.SysEvtTypeDelegationAccepted
+			sysEvt.Recipient = d.Holder
+			sysEvt.SenderID = *d.ValidatorID
+		case "DelegationRequestCanceledByUser":
+			sysEvt.Kind = structs.SysEvtTypeDelegationRejected
+			sysEvt.Sender = d.Holder
+			sysEvt.RecipientID = *d.ValidatorID
+		case "UndelegationRequested":
+			sysEvt.Kind = structs.SysEvtTypeUndeledationRequested
+			sysEvt.Sender = d.Holder
+			sysEvt.RecipientID = *d.ValidatorID
+		}
+
+		err = m.dataStore.SaveSystemEvent(ctx, sysEvt)
+		if err != nil {
+			return fmt.Errorf("error storing system event %w", err)
 		}
 
 		ce.BoundType = "delegation"

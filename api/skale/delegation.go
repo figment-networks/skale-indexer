@@ -49,6 +49,10 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		return d, errors.New("empty result")
 	}
 
+	if len(results) < 8 {
+		return d, errors.New("wrong type of result")
+	}
+
 	createT := results[4].(*big.Int)
 	dg := structs.Delegation{
 		DelegationID:     delegationID,

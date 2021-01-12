@@ -225,3 +225,20 @@ type Account struct {
 	// Type - account type
 	Type string `json:"type"`
 }
+
+type SystemEvent struct {
+	Height      uint64          `json:"height"`
+	Time        time.Time       `json:"time"`
+	Kind        string          `json:"kind"`
+	SenderID    uint64          `json:"sender_id"`
+	RecipientID uint64          `json:"recipient_id"`
+	Sender      common.Address  `json:"sender"`
+	Recipient   common.Address  `json:"recipient"`
+	Data        SystemEventData `json:"data"`
+}
+
+type SystemEventData struct {
+	Before big.Int   `json:"before"`
+	After  big.Int   `json:"after"`
+	Change big.Float `json:"change"`
+}

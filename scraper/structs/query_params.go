@@ -47,3 +47,10 @@ type ValidatorStatisticsParams struct {
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
+type SystemEventParams struct {
+	After      uint64
+	Kind       string
+	Address    string
+	SenderID   uint64
+	ReceiverID uint64
+}
