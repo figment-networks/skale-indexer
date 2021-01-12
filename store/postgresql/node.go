@@ -40,7 +40,7 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 		n.NextRewardDate,
 		n.LastRewardDate,
 		n.FinishTime.String(),
-		n.Status,
+		n.Status.String(),
 		n.ValidatorID.String(),
 		n.BlockHeight)
 	return err
@@ -94,8 +94,8 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		var validatorId uint64
 		var IP string
 		var publicIP string
-
-		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &n.Status, &validatorId)
+		var status string
+		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &status, &validatorId)
 		if err != nil {
 			return nil, err
 		}
@@ -106,6 +106,8 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		n.ValidatorID = new(big.Int).SetUint64(validatorId)
 		n.IP, _, _ = net.ParseCIDR(IP)
 		n.PublicIP, _, _ = net.ParseCIDR(publicIP)
+		s, _ := structs.GetTypeForNode(status)
+		n.Status = s
 		nodes = append(nodes, n)
 	}
 	return nodes, nil

@@ -235,13 +235,12 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	}
 	if params.Status != "" {
 		var ok bool
-		var s structs.NodeStatus
-		if s, ok = structs.GetTypeForNode(params.Status); !ok {
+		if _, ok = structs.GetTypeForNode(params.Status); !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(errors.New("node type is wrong"), http.StatusBadRequest))
 			return
 		}
-		nParams.Status = s.String()
+		nParams.Status = params.Status
 	}
 
 	res, err := c.cli.GetNodes(req.Context(), nParams)
