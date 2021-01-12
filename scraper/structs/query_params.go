@@ -23,7 +23,7 @@ type DelegationParams struct {
 type NodeParams struct {
 	NodeID      string
 	ValidatorID string
-	Status      NodeStatus
+	Status      string
 }
 
 type AccountParams struct {

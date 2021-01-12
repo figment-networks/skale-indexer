@@ -68,7 +68,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		args = append(args, params.ValidatorID)
 		i++
 	}
-	if params.Status != structs.NodeStatusUnknown {
+	if params.Status != "" {
 		wherec = append(wherec, ` status =  $`+strconv.Itoa(i))
 		args = append(args, params.Status)
 		i++

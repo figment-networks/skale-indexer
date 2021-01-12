@@ -385,12 +385,10 @@ func TestHandler(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			ttype: "node",
-			expectedParams: structs.NodeParams{
-				Status: structs.NodeStatusUnknown,
-			},
-			dbResponse: errors.New("internal error"),
-			code:       http.StatusInternalServerError,
+			ttype:          "node",
+			expectedParams: structs.NodeParams{},
+			dbResponse:     errors.New("internal error"),
+			code:           http.StatusInternalServerError,
 		},
 		{
 			name: "success response",
@@ -398,10 +396,8 @@ func TestHandler(t *testing.T) {
 				Method: http.MethodGet,
 				URL:    &url.URL{},
 			},
-			ttype: "node",
-			expectedParams: structs.NodeParams{
-				Status: structs.NodeStatusUnknown,
-			},
+			ttype:            "node",
+			expectedParams:   structs.NodeParams{},
 			expectedDBReturn: []structs.Node{{}},
 			code:             http.StatusOK,
 		},
@@ -416,7 +412,6 @@ func TestHandler(t *testing.T) {
 			ttype: "node",
 			expectedParams: structs.NodeParams{
 				ValidatorID: "2",
-				Status:      structs.NodeStatusUnknown,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -432,7 +427,6 @@ func TestHandler(t *testing.T) {
 			ttype: "node",
 			expectedParams: structs.NodeParams{
 				ValidatorID: "2",
-				Status:      structs.NodeStatusUnknown,
 			},
 			expectedDBReturn: []structs.Node{{}},
 			code:             http.StatusOK,
@@ -448,7 +442,6 @@ func TestHandler(t *testing.T) {
 			ttype: "node",
 			expectedParams: structs.NodeParams{
 				NodeID: "2",
-				Status: structs.NodeStatusUnknown,
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -464,7 +457,6 @@ func TestHandler(t *testing.T) {
 			ttype: "node",
 			expectedParams: structs.NodeParams{
 				NodeID: "2",
-				Status: structs.NodeStatusUnknown,
 			},
 			expectedDBReturn: []structs.Node{{}},
 			code:             http.StatusOK,
