@@ -274,35 +274,6 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(nodes)
 }
 
-func pathParams(path, key string) (map[string]string, error) {
-	p := strings.Split(path, "/")
-	p2 := []string{}
-	for _, k := range p {
-		if k != "" {
-			p2 = append(p2, k)
-		}
-	}
-
-	switch len(p2) {
-	case 0:
-		return nil, nil
-	case 1:
-		return map[string]string{key: p2[0]}, nil
-	default:
-		if len(p2)%2 == 1 {
-			return nil, errors.New("path has to be in key/value pair format")
-		}
-		a := map[string]string{}
-		for k, v := range p2 {
-			if k%2 == 0 {
-				a[v] = p2[k+1]
-			}
-		}
-		return a, nil
-	}
-
-}
-
 /**
  * Validators endpoint
  *
@@ -905,9 +876,9 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func pathParams(path string) (map[string]string, error) {
+func pathParams(path, key string) (map[string]string, error) {
 	p := strings.Split(path, "/")
-	var p2 []string
+	p2 := []string{}
 	for _, k := range p {
 		if k != "" {
 			p2 = append(p2, k)
@@ -918,7 +889,7 @@ func pathParams(path string) (map[string]string, error) {
 	case 0:
 		return nil, nil
 	case 1:
-		return map[string]string{"id": p2[0]}, nil
+		return map[string]string{key: p2[0]}, nil
 	default:
 		if len(p2)%2 == 1 {
 			return nil, errors.New("path has to be in key/value pair format")
