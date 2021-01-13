@@ -140,10 +140,10 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 
 	_, err = tx.Exec(`UPDATE validators
 						SET staked = (
-							 	SELECT COALESCE((SELECT DISTINCT ON (validator_id, statistic_type) amount
+							 	SELECT COALESCE((SELECT amount
 								 FROM validator_statistics
 								 WHERE validator_id = $1 AND statistic_type = $2 
-								 ORDER BY validator_id, statistic_type, block_height DESC), 0))
+								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $4`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorID)
 
