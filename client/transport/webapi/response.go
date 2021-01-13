@@ -1,6 +1,7 @@
 package webapi
 
 import (
+	"encoding/json"
 	"math/big"
 	"time"
 
@@ -8,40 +9,52 @@ import (
 	"github.com/google/uuid"
 )
 
+// swagger:model
+type ContractEvents []ContractEvent
+
+// swagger:model
+type Nodes []Node
+
+// swagger:model
+type Validators []Validator
+
+// swagger:model
+type ValidatorStatistics []ValidatorStatistic
+
+// swagger:model
+type Delegations []Delegation
+
+// swagger:model
+type Accounts []Account
+
 // ContractEvent a set of fields to show returned events (contract events) by search
+// swagger:model
 type ContractEvent struct {
 	// ID - Identification on database, not the mainnet
-	//
-	// package: github.com/google/uuid
-	// A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
-	// format: [16]byte
 	ID uuid.UUID `json:"id"`
 	// ContractName - Name of the contract
 	//
-	// example: "delegation_controller", "validator_service etc"
+	// example: delegation_controller
 	ContractName string `json:"contract_name"`
 	// EventName - name of the event in contract_name
 	//
-	// example: "ValidatorRegistered", "WithdrawBounty"
+	// example: ValidatorRegistered
 	EventName string `json:"event_name"`
-	// ContractAddress - Address of the contract
+	// ContractAddress - Address of the contract (Address represents the 20 byte address of an Ethereum account)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Address represents the 20 byte address of an Ethereum account
-	// format: [20]byte
 	ContractAddress common.Address `json:"contract_address"`
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
 	// Time - Event time
 	//
-	// package: time
 	// A Time represents an instant in time with nanosecond precision.
 	Time time.Time `json:"time"`
 	// TransactionHash - transaction where the event occurred
 	//
 	// package: github.com/ethereum/go-ethereum/common
 	// Hash represents the 32 byte Keccak256 hash of arbitrary data
-	// format: [32]byte
+	// format: string
 	TransactionHash common.Hash `json:"transaction_hash"`
 	// Removed - indicates whether the event is removed on SKALE
 	Removed bool `json:"removed"`
@@ -52,28 +65,25 @@ type ContractEvent struct {
 }
 
 // Delegation a set of fields to show returned delegations by search
+// swagger:model
 type Delegation struct {
 	// DelegationID - the index of delegation in SKALE deployed smart contract
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	DelegationID *big.Int `json:"id"`
-	// Holder - Address of the token holder
+	// Holder - Address of the token holder (Address represents the 20 byte address of an Ethereum account.)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Address represents the 20 byte address of an Ethereum account
 	// format: [20]byte
 	Holder common.Address `json:"holder"`
-	// TransactionHash - transaction where delegation updated
+	// TransactionHash - transaction where delegation updated ( Hash represents the 32 byte Keccak256 hash of arbitrary data)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Hash represents the 32 byte Keccak256 hash of arbitrary data
 	// format: [32]byte
 	TransactionHash common.Hash `json:"transaction_hash"`
 	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"validator_id"`
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
@@ -82,7 +92,6 @@ type Delegation struct {
 	// Period - The duration delegation as chosen by the delegator
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	Period *big.Int `json:"period"`
 	// Created - Creation time at ETH mainnet
 	//
@@ -92,23 +101,21 @@ type Delegation struct {
 	// Started - started  epoch
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	Started *big.Int `json:"started"`
 	// Finished - finished  epoch
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	Finished *big.Int `json:"finished"`
 	// Info - delegation information
 	Info string `json:"info"`
 }
 
 // Node a set of fields to show returned nodes by search
+// swagger:model
 type Node struct {
 	// NodeID - the index of node in SKALE deployed smart contract
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	NodeID *big.Int `json:"id"`
 	// Name - node name
 	Name string `json:"name"`
@@ -121,69 +128,59 @@ type Node struct {
 	// StartBlock - starting block height on ETH mainnet
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	StartBlock *big.Int `json:"start_block"`
-	// NextRewardDate - next reward date
+	// NextRewardDate - next reward time
 	//
 	// package: time
-	// A Time represents an instant in time with nanosecond precision.
 	NextRewardDate time.Time `json:"next_reward_date"`
-	// LastRewardDate - last reward date
+	// LastRewardDate - last reward time
 	//
 	// package: time
-	// A Time represents an instant in time with nanosecond precision.
 	LastRewardDate time.Time `json:"last_reward_date"`
 	// FinishTime - finish time
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	FinishTime *big.Int `json:"finish_time"`
 	// ValidatorID - validator Id on SKALE network
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"validator_id"`
 	// Status - node status
 	Status string `json:"status"`
 }
 
 // Validator a set of fields to show returned validators by search
+// swagger:model
 type Validator struct {
 	// ValidatorID - the index of validator in SKALE deployed smart contract
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"id"`
 	// Name - validator name
 	Name string `json:"name"`
 	// Description - validator description
 	Description string `json:"description"`
-	// ValidatorAddress - validator address on SKALE
+	// ValidatorAddress - validator address on SKALE (Address represents the 20 byte address of an Ethereum account)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Address represents the 20 byte address of an Ethereum account
 	// format: [20]byte
 	ValidatorAddress common.Address `json:"validator_address"`
-	// RequestedAddress - requested address on SKALE
+	// RequestedAddress - requested address on SKALE (Address represents the 20 byte address of an Ethereum account)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Address represents the 20 byte address of an Ethereum account
 	// format: [20]byte
 	RequestedAddress common.Address `json:"requested_address"`
 	// FeeRate - fee rate
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	FeeRate *big.Int `json:"fee_rate"`
 	// RegistrationTime - registration time to network
 	//
 	// package: time
-	// A Time represents an instant in time with nanosecond precision.
 	RegistrationTime time.Time `json:"registration_time"`
 	// MinimumDelegationAmount - minimum delegation amount i.e. MDR
 	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	MinimumDelegationAmount *big.Int `json:"minimum_delegation_amount"`
 	// AcceptNewRequests - shows whether validator accepts new requests or not
 	AcceptNewRequests bool `json:"accept_new_requests"`
@@ -199,12 +196,11 @@ type Validator struct {
 	Rewards *big.Int `json:"rewards"`
 }
 
-// ValidatorStatistic a set of fields to show returned validator statistics by search
+// ValidatorStatistic validator statistic value in given block
+// swagger:model
 type ValidatorStatistic struct {
 	// ValidatorID - the index of validator in SKALE deployed smart contract
-	//
 	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"id"`
 	// Amount - statistics amount
 	Amount string `json:"amount"`
@@ -214,18 +210,20 @@ type ValidatorStatistic struct {
 	Type string `json:"type"`
 }
 
-// Account a set of fields to show returned accounts by search
+// Account structure representing ethereum account used in SKALE
+// swagger:model
 type Account struct {
-	// Address - account address
+	// Address - account address (Address represents the 20 byte address of an Ethereum account)
 	//
 	// package: github.com/ethereum/go-ethereum/common
-	// Address represents the 20 byte address of an Ethereum account
 	// format: [20]byte
 	Address common.Address `json:"address"`
 	// Type - account type
 	Type string `json:"type"`
 }
 
+// SystemEvent event information for reporting some activities in chain
+// swagger:model
 type SystemEvent struct {
 	Height      uint64          `json:"height"`
 	Time        time.Time       `json:"time"`
@@ -237,8 +235,27 @@ type SystemEvent struct {
 	Data        SystemEventData `json:"data"`
 }
 
+// SystemEventData value for SystemEvent
+// swagger:model
 type SystemEventData struct {
 	Before big.Int   `json:"before"`
 	After  big.Int   `json:"after"`
 	Change big.Float `json:"change"`
+}
+
+// ApiError a set of fields to show error
+// swagger:model
+type ApiError struct {
+	// Error - error message from api
+	Error string `json:"error"`
+	// Code - http code
+	Code int `json:"code"`
+}
+
+func newApiError(err error, code int) []byte {
+	resp, _ := json.Marshal(ApiError{
+		Error: err.Error(),
+		Code:  code,
+	})
+	return resp
 }
