@@ -189,19 +189,37 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				sysEvt.RecipientID = *vID
 			}
 
-			err = m.dataStore.SaveSystemEvent(ctx, sysEvt)
-			if err != nil {
+			if err = m.dataStore.SaveSystemEvent(ctx, sysEvt); err != nil {
 				return fmt.Errorf("error storing system event %w", err)
 			}
 
 		} else if ce.EventName == "ValidatorRegistered" {
-			err = m.dataStore.SaveAccount(ctx, structs.Account{
+
+			if err = m.dataStore.SaveAccount(ctx, structs.Account{
 				Address: v.ValidatorAddress,
 				Type:    structs.AccountTypeValidator,
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("error storing account %w", err)
 			}
+
+			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
+				Height: ce.BlockHeight,
+				Time:   ce.Time,
+				Kind:   structs.SysEvtTypeFeeChanged,
+				After:  *v.FeeRate,
+			}); err != nil {
+				return fmt.Errorf("error storing system event %w", err)
+			}
+
+			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
+				Height: ce.BlockHeight,
+				Time:   ce.Time,
+				Kind:   structs.SysEvtTypeMDRChanged,
+				After:  *v.MinimumDelegationAmount,
+			}); err != nil {
+				return fmt.Errorf("error storing system event %w", err)
+			}
+
 		} else if ce.EventName == "ValidatorAddressChanged" {
 			newAddrI, ok := ce.Params["newAddress"]
 			if !ok {
@@ -437,19 +455,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing delegation %w", err)
 		}
 
-		err = m.dataStore.SaveAccount(ctx, structs.Account{
+		if err := m.dataStore.SaveAccount(ctx, structs.Account{
 			Address: d.Holder,
 			Type:    structs.AccountTypeDelegator,
-		})
-		if err != nil {
+		}); err != nil {
 			return fmt.Errorf("error storing account %w", err)
 		}
 
-		vs := structs.ValidatorStatisticsParams{
+		if err := m.dataStore.CalculateTotalStake(ctx, structs.ValidatorStatisticsParams{
 			ValidatorID: d.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
-		}
-		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
+		}); err != nil {
 			return fmt.Errorf("error calculating total stake %w", err)
 		}
 
@@ -477,8 +493,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			sysEvt.RecipientID = *d.ValidatorID
 		}
 
-		err = m.dataStore.SaveSystemEvent(ctx, sysEvt)
-		if err != nil {
+		if err = m.dataStore.SaveSystemEvent(ctx, sysEvt); err != nil {
 			return fmt.Errorf("error storing system event %w", err)
 		}
 
