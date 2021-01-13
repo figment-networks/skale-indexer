@@ -119,7 +119,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
+	res, err := tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 										SELECT $3, $1, $2, sum(t1.amount) AS amount
 									FROM
 											( SELECT DISTINCT ON (delegation_id) validator_id, delegation_id, block_height, state, amount
@@ -138,13 +138,26 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 		return err
 	}
 
-	_, err = tx.Exec(`UPDATE validators
+	affectedRows, err := res.RowsAffected()
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	if affectedRows != 0 {
+		_, err = tx.Exec(`UPDATE validators
 						SET staked = (
 							 	SELECT amount
 								 FROM validator_statistics
 								 WHERE validator_id = $1 AND statistic_type = $2 AND block_height = $3 )
 						WHERE validator_id = $4`,
-		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.BlockHeight, params.ValidatorID)
+			params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.BlockHeight, params.ValidatorID)
+	} else {
+		_, err = tx.Exec(`UPDATE validators SET staked = 0 WHERE validator_id = $1`,
+			params.ValidatorID)
+	}
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
