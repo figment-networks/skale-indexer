@@ -38,7 +38,7 @@ var (
 	}
 )
 
-func GetTypeFromString(s string) (StatisticTypeVS, bool) {
+func GetTypeForValidatorStatistics(s string) (StatisticTypeVS, bool) {
 	t, ok := StatisticTypes[s]
 	return t, ok
 }

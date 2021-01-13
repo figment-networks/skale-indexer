@@ -411,7 +411,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				ValidatorId: "2",
+				ValidatorID: "2",
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -426,7 +426,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				ValidatorId: "2",
+				ValidatorID: "2",
 			},
 			expectedDBReturn: []structs.Node{{}},
 			code:             http.StatusOK,
@@ -441,7 +441,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				NodeId: "2",
+				NodeID: "2",
 			},
 			dbResponse: errors.New("internal error"),
 			code:       http.StatusInternalServerError,
@@ -456,7 +456,7 @@ func TestHandler(t *testing.T) {
 			},
 			ttype: "node",
 			expectedParams: structs.NodeParams{
-				NodeId: "2",
+				NodeID: "2",
 			},
 			expectedDBReturn: []structs.Node{{}},
 			code:             http.StatusOK,

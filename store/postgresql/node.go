@@ -40,7 +40,7 @@ func (d *Driver) SaveNode(ctx context.Context, n structs.Node) error {
 		n.NextRewardDate,
 		n.LastRewardDate,
 		n.FinishTime.String(),
-		n.Status,
+		n.Status.String(),
 		n.ValidatorID.String(),
 		n.BlockHeight)
 	return err
@@ -58,14 +58,19 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		i      = 1
 	)
 
-	if params.NodeId != "" {
+	if params.NodeID != "" {
 		wherec = append(wherec, ` node_id =  $`+strconv.Itoa(i))
-		args = append(args, params.NodeId)
+		args = append(args, params.NodeID)
 		i++
 	}
-	if params.ValidatorId != "" {
+	if params.ValidatorID != "" {
 		wherec = append(wherec, ` validator_id =  $`+strconv.Itoa(i))
-		args = append(args, params.ValidatorId)
+		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Status != "" {
+		wherec = append(wherec, ` status =  $`+strconv.Itoa(i))
+		args = append(args, params.Status)
 		i++
 	}
 	if len(args) > 0 {
@@ -89,8 +94,8 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		var validatorId uint64
 		var IP string
 		var publicIP string
-
-		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &n.Status, &validatorId)
+		var status string
+		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &status, &validatorId)
 		if err != nil {
 			return nil, err
 		}
@@ -101,6 +106,8 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		n.ValidatorID = new(big.Int).SetUint64(validatorId)
 		n.IP, _, _ = net.ParseCIDR(IP)
 		n.PublicIP, _, _ = net.ParseCIDR(publicIP)
+		s, _ := structs.GetTypeForNode(status)
+		n.Status = s
 		nodes = append(nodes, n)
 	}
 	return nodes, nil

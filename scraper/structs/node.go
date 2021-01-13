@@ -30,7 +30,23 @@ const (
 	NodeStatusLeaving
 	NodeStatusLeft
 	NodeStatusInMaintenance
+	NodeStatusUnknown NodeStatus = 999
 )
+
+var (
+	NodeStatusTypes = map[string]NodeStatus{
+		"Active":         NodeStatusActive,
+		"Leaving":        NodeStatusLeaving,
+		"Left":           NodeStatusLeft,
+		"In_Maintenance": NodeStatusInMaintenance,
+		"Unknown":        NodeStatusUnknown,
+	}
+)
+
+func GetTypeForNode(s string) (NodeStatus, bool) {
+	t, ok := NodeStatusTypes[s]
+	return t, ok
+}
 
 func (k NodeStatus) String() string {
 	switch k {

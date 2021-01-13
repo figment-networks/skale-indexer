@@ -204,6 +204,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 
 		params.NodeID = req.URL.Query().Get("id")
 		params.ValidatorID = req.URL.Query().Get("validator_id")
+		params.Status = req.URL.Query().Get("status")
 
 		if m != nil {
 			if nodeId, ok := m["id"]; ok {
@@ -211,6 +212,9 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			}
 			if validatorId, ok := m["validator_id"]; ok {
 				params.ValidatorID = validatorId
+			}
+			if status, ok := m["status"]; ok {
+				params.Status = status
 			}
 		}
 	case http.MethodPost:
@@ -225,10 +229,21 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
 	}
-	res, err := c.cli.GetNodes(req.Context(), structs.NodeParams{
-		NodeId:      params.NodeID,
-		ValidatorId: params.ValidatorID,
-	})
+	nParams := structs.NodeParams{
+		NodeID:      params.NodeID,
+		ValidatorID: params.ValidatorID,
+	}
+	if params.Status != "" {
+		var ok bool
+		if _, ok = structs.GetTypeForNode(params.Status); !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("node type is wrong"), http.StatusBadRequest))
+			return
+		}
+		nParams.Status = params.Status
+	}
+
+	res, err := c.cli.GetNodes(req.Context(), nParams)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
@@ -248,6 +263,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			LastRewardDate: n.LastRewardDate,
 			FinishTime:     n.FinishTime,
 			ValidatorID:    n.ValidatorID,
+			Status:         n.Status.String(),
 		})
 	}
 
@@ -309,7 +325,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 
 		if errFrom != nil || errTo != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(errors.New("Error parsing time format (from/to) parameters"), http.StatusBadRequest))
+			w.Write(newApiError(errors.New("error parsing time format (from/to) parameters"), http.StatusBadRequest))
 			return
 		}
 	case http.MethodOptions:
@@ -325,7 +341,6 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
 		return
-
 	}
 
 	res, err := c.cli.GetValidators(req.Context(), structs.ValidatorParams{
@@ -335,7 +350,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		w.Write(newApiError(errors.New("error during server query"), http.StatusInternalServerError))
 		return
 	}
 
@@ -354,7 +369,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			Authorized:              vld.Authorized,
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
-			Staked:                  vld.Staked,
+			Staked:                  vld.Staked.String(),
 			Pending:                 vld.Pending,
 			Rewards:                 vld.Rewards,
 		})
@@ -414,6 +429,12 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 				params.Timeline = true
 			}
 		}
+
+		if params.Timeline && params.ValidatorID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("validator id must be provided for timeline"), http.StatusBadRequest))
+			return
+		}
 	case http.MethodOptions:
 		// TODO(lukanus): add options preflight headers
 	case http.MethodPost:
@@ -429,24 +450,24 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	vparams := structs.ValidatorStatisticsParams{
+	vParams := structs.ValidatorStatisticsParams{
 		ValidatorID: params.ValidatorID,
 	}
 
 	if params.Type != "" || params.Timeline {
 		var ok bool
-		if vparams.Type, ok = structs.GetTypeFromString(params.Type); !ok {
+		if vParams.Type, ok = structs.GetTypeForValidatorStatistics(params.Type); !ok {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(errors.New("Statistic type is wrong"), http.StatusBadRequest))
+			w.Write(newApiError(errors.New("statistic type is wrong"), http.StatusBadRequest))
 			return
 		}
 	}
 
 	var res []structs.ValidatorStatistics
 	if params.Timeline {
-		res, err = c.cli.GetValidatorStatisticsTimeline(req.Context(), vparams)
+		res, err = c.cli.GetValidatorStatisticsTimeline(req.Context(), vParams)
 	} else {
-		res, err = c.cli.GetValidatorStatistics(req.Context(), vparams)
+		res, err = c.cli.GetValidatorStatistics(req.Context(), vParams)
 	}
 
 	if err != nil {
@@ -459,7 +480,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	for _, v := range res {
 		vlds = append(vlds, ValidatorStatistic{
 			Type:        v.Type.String(),
-			ValidatorID: v.ValidatorID.Uint64(),
+			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
 			Amount:      v.Amount.String(),
 		})
@@ -622,6 +643,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
 			return
 		}
+
 	case http.MethodPost:
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
@@ -635,7 +657,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	dparams := structs.DelegationParams{
+	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
 		TimeFrom:     params.TimeFrom,
@@ -647,9 +669,9 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		err error
 	)
 	if params.Timeline {
-		res, err = c.cli.GetDelegationTimeline(req.Context(), dparams)
+		res, err = c.cli.GetDelegationTimeline(req.Context(), dParams)
 	} else {
-		res, err = c.cli.GetDelegations(req.Context(), dparams)
+		res, err = c.cli.GetDelegations(req.Context(), dParams)
 	}
 
 	if err != nil {
@@ -666,7 +688,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			Holder:          dlg.Holder,
 			ValidatorID:     dlg.ValidatorID,
 			BlockHeight:     dlg.BlockHeight,
-			Amount:          dlg.Amount,
+			Amount:          dlg.Amount.String(),
 			Period:          dlg.DelegationPeriod,
 			Started:         dlg.Started,
 			Created:         dlg.Created,
@@ -754,7 +776,7 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 
 func pathParams(path string) (map[string]string, error) {
 	p := strings.Split(path, "/")
-	p2 := []string{}
+	var p2 []string
 	for _, k := range p {
 		if k != "" {
 			p2 = append(p2, k)

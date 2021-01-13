@@ -106,7 +106,7 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 			dlgID     uint64
 			holder    []byte
 			vldID     uint64
-			amount    []byte
+			amount    string
 			started   uint64
 			finished  uint64
 			dlgPeriod uint64
@@ -123,7 +123,7 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		h.SetString(string(th), 10)
 		dlg.TransactionHash.SetBytes(h.Bytes())
 
-		h.SetString(string(amount), 10)
+		h.SetString(amount, 10)
 		dlg.Amount = h
 
 		dlg.ValidatorID = new(big.Int).SetUint64(vldID)
@@ -144,30 +144,30 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 
 	var (
 		args   []interface{}
-		wherec []string
+		whereC []string
 		i      = 1
 	)
 
 	if params.DelegationID != "" {
-		wherec = append(wherec, ` delegation_id = $`+strconv.Itoa(i))
+		whereC = append(whereC, ` delegation_id = $`+strconv.Itoa(i))
 		args = append(args, params.DelegationID)
 		i++
 	}
 	if params.ValidatorID != "" {
-		wherec = append(wherec, ` validator_id = $`+strconv.Itoa(i))
+		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
-		wherec = append(wherec, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
+		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
 		args = append(args, params.TimeTo)
 		i += 2
 	}
-	if len(wherec) > 0 {
+	if len(whereC) > 0 {
 		q += " WHERE "
 	}
-	q += strings.Join(wherec, " AND ")
+	q += strings.Join(whereC, " AND ")
 	q += `ORDER BY delegation_id DESC, block_height DESC`
 
 	if err != nil {
@@ -187,7 +187,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 			dlgId     uint64
 			holder    []byte
 			vldId     uint64
-			amount    []byte
+			amount    string
 			started   uint64
 			finished  uint64
 			dlgPeriod uint64
@@ -204,7 +204,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		h.SetString(string(th), 10)
 		dlg.TransactionHash.SetBytes(h.Bytes())
 
-		h.SetString(string(amount), 10)
+		h.SetString(amount, 10)
 		dlg.Amount = h
 
 		dlg.ValidatorID = new(big.Int).SetUint64(vldId)

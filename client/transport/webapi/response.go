@@ -78,10 +78,7 @@ type Delegation struct {
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
 	// Amount - delegation amount SKL unit
-	//
-	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
-	Amount *big.Int `json:"amount"`
+	Amount string `json:"amount"`
 	// Period - The duration delegation as chosen by the delegator
 	//
 	// package: math/big
@@ -146,6 +143,8 @@ type Node struct {
 	// package: math/big
 	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
 	ValidatorID *big.Int `json:"validator_id"`
+	// Status - node status
+	Status string `json:"status"`
 }
 
 // Validator a set of fields to show returned validators by search
@@ -195,10 +194,7 @@ type Validator struct {
 	// LinkedNodes - number of all nodes attached to the validator
 	LinkedNodes uint `json:"linked_nodes"`
 	// Staked - total stake amount
-	//
-	// package: math/big
-	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
-	Staked  *big.Int `json:"staked"`
+	Staked  string   `json:"staked"`
 	Pending *big.Int `json:"pending"`
 	Rewards *big.Int `json:"rewards"`
 }
@@ -206,7 +202,10 @@ type Validator struct {
 // ValidatorStatistic a set of fields to show returned validator statistics by search
 type ValidatorStatistic struct {
 	// ValidatorID - the index of validator in SKALE deployed smart contract
-	ValidatorID uint64 `json:"id"`
+	//
+	// package: math/big
+	// An Int represents a signed multi-precision integer. The zero value for an Int represents the value 0.
+	ValidatorID *big.Int `json:"id"`
 	// Amount - statistics amount
 	Amount string `json:"amount"`
 	// BlockHeight - starting block height on ETH mainnet

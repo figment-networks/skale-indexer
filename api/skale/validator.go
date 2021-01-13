@@ -88,7 +88,7 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	return isAuthorized, nil
 }
 
-// Validator structure - abi.Convert Types is dumb
+// Validator structure - to be used with abi.ConvertType method
 // It is decoding data using... field order. this is why we cannot change field order
 type ValidatorRaw struct {
 	Name                    string         `json:"name"`
