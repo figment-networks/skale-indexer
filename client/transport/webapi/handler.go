@@ -1163,7 +1163,6 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		// w.Write(newApiError(, http.StatusMethodNotAllowed))
 		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
 		return
 	}

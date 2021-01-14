@@ -1,3 +1,6 @@
 utils/*
 .DS_Store
 ./install
+.vscode/launch.json
+client/transport/webapi/swagger.json
+indexer
