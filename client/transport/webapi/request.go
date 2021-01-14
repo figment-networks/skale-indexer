@@ -45,7 +45,7 @@ type NodeParams struct {
 	ValidatorID string `json:"validator_id"`
 	// Status - node status
 	//
-	// example: "Active"
+	// example: Active
 	Status string `json:"status"`
 }
 
