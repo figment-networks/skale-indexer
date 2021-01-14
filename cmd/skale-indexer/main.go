@@ -105,6 +105,10 @@ func main() {
 	}
 
 	caller := &skale.Caller{}
+	if cfg.EthereumNodeType == "recent" {
+		caller.NodeType = skale.ENTRecent
+	}
+
 	am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
 	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()

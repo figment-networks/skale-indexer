@@ -22,9 +22,12 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 	results := []interface{}{}
 
@@ -66,9 +69,12 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 	results := []interface{}{}
 
@@ -96,11 +102,13 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
-
 	err = bc.Call(co, &results, "nodes", nodeID)
 
 	if err != nil {

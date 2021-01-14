@@ -4,6 +4,10 @@ This repository contains SKALE indexer code that is responsible for tracking SKA
 
 > :warning: **This repository is still undergoing heavy active development**: We will not consider this stable before the next announcement, and any code may be considerably changed.
 
+## Requrements
+    - Configured and installed go (to compile)
+    - Ethereum node access. Should be the archival node
+
 ## Actions
 
 ### Compilation
@@ -28,6 +32,8 @@ To run this project you just need to run the compiled binary supplying either co
 
 Default parameters are available in `.env.default` file in this repository.
 Keep in mind that you need to have SKALE abi files for the indexer to run. The easiest way to get it is clone `github.com/skalenetwork/skale-network` repository, and point indexer to `skale-network/releases/mainnet/skale-manager`. It will digest all abi files from entire directory.
+
+This service is prepared to work with archival node of ethereum. It needs it to fetch previous states of smart contract. It's also possible to make it working with regular ethereum node. For that you must set env variable `ETHEREUM_NODE_TYPE` to "recent" to get only the latest states. At that mode the state may not be consistent, but you'll be able to get information about latest state.
 
 ## Calls
 

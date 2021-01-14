@@ -24,9 +24,12 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	err = bc.Call(co, &results, "getValidator", validatorID)
@@ -65,9 +68,12 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	err = bc.Call(&bind.CallOpts{
