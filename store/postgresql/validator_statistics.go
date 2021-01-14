@@ -144,8 +144,8 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 								 FROM validator_statistics
 								 WHERE validator_id = $1 AND statistic_type = $2 
 								 ORDER BY block_height DESC LIMIT 1 ), 0))
-						WHERE validator_id = $3`,
-		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorID)
+						WHERE validator_id = $1`,
+		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -182,11 +182,13 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 	}
 
 	_, err = tx.Exec(`UPDATE validators
-						SET active_nodes = (SELECT amount
-									FROM validator_statistics
-									WHERE validator_id = $1 AND statistic_type = $2 AND block_height = $3)
+						SET active_nodes =  (
+							 	SELECT COALESCE((SELECT amount
+								 FROM validator_statistics
+								 WHERE validator_id = $1 AND statistic_type = $2 
+								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $1`,
-		params.ValidatorID, structs.ValidatorStatisticsTypeActiveNodes, params.BlockHeight)
+		params.ValidatorID, structs.ValidatorStatisticsTypeActiveNodes)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
@@ -222,11 +224,13 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 
 	_, err = tx.Exec(`UPDATE validators
 						SET
-							linked_nodes = (SELECT amount
-											FROM validator_statistics
-											WHERE validator_id = $1 AND block_height = $2 AND statistic_type = $3 )
+							linked_nodes =  (
+							 	SELECT COALESCE((SELECT amount
+								 FROM validator_statistics
+								 WHERE validator_id = $1 AND statistic_type = $2 
+								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $1`,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes)
+		params.ValidatorID, structs.ValidatorStatisticsTypeLinkedNodes)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
