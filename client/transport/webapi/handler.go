@@ -54,6 +54,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	params := EventParams{}
 	switch req.Method {
 	case http.MethodGet:
+		allowCORSHeaders(w)
 		m, err := pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -157,6 +158,8 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	params := NodeParams{}
+
+	allowCORSHeaders(w)
 	switch req.Method {
 	case http.MethodGet:
 		m, err := pathParams(strings.Replace(req.URL.Path, "/nodes/", "", -1), "id")
@@ -182,7 +185,6 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -190,7 +192,6 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -242,6 +243,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 
 func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
 	if err != nil {
@@ -278,10 +280,8 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -336,6 +336,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
 	if err != nil {
@@ -368,10 +369,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			return
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -430,6 +429,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	params := structs.AccountParams{}
 	switch req.Method {
@@ -452,7 +452,6 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -460,7 +459,6 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -518,6 +516,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 **/
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	params := DelegationParams{}
 	switch req.Method {
@@ -565,7 +564,6 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		}
 
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -573,7 +571,6 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -631,6 +628,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 
 func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	m, err := pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
 	if err != nil {
@@ -666,10 +664,8 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	case http.MethodOptions:
-		allowCORSHeaders(w)
 		return
 	case http.MethodPost:
-		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
