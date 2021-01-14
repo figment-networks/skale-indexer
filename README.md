@@ -6,7 +6,7 @@ This repository contains SKALE indexer code that is responsible for tracking SKA
 
 ## Requirements
     - Configured and installed go (to compile)
-    - Ethereum archive node access
+    - Ethereum node access (archive preferred for full functionality)
 
 ## Actions
 
