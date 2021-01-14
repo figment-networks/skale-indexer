@@ -334,25 +334,6 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-/**
- * Validator statistics endpoint
- *
- * Method: GET, POST
- * Params:
- *   see ValidatorStatisticsParams
- *   optional:
- *     @id: the index of validator in SKALE deployed smart contract
- *     @type: statistics type
- *     @timeline: returns whether the latest or statistics changes timeline
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see ValidatorStatistic struct
-**/
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -447,24 +428,6 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	}
 }
 
-/**
- * Accounts endpoint
- *
- * Method: GET, POST
- * Params:
- *   see AccountParams
- *   optional:
- *     @type: account type
- *     @address: account address
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Account struct
-**/
 func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
@@ -775,20 +738,33 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	// - http
 	//
 	// Parameters:
-	//   - name: from
+	//   - in: query
+	//     name: from
 	//     x-go-type:
 	//       import:
 	//         package: "time"
+	//     required: true
 	//     type: string
-	//   - name: to
+	//     description: the inclusive beginning of the time range for event time
+	//   - in: query
+	//     name: to
 	//     x-go-type:
 	//       import:
 	//         package: "time"
+	//     required: true
 	//     type: string
-	//   - name: type
+	//     description: the inclusive ending of the time range for event time
+	//   - in: query
+	//     name: type
 	//     type: string
-	//   - name: id
+	//     required: false
+	//     description: event type
+	//     example: validator
+	//   - in: query
+	//     name: id
 	//     type: string
+	//     required: false
+	//     description: bound id
 	//
 	// Responses:
 	//   default:
@@ -842,7 +818,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/events/", c.GetContractEvents)
 	mux.HandleFunc("/events", c.GetContractEvents)
 
-	// swagger:operation GET /nodes Nodes getNodes
+	// swagger:operation GET /node Nodes getNodes
 	//
 	// Node returning endpoint
 	//
@@ -855,12 +831,22 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	// - http
 	//
 	// Parameters:
-	//   - name: id
+	//   - in: query
+	//     name: id
 	//     type: string
-	//   - name: validator_id
+	//     required: false
+	//     description: the index of node in SKALE deployed smart contract
+	//   - in: query
+	//     name: validator_id
 	//     type: string
-	//   - name: status
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: status
 	//     type: string
+	//     required: false
+	//     description: node status
+	//     example: Active
 	//
 	// Responses:
 	//   default:
@@ -876,7 +862,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     schema:
 	//       "$ref": "#/definitions/ApiError"
 
-	// swagger:operation POST /nodes Nodes getNodes
+	// swagger:operation POST /node Nodes getNodes
 	//
 	// Node returning endpoint
 	//
@@ -918,7 +904,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//
 	// Validators returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns validator information
 	//
 	// ---
 	// Produces:
@@ -927,12 +913,27 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	// - http
 	//
 	// Parameters:
-	//   - name: id
+	//   - in: query
+	//     name: id
 	//     type: string
-	//   - name: type
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
 	//     type: string
-	//   - name: timeline
-	//     type: boolean
+	//     required: false
+	//     description: the inclusive beginning of the time range for registration time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive ending of the time range for registration time
 	//
 	// Responses:
 	//   default:
@@ -952,7 +953,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//
 	// Validator returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns Validator information
 	//
 	// ---
 	// Consumes:
@@ -988,9 +989,9 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 
 	// swagger:operation GET /validators/statistics ValidatorStatistics getValidatorStatistics
 	//
-	// Validators returning endpoint
+	// Validator statistics returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns validator statistics information
 	//
 	// ---
 	// Produces:
@@ -999,12 +1000,22 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	// - http
 	//
 	// Parameters:
-	//   - name: id
+	//   - in: query
+	//     name: id
 	//     type: string
-	//   - name: type
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: type
 	//     type: string
-	//   - name: timeline
+	//     required: false
+	//     description: statistics type
+	//     example: TOTAL_STAKE
+	//   - in: query
+	//     name: timeline
 	//     type: boolean
+	//     required: false
+	//     description: returns whether the latest or statistics changes timeline
 	//
 	// Responses:
 	//   default:
@@ -1022,9 +1033,9 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 
 	// swagger:operation POST /validators/statistics ValidatorStatistics getValidatorStatistics
 	//
-	// Validator returning endpoint
+	// Validator statistics returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns validator statistics information
 	//
 	// ---
 	// Consumes:
@@ -1062,7 +1073,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//
 	// Delegations returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns delegation information
 	//
 	// ---
 	// Produces:
@@ -1071,12 +1082,37 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	// - http
 	//
 	// Parameters:
-	//   - name: id
+	//   - in: query
+	//     name: id
 	//     type: string
-	//   - name: type
+	//     required: false
+	//     description: the index of delegation in SKALE deployed smart contract
+	//   - in: query
+	//     name: validator_id
 	//     type: string
-	//   - name: timeline
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: timeline
 	//     type: boolean
+	//     required: false
+	//     description: returns whether the latest or delegation changes timeline
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive beginning of the time range for delegation created time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive ending of the time range for delegation created time
 	//
 	// Responses:
 	//   default:
@@ -1096,7 +1132,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//
 	// Delegation returning endpoint
 	//
-	// This endpoint returns node information
+	// This endpoint returns delegation information
 	//
 	// ---
 	// Consumes:
@@ -1130,7 +1166,82 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/delegations/", c.GetDelegation)
 	mux.HandleFunc("/delegations", c.GetDelegation)
 
+	// swagger:operation GET /accounts Account getAccounts
+	//
+	// Accounts returning endpoint
+	//
+	// This endpoint returns account information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: type
+	//     type: string
+	//     description: account type
+	//     required: false
+	//     example: delegator
+	//   - in: query
+	//     name: address
+	//     type: string
+	//     description:  account address
+	//     required: false
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Accounts"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /accounts Account getAccounts
+	//
+	// Account returning endpoint
+	//
+	// This endpoint returns account information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: DelegationParams
+	//   schema:
+	//     "$ref": "#/definitions/AccountParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Accounts"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
 	mux.HandleFunc("/accounts/", c.GetAccount)
+	mux.HandleFunc("/accounts", c.GetAccount)
 
 	mux.HandleFunc("/system_events/", c.GetSystemEvents)
 }
