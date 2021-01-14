@@ -45,7 +45,7 @@ type NodeParams struct {
 	ValidatorID string `json:"validator_id"`
 	// Status - node status
 	//
-	// example: "Active", "Left" etc...
+	// example: "Active"
 	Status string `json:"status"`
 }
 
@@ -54,7 +54,6 @@ type NodeParams struct {
 type AccountParams struct {
 	// Type - type of the account
 	//
-	// example: "validator", "delegator", "default"
 	Type string `json:"type"`
 	// Address - account address i.e. holder
 	//
