@@ -144,7 +144,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 								 FROM validator_statistics
 								 WHERE validator_id = $1 AND statistic_type = $2 
 								 ORDER BY block_height DESC LIMIT 1 ), 0))
-						WHERE validator_id = $4`,
+						WHERE validator_id = $3`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorID)
 
 	if err != nil {
