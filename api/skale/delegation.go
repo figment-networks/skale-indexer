@@ -34,9 +34,12 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		Context: ctx,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	err = bc.Call(co, &results, "delegations", delegationID)
@@ -47,6 +50,10 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 
 	if len(results) == 0 {
 		return d, errors.New("empty result")
+	}
+
+	if len(results) < 8 {
+		return d, errors.New("wrong type of result")
 	}
 
 	createT := results[4].(*big.Int)
@@ -75,9 +82,12 @@ func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract,
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -103,9 +113,12 @@ func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.Bound
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -138,9 +151,14 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 		Pending: true,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
+
 	results := []interface{}{}
 
 	err = bc.Call(co, &results, "getDelegationsByValidatorLength", validatorID)
@@ -167,10 +185,14 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 			Context: ctxTA,
 		}
 
-		if blockNumber > 0 { // (lukanus): 0 = latest
-			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-			co.Pending = true
+		if c.NodeType == ENTArchive {
+			if blockNumber > 0 { // (lukanus): 0 = latest
+				co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+			} else {
+				co.Pending = true
+			}
 		}
+
 		resultsA := []interface{}{}
 
 		err = bc.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
@@ -215,9 +237,14 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 		Pending: true,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
+
 	results := []interface{}{}
 
 	err = bc.Call(co, &results, "getDelegationsByHolderLength", holder)
@@ -244,10 +271,14 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 			Context: ctxTA,
 		}
 
-		if blockNumber > 0 { // (lukanus): 0 = latest
-			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-			co.Pending = true
+		if c.NodeType == ENTArchive {
+			if blockNumber > 0 { // (lukanus): 0 = latest
+				co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+			} else {
+				co.Pending = true
+			}
 		}
+
 		resultsA := []interface{}{}
 
 		err = bc.Call(co, &resultsA, "delegationsByHolder", holder, new(big.Int).SetUint64(i))

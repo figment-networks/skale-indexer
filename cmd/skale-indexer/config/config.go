@@ -36,6 +36,8 @@ type Config struct {
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
+
+	EthereumNodeType string `json:"ethereum_node_type" envconfig:"ETHEREUM_NODE_TYPE" default:"archive"`
 }
 
 // IdentityString returns the full app version string

@@ -20,6 +20,13 @@ AuthorizedOperator(operator, tokenHolder)
 RevokedOperator(operator, tokenHolder)
 */
 
+type EthereumNodeType uint8
+
+const (
+	ENTArchive EthereumNodeType = iota
+	ENTRecent
+)
+
 type ERC777Call interface {
 	Name(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (n string, err error)
 	Symbol(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (s string, err error)
@@ -36,7 +43,9 @@ type ERC777Call interface {
 	OperatorBurn(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, account common.Address, amount *big.Int, data []byte, operatorData []byte) (err error)
 }
 
-type ERC777Caller struct{}
+type ERC777Caller struct {
+	NodeType EthereumNodeType
+}
 
 func (c *ERC777Caller) Name(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (n string, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
@@ -46,9 +55,12 @@ func (c *ERC777Caller) Name(ctx context.Context, bc *bind.BoundContract, blockNu
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -78,9 +90,12 @@ func (c *ERC777Caller) Symbol(ctx context.Context, bc *bind.BoundContract, block
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -110,9 +125,12 @@ func (c *ERC777Caller) Granularity(ctx context.Context, bc *bind.BoundContract, 
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -142,9 +160,12 @@ func (c *ERC777Caller) TotalSupply(ctx context.Context, bc *bind.BoundContract, 
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -174,9 +195,12 @@ func (c *ERC777Caller) BalanceOf(ctx context.Context, bc *bind.BoundContract, bl
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -206,9 +230,12 @@ func (c *ERC777Caller) Send(ctx context.Context, bc *bind.BoundContract, blockNu
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -228,9 +255,12 @@ func (c *ERC777Caller) Burn(ctx context.Context, bc *bind.BoundContract, blockNu
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -250,9 +280,12 @@ func (c *ERC777Caller) IsOperatorFor(ctx context.Context, bc *bind.BoundContract
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -282,9 +315,12 @@ func (c *ERC777Caller) AuthorizeOperator(ctx context.Context, bc *bind.BoundCont
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -304,9 +340,12 @@ func (c *ERC777Caller) RevokeOperator(ctx context.Context, bc *bind.BoundContrac
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -325,10 +364,14 @@ func (c *ERC777Caller) DefaultOperators(ctx context.Context, bc *bind.BoundContr
 		Context: ctxTA,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
+
 	resultsA := []interface{}{}
 
 	err = bc.Call(co, &resultsA, "defaultOperators")
@@ -357,9 +400,12 @@ func (c *ERC777Caller) OperatorSend(ctx context.Context, bc *bind.BoundContract,
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -379,9 +425,12 @@ func (c *ERC777Caller) OperatorBurn(ctx context.Context, bc *bind.BoundContract,
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}

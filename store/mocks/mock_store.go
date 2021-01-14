@@ -152,6 +152,21 @@ func (mr *MockDataStoreMockRecorder) GetNodes(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDataStore)(nil).GetNodes), arg0, arg1)
 }
 
+// GetSystemEvents mocks base method
+func (m *MockDataStore) GetSystemEvents(arg0 context.Context, arg1 structs.SystemEventParams) ([]structs.SystemEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSystemEvents", arg0, arg1)
+	ret0, _ := ret[0].([]structs.SystemEvent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSystemEvents indicates an expected call of GetSystemEvents
+func (mr *MockDataStoreMockRecorder) GetSystemEvents(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSystemEvents", reflect.TypeOf((*MockDataStore)(nil).GetSystemEvents), arg0, arg1)
+}
+
 // GetValidatorStatistics mocks base method
 func (m *MockDataStore) GetValidatorStatistics(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) ([]structs.ValidatorStatistics, error) {
 	m.ctrl.T.Helper()
@@ -251,6 +266,20 @@ func (m *MockDataStore) SaveNode(arg0 context.Context, arg1 structs.Node) error 
 func (mr *MockDataStoreMockRecorder) SaveNode(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNode", reflect.TypeOf((*MockDataStore)(nil).SaveNode), arg0, arg1)
+}
+
+// SaveSystemEvent mocks base method
+func (m *MockDataStore) SaveSystemEvent(arg0 context.Context, arg1 structs.SystemEvent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveSystemEvent", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveSystemEvent indicates an expected call of SaveSystemEvent
+func (mr *MockDataStoreMockRecorder) SaveSystemEvent(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSystemEvent", reflect.TypeOf((*MockDataStore)(nil).SaveSystemEvent), arg0, arg1)
 }
 
 // SaveValidator mocks base method

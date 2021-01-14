@@ -17,6 +17,13 @@ import (
 	Approval(owner, spender, value)
 */
 
+type EthereumNodeType uint8
+
+const (
+	ENTArchive EthereumNodeType = iota
+	ENTRecent
+)
+
 type ERC20Call interface {
 	TotalSupply(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (ts big.Int, err error)
 	BalanceOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, tokenHolder common.Address) (balance big.Int, err error)
@@ -26,7 +33,9 @@ type ERC20Call interface {
 	TransferFrom(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, sender, recipient common.Address, amount *big.Int) (successful bool, err error)
 }
 
-type ERC20Caller struct{}
+type ERC20Caller struct {
+	NodeType EthereumNodeType
+}
 
 func (c *ERC20Caller) TotalSupply(ctx context.Context, bc *bind.BoundContract, blockNumber uint64) (ts big.Int, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
@@ -36,9 +45,12 @@ func (c *ERC20Caller) TotalSupply(ctx context.Context, bc *bind.BoundContract, b
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -68,9 +80,12 @@ func (c *ERC20Caller) BalanceOf(ctx context.Context, bc *bind.BoundContract, blo
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -100,9 +115,12 @@ func (c *ERC20Caller) Transfer(ctx context.Context, bc *bind.BoundContract, bloc
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -132,9 +150,12 @@ func (c *ERC20Caller) Allowance(ctx context.Context, bc *bind.BoundContract, blo
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -164,9 +185,12 @@ func (c *ERC20Caller) Approve(ctx context.Context, bc *bind.BoundContract, block
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}
@@ -196,9 +220,12 @@ func (c *ERC20Caller) TransferFrom(ctx context.Context, bc *bind.BoundContract, 
 		Context: ctxT,
 	}
 
-	if blockNumber > 0 { // (lukanus): 0 = latest
-		co.BlockNumber = new(big.Int).SetUint64(blockNumber)
-		co.Pending = true
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
 	}
 
 	results := []interface{}{}

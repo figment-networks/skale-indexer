@@ -83,3 +83,11 @@ func (c *Client) GetAccounts(ctx context.Context, params structs.AccountParams) 
 	}
 	return a, err
 }
+
+func (c *Client) GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error) {
+	systemEvents, err = c.storeEng.GetSystemEvents(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetContractEvents:", zap.Any("params", params), zap.Error(err))
+	}
+	return systemEvents, err
+}

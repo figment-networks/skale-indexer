@@ -16,9 +16,10 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate swagger generate spec --scan-models -o swagger.json
+
 // ClientContractor - method signatures for Connector
 type ClientContractor interface {
-	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
@@ -26,6 +27,9 @@ type ClientContractor interface {
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
+
+	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
+	GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -38,44 +42,20 @@ func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
 
-/**
- * Health check endpoint
- *
- * Method: any method
- * Success 200
-**/
 func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
-/**
- * Contract events endpoint
- *
- * Method: GET, POST
- * Params:
- *   see EventParams
- *   required:
- *	   @from: the inclusive beginning of the time range for event time
- *     @to: the inclusive ending of the time range for event time
- *   optional:
- *     @type: Event type (required when id is provided)
- *     @id: Bound id (required when type is provided)
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success
- *     http code: 200
- *     response: see ContractEvent struct
-**/
+// GetContractEvents
 func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) {
+
 	w.Header().Add("Content-Type", "application/json")
 	params := EventParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/event/", "", -1))
+		allowCORSHeaders(w)
+		m, err := pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -119,7 +99,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 
 		if typeParam != "" {
 			params.Type = typeParam
-			params.Id, err = strconv.ParseUint(idParam, 10, 64)
+			params.ID, err = strconv.ParseUint(idParam, 10, 64)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write(newApiError(errors.New("id parameter given in wrong format"), http.StatusBadRequest))
@@ -127,13 +107,16 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 			}
 		}
 	case http.MethodPost:
+		allowCORSHeaders(w)
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
 			return
 		}
-
+	case http.MethodOptions:
+		allowCORSHeaders(w)
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
@@ -141,7 +124,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	}
 
 	res, err := c.cli.GetContractEvents(req.Context(), structs.EventParams{
-		Id:       params.Id,
+		Id:       params.ID,
 		Type:     params.Type,
 		TimeFrom: params.TimeFrom,
 		TimeTo:   params.TimeTo,
@@ -152,7 +135,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	var ceva []ContractEvent
+	ceva := ContractEvents{}
 	for _, r := range res {
 		ceva = append(ceva, ContractEvent{
 			ID:              r.ID,
@@ -172,30 +155,14 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	enc.Encode(ceva)
 }
 
-/**
- * Nodes endpoint
- *
- * Method: GET, POST
- * Params:
- *   see NodeParams
- *   optional:
- *     @id: the index of node in SKALE deployed smart contract
- *     @validator_id: the index of validator in SKALE deployed smart contract
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Node struct
-**/
 func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	params := NodeParams{}
+
+	allowCORSHeaders(w)
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/node/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/nodes/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -224,6 +191,8 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
 			return
 		}
+	case http.MethodOptions:
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
@@ -272,29 +241,11 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	enc.Encode(nodes)
 }
 
-/**
- * Validators endpoint
- *
- * Method: GET, POST
- * Params:
- *   see ValidatorParams
- *   optional:
- *     @id: the index of validator in SKALE deployed smart contract
- *     @from: the inclusive beginning of the time range for registration time
- *     @to: the inclusive ending of the time range for registration time
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Validator struct
-**/
 func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/", "", -1))
+	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(err, http.StatusBadRequest))
@@ -329,7 +280,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case http.MethodOptions:
-		// TODO(lukanus): add options preflight headers
+		return
 	case http.MethodPost:
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
@@ -383,29 +334,11 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-/**
- * Validator statistics endpoint
- *
- * Method: GET, POST
- * Params:
- *   see ValidatorStatisticsParams
- *   optional:
- *     @id: the index of validator in SKALE deployed smart contract
- *     @type: statistics type
- *     @timeline: returns whether the latest or statistics changes timeline
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see ValidatorStatistic struct
-**/
 func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validator/statistics/", "", -1))
+	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(newApiError(err, http.StatusBadRequest))
@@ -436,7 +369,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			return
 		}
 	case http.MethodOptions:
-		// TODO(lukanus): add options preflight headers
+		return
 	case http.MethodPost:
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&params); err != nil {
@@ -494,31 +427,14 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	}
 }
 
-/**
- * Accounts endpoint
- *
- * Method: GET, POST
- * Params:
- *   see AccountParams
- *   optional:
- *     @type: account type
- *     @address: account address
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Account struct
-**/
 func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	params := structs.AccountParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/account/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -542,6 +458,8 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
 			return
 		}
+	case http.MethodOptions:
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
@@ -598,11 +516,12 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 **/
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
 
 	params := DelegationParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/delegation/", "", -1))
+		m, err := pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(newApiError(err, http.StatusBadRequest))
@@ -651,6 +570,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
 			return
 		}
+	case http.MethodOptions:
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
@@ -705,15 +626,620 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
+
+	m, err := pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(newApiError(err, http.StatusBadRequest))
+		return
+	}
+	params := SystemEventParams{}
+	switch req.Method {
+	case http.MethodGet:
+		params.Address = req.URL.Query().Get("address")
+		params.Kind = req.URL.Query().Get("kind")
+		after := req.URL.Query().Get("after")
+
+		if m != nil {
+			if ad, ok := m["address"]; ok {
+				params.Address = ad
+			}
+			if k, ok := m["kind"]; ok {
+				params.Kind = k
+			}
+			if a, ok := m["after"]; ok {
+				after = a
+			}
+		}
+
+		if after != "" {
+			var err error
+			if params.After, err = strconv.ParseUint(after, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("Error parsing after parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+	case http.MethodOptions:
+		return
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	res, err := c.cli.GetSystemEvents(req.Context(), structs.SystemEventParams{
+		After:      params.After,
+		Kind:       params.Kind,
+		Address:    params.Address,
+		SenderID:   params.SenderID,
+		ReceiverID: params.ReceiverID,
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		return
+	}
+
+	var sEvts []SystemEvent
+	for _, evt := range res {
+		sevt, _ := structs.SysEvtTypes[evt.Kind]
+		sEvts = append(sEvts, SystemEvent{
+			Height:      evt.Height,
+			Time:        evt.Time,
+			Kind:        sevt,
+			Sender:      evt.Sender,
+			Recipient:   evt.Recipient,
+			SenderID:    evt.SenderID.Uint64(),
+			RecipientID: evt.RecipientID.Uint64(),
+			Data: SystemEventData{
+				After:  evt.After,
+				Before: evt.Before,
+			},
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	if err := enc.Encode(sEvts); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/health", c.HealthCheck)
-	mux.HandleFunc("/event/", c.GetContractEvents)
+
+	// swagger:operation GET /events Event getContractEvents
+	//
+	// Contract events endpoint
+	//
+	// This endpoint returns events that comes from  SKALE ethereum contracts
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     required: true
+	//     type: string
+	//     description: the inclusive beginning of the time range for event time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     required: true
+	//     type: string
+	//     description: the inclusive ending of the time range for event time
+	//   - in: query
+	//     name: type
+	//     type: string
+	//     required: false
+	//     description: event type
+	//     example: validator
+	//   - in: query
+	//     name: id
+	//     type: string
+	//     required: false
+	//     description: bound id
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/ContractEvents"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /events Event getContractEvents
+	//
+	// Contract events endpoint
+	//
+	// This endpoint returns events that comes from  SKALE ethereum contracts
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: EventParams
+	//   schema:
+	//     "$ref": "#/definitions/EventParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/ContractEvents"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	mux.HandleFunc("/events/", c.GetContractEvents)
+	mux.HandleFunc("/events", c.GetContractEvents)
+
+	// swagger:operation GET /node Nodes getNodes
+	//
+	// Node returning endpoint
+	//
+	// This endpoint returns node information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: id
+	//     type: string
+	//     required: false
+	//     description: the index of node in SKALE deployed smart contract
+	//   - in: query
+	//     name: validator_id
+	//     type: string
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: status
+	//     type: string
+	//     required: false
+	//     description: node status
+	//     example: Active
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Nodes"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /node Nodes getNodes
+	//
+	// Node returning endpoint
+	//
+	// This endpoint returns node information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: NodeParams
+	//   schema:
+	//     "$ref": "#/definitions/NodeParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Nodes"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
 	mux.HandleFunc("/node/", c.GetNode)
-	mux.HandleFunc("/validator/", c.GetValidator)
-	mux.HandleFunc("/validator/statistics/", c.GetValidatorStatistics)
-	mux.HandleFunc("/delegation/", c.GetDelegation)
-	mux.HandleFunc("/account/", c.GetAccount)
+	mux.HandleFunc("/node", c.GetNode)
+
+	// swagger:operation GET /validators Validator getValidators
+	//
+	// Validators returning endpoint
+	//
+	// This endpoint returns validator information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: id
+	//     type: string
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive beginning of the time range for registration time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive ending of the time range for registration time
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Validators"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /validators Validator getValidators
+	//
+	// Validator returning endpoint
+	//
+	// This endpoint returns Validator information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: ValidatorParams
+	//   schema:
+	//     "$ref": "#/definitions/ValidatorParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Validators"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	mux.HandleFunc("/validators/", c.GetValidator)
+	mux.HandleFunc("/validators", c.GetValidator)
+
+	// swagger:operation GET /validators/statistics ValidatorStatistics getValidatorStatistics
+	//
+	// Validator statistics returning endpoint
+	//
+	// This endpoint returns validator statistics information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: id
+	//     type: string
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: type
+	//     type: string
+	//     required: false
+	//     description: statistics type
+	//     example: TOTAL_STAKE
+	//   - in: query
+	//     name: timeline
+	//     type: boolean
+	//     required: false
+	//     description: returns whether the latest or statistics changes timeline
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/ValidatorStatistics"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /validators/statistics ValidatorStatistics getValidatorStatistics
+	//
+	// Validator statistics returning endpoint
+	//
+	// This endpoint returns validator statistics information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: ValidatorStatisticsParams
+	//   schema:
+	//     "$ref": "#/definitions/ValidatorStatisticsParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/ValidatorStatistics"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	mux.HandleFunc("/validators/statistics/", c.GetValidatorStatistics)
+	mux.HandleFunc("/validators/statistics", c.GetValidatorStatistics)
+
+	// swagger:operation GET /delegations Delegations getDelegations
+	//
+	// Delegations returning endpoint
+	//
+	// This endpoint returns delegation information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: id
+	//     type: string
+	//     required: false
+	//     description: the index of delegation in SKALE deployed smart contract
+	//   - in: query
+	//     name: validator_id
+	//     type: string
+	//     required: false
+	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: timeline
+	//     type: boolean
+	//     required: false
+	//     description: returns whether the latest or delegation changes timeline
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive beginning of the time range for delegation created time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive ending of the time range for delegation created time
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Delegations"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /delegations Delegations getDelegations
+	//
+	// Delegation returning endpoint
+	//
+	// This endpoint returns delegation information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: DelegationParams
+	//   schema:
+	//     "$ref": "#/definitions/DelegationParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Delegations"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	mux.HandleFunc("/delegations/", c.GetDelegation)
+	mux.HandleFunc("/delegations", c.GetDelegation)
+
+	// swagger:operation GET /accounts Account getAccounts
+	//
+	// Accounts returning endpoint
+	//
+	// This endpoint returns account information
+	//
+	// ---
+	// Produces:
+	// - application/json
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	//   - in: query
+	//     name: type
+	//     type: string
+	//     description: account type
+	//     required: false
+	//     example: delegator
+	//   - in: query
+	//     name: address
+	//     type: string
+	//     description:  account address
+	//     required: false
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Accounts"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+
+	// swagger:operation POST /accounts Account getAccounts
+	//
+	// Account returning endpoint
+	//
+	// This endpoint returns account information
+	//
+	// ---
+	// Consumes:
+	// - application/json
+	//
+	// Produces:
+	// - application/json
+	//
+	// Schemes:
+	// - http
+	//
+	// Parameters:
+	// - name: DelegationParams
+	//   schema:
+	//     "$ref": "#/definitions/AccountParams"
+	//   in: body
+	//
+	// Responses:
+	//   default:
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '200':
+	//     schema:
+	//       "$ref": "#/definitions/Accounts"
+	//   '400':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	//   '500':
+	//     schema:
+	//       "$ref": "#/definitions/ApiError"
+	mux.HandleFunc("/accounts/", c.GetAccount)
+	mux.HandleFunc("/accounts", c.GetAccount)
+
+	mux.HandleFunc("/system_events/", c.GetSystemEvents)
 }
 
 type ScrapeContractor interface {
@@ -744,7 +1270,6 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if req.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		// w.Write(newApiError(, http.StatusMethodNotAllowed))
 		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
 		return
 	}
@@ -774,9 +1299,9 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func pathParams(path string) (map[string]string, error) {
+func pathParams(path, key string) (map[string]string, error) {
 	p := strings.Split(path, "/")
-	var p2 []string
+	p2 := []string{}
 	for _, k := range p {
 		if k != "" {
 			p2 = append(p2, k)
@@ -787,7 +1312,7 @@ func pathParams(path string) (map[string]string, error) {
 	case 0:
 		return nil, nil
 	case 1:
-		return map[string]string{"id": p2[0]}, nil
+		return map[string]string{key: p2[0]}, nil
 	default:
 		if len(p2)%2 == 1 {
 			return nil, errors.New("path has to be in key/value pair format")
@@ -801,4 +1326,11 @@ func pathParams(path string) (map[string]string, error) {
 		return a, nil
 	}
 
+}
+
+func allowCORSHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 }
