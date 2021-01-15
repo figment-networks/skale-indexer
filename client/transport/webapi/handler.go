@@ -55,11 +55,15 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	switch req.Method {
 	case http.MethodGet:
 		allowCORSHeaders(w)
-		m, err := pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
@@ -162,13 +166,16 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	allowCORSHeaders(w)
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/nodes/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/node/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
-
 		params.NodeID = req.URL.Query().Get("id")
 		params.ValidatorID = req.URL.Query().Get("validator_id")
 		params.Status = req.URL.Query().Get("status")
@@ -245,11 +252,15 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 
 	params := ValidatorParams{}
@@ -338,11 +349,15 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 
 	params := ValidatorStatisticsParams{}
@@ -434,11 +449,15 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	params := structs.AccountParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		params.Type = req.URL.Query().Get("type")
 		params.Address = req.URL.Query().Get("address")
@@ -493,27 +512,6 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-/**
- * Delegations endpoint
- *
- * Method: GET, POST
- * Params:
- *   see DelegationParams
- *   optional:
- *     @id: the index of delegation in SKALE deployed smart contract
- *     @validator_id: the index of validator in SKALE deployed smart contract
- *     @from: the inclusive beginning of the time range for delegation created time
- *     @to: the inclusive ending of the time range for delegation created time
- *     @timeline: returns whether the latest or delegation changes timeline
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Delegation struct
-**/
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
@@ -521,11 +519,15 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	params := DelegationParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
@@ -630,11 +632,15 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 	params := SystemEventParams{}
 	switch req.Method {
@@ -893,8 +899,8 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//   '500':
 	//     schema:
 	//       "$ref": "#/definitions/ApiError"
-	mux.HandleFunc("/node/", c.GetNode)
-	mux.HandleFunc("/node", c.GetNode)
+	mux.HandleFunc("/nodes/", c.GetNode)
+	mux.HandleFunc("/nodes", c.GetNode)
 
 	// swagger:operation GET /validators Validator getValidators
 	//
