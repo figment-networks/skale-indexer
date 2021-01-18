@@ -23,8 +23,9 @@ const (
 )
 
 type Config struct {
-	DatabaseURL string `json:"database_url" envconfig:"DATABASE_URL" required:"true"`
-	AppEnv      string `json:"app_env" envconfig:"APP_ENV" default:"development"`
+	DatabaseURL   string `json:"database_url" envconfig:"DATABASE_URL" required:"true"`
+	AppEnv        string `json:"app_env" envconfig:"APP_ENV" default:"development"`
+	EnableScraper bool   `json:"enable_scraper" envconfig:"ENABLE_SCRAPER" default:"false"`
 
 	Address  string `json:"address" envconfig:"ADDRESS" default:"0.0.0.0"`
 	Port     string `json:"port" envconfig:"PORT" default:"3000"`

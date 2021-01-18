@@ -91,35 +91,33 @@ func main() {
 	pgsqlDriver := postgresql.NewDriver(ctx, db, logger.GetLogger())
 	storeDB := store.New(pgsqlDriver)
 
-	tr := eth.NewEthTransport(cfg.EthereumAddress)
-	if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
-		logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
-		return
-	}
-	defer tr.Close(ctx)
-
-	cm := contract.NewManager()
-	if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
-		logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
-		return
-	}
-
-	caller := &skale.Caller{}
-	if cfg.EthereumNodeType == "recent" {
-		caller.NodeType = skale.ENTRecent
-	}
-
-	am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
-	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()
-
 	cli := client.NewClient(logger.GetLogger(), storeDB)
 	hCli := webapi.NewClientConnector(cli)
 	hCli.AttachToHandler(mux)
 
-	ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
-	sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
-	sCli.AttachToHandler(mux)
+	if cfg.EnableScraper {
+		caller := &skale.Caller{}
+		if cfg.EthereumNodeType == "recent" {
+			caller.NodeType = skale.ENTRecent
+		}
+		cm := contract.NewManager()
+		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
+			logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
+			return
+		}
+		tr := eth.NewEthTransport(cfg.EthereumAddress)
+		if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
+			logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
+			return
+		}
+		defer tr.Close(ctx)
+		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
+		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
+		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
+		sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
+		sCli.AttachToHandler(mux)
+	}
 
 	mux.Handle("/metrics", metrics.Handler())
 
@@ -133,7 +131,6 @@ func main() {
 	if err := s.ListenAndServe(); err != nil {
 		logger.GetLogger().Error("[HTTP] failed to listen", zap.Error(err))
 	}
-
 }
 
 func initConfig(path string) (*config.Config, error) {
