@@ -108,6 +108,8 @@ type Delegation struct {
 	Finished *big.Int `json:"finished"`
 	// Info - delegation information
 	Info string `json:"info"`
+	// State - delegation state
+	State string `json:"state"`
 }
 
 // Node a set of fields to show returned nodes by search

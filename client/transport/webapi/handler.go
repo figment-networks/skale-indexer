@@ -617,6 +617,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			Created:         dlg.Created,
 			Finished:        dlg.Finished,
 			Info:            dlg.Info,
+			State:           dlg.State.String(),
 		})
 	}
 
