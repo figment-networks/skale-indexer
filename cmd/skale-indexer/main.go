@@ -97,10 +97,15 @@ func main() {
 	hCli.AttachToHandler(mux)
 
 	if cfg.EnableScraper {
+		logger.GetLogger().Info("Indexer is in scraping mode")
 		caller := &skale.Caller{}
+		nodeTypeMessage := "Ethereum node is in archive mode"
 		if cfg.EthereumNodeType == "recent" {
 			caller.NodeType = skale.ENTRecent
+			nodeTypeMessage = "Ethereum node is in recent mode"
 		}
+		logger.GetLogger().Info(nodeTypeMessage)
+
 		cm := contract.NewManager()
 		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
 			logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
@@ -117,6 +122,8 @@ func main() {
 		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 		sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
 		sCli.AttachToHandler(mux)
+	} else {
+		logger.GetLogger().Info("Indexer is not in scraping mode")
 	}
 
 	mux.Handle("/metrics", metrics.Handler())
