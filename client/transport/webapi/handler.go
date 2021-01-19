@@ -332,8 +332,6 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
 			Staked:                  vld.Staked.String(),
-			Pending:                 vld.Pending,
-			Rewards:                 vld.Rewards,
 		})
 	}
 

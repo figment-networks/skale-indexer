@@ -23,7 +23,5 @@ type Validator struct {
 	ActiveNodes             uint           `json:"active_nodes"`
 	LinkedNodes             uint           `json:"linked_nodes"`
 	Staked                  *big.Int       `json:"staked"`
-	Pending                 *big.Int       `json:"pending"`
-	Rewards                 *big.Int       `json:"rewards"`
 	BlockHeight             uint64         `json:"block_height"`
 }
