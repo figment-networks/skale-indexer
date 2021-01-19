@@ -13,8 +13,8 @@ This document is about properties we keep for Hubble and to show if they are upd
 | Validator  | Minimum Delegation Amount  | minimum delegation amount i.e. MDA | N/A  | Yes  |
 | Validator  | Accept New Requests  | shows whether validator accepts new requests or not | N/A  | Yes  |
 | Validator  | Authorized  | shows whether validator is authorized or not | ValidatorWasEnabled, ValidatorWasDisabled  | Yes  |
-| Validator  | Active Nodes  | number of active nodes attached to the validator | N/A  | Deleting node which affect this result is available  |
-| Validator  | Linked Nodes  | number of all nodes attached to the validator | N/A  | Deleting node which affect this result is available  |
+| Validator  | Active Nodes  | number of active nodes attached to the validator | NodeAddressWasAdded, NodeAddressWasRemoved , N/A(Deleting node event which affect this result is not available)  | Yes  |
+| Validator  | Linked Nodes  | number of all nodes attached to the validator | NodeAddressWasAdded, NodeAddressWasRemoved , N/A(Deleting node event which affect this result is not available)  | Yes  |
 | Validator  | Staked  | total stake amount | DelegationProposed, DelegationAccepted, DelegationRequestCanceledByUser, UndelegationRequested   | Yes  |
 | Node  | Node ID | the index of node in SKALE deployed smart contract | No  | No  |
 | Node  | Name  | node name | No  | No  |
