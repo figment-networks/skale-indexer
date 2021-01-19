@@ -329,12 +329,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			amountI, ok := ce.Params["amount"]
 			if !ok {
-				return errors.New("Structure is not a slash")
+				return errors.New("structure is not a slash")
 			}
 
 			am, ok := amountI.(*big.Int)
 			if !ok {
-				return errors.New("Structure is not a slash")
+				return errors.New("structure is not a slash")
 			}
 
 			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
@@ -355,17 +355,17 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 			wAddr, ok := wAddrI.(common.Address)
 			if !ok {
-				return errors.New("structure is not a validator")
+				return errors.New("structure is not a forgive")
 			}
 
 			amountI, ok := ce.Params["amount"]
 			if !ok {
-				return errors.New("Structure is not a slash")
+				return errors.New("structure is not a forgive")
 			}
 
 			am, ok := amountI.(*big.Int)
 			if !ok {
-				return errors.New("Structure is not a slash")
+				return errors.New("structure is not a forgive")
 			}
 
 			if err = m.dataStore.SaveSystemEvent(ctx, structs.SystemEvent{
