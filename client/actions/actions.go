@@ -155,9 +155,25 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if err != nil {
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
+			nParams := structs.NodeParams{
+				ValidatorID: vID.String(),
+			}
+			localNodes, err := m.dataStore.GetNodes(ctx, nParams)
+			if err != nil {
+				return fmt.Errorf("error getting validator local nodes %w", err)
+			}
+
+			localNodeIDs := make(map[string]string)
+			for _, s := range localNodes {
+				localNodeIDs[s.ID] = s.ID
+			}
 
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
+				_, ok := localNodeIDs[node.ID]
+				if ce.EventName == "NodeAddressWasRemoved" && ok {
+					node.ValidatorID = big.NewInt(0)
+				}
 				if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}
