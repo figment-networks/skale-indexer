@@ -22,8 +22,8 @@ This document is about properties we keep for Hubble and to show if they are upd
 | Node  | Public IP  | node public ip | No  | No  |
 | Node  | Port  | node port | No  | No  |
 | Node  | Start Block  | starting block height on ETH mainnet | No  | No  |
-| Node  | Next Reward Date  | next reward time | BountyReceived **, BountyGot **  | Yes  |
-| Node  | Last Reward Date  | last reward time | BountyReceived **, BountyGot **  | Yes  |
+| Node  | Next Reward Date  | next reward time | BountyReceived, BountyGot  | Yes  |
+| Node  | Last Reward Date  | last reward time | BountyReceived, BountyGot  | Yes  |
 | Node  | Finish Time  | finish time | N/A  | Yes  |
 | Node  | Status  | node status | N/A  | Yes  |
 | Node  | Validator ID  | validator Id on SKALE network | N/A  | Yes (not mounting to another validator but deleting)  |
@@ -39,5 +39,3 @@ This document is about properties we keep for Hubble and to show if they are upd
 | Delegation  | Finished  | finished  epoch | No  | No  |
 | Delegation  | Info  | delegation information | No  | No  |
 | Delegation  | Status  | delegation status | N/A  | N/A  |
-
-** available but not implemented on this repo yet!

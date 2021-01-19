@@ -512,6 +512,35 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			);
 		*/
 
+		nIDI, ok := ce.Params["nodeIndex"]
+		if !ok {
+			return errors.New("structure is not a node, it does not have nodeIndex")
+		}
+		nID, ok := nIDI.(*big.Int)
+		if !ok {
+			return errors.New("structure is not a node, it does not have nodeIndex")
+		}
+
+		cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
+		if !ok {
+			return errors.New("Node contract is not found for version :" + c.Version)
+		}
+
+		n, err := m.c.GetNode(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, nID)
+		if err != nil {
+			return errors.New("structure is not a node")
+		}
+
+		t, err := m.c.GetNodeNextRewardDate(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, nID)
+		if err != nil {
+			return errors.New("structure is not a node")
+		}
+		n.NextRewardDate = t
+		n.BlockHeight = ce.BlockHeight
+		if err = m.dataStore.SaveNode(ctx, n); err != nil {
+			return fmt.Errorf("error storing node %w", err)
+		}
+
 	case "skale_token":
 		ce.BoundType = "token"
 		if ce.EventName == "transfer" || ce.EventName == "approval" {
