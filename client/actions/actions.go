@@ -157,6 +157,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
+				node.BlockHeight = ce.BlockHeight
 				if err := m.dataStore.SaveNode(ctx, node); err != nil {
 					return fmt.Errorf("error storing validator nodes %w", err)
 				}
