@@ -171,7 +171,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
 			for _, node := range nodes {
 				_, ok := localNodeIDs[node.ID]
-				if ce.EventName == "NodeAddressWasRemoved" && ok {
+				if ce.EventName == "NodeAddressWasRemoved" && !ok {
 					node.ValidatorID = big.NewInt(0)
 				}
 				if err := m.dataStore.SaveNode(ctx, node); err != nil {
