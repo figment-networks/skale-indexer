@@ -94,7 +94,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return rollbackErr
 			}
-			return errors.New("removed node address is not available on db")
+			return errors.New("removed node address does not exist on database")
 		}
 
 		if no[0].BlockHeight <= nodes[0].BlockHeight {
