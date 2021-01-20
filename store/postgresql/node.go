@@ -79,7 +79,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	// update removed node
 	if removedNodeAddress.Hash().Big().String() != zero.Hash().Big().String() && len(nodes) > 0 {
 		params := structs.NodeParams{
-			Address:     removedNodeAddress.Hash().Big().String(),
+			Address:     removedNodeAddress.Hex(),
 			ValidatorID: nodes[0].ValidatorID.String(),
 		}
 		no, err := d.GetNodes(ctx, params)
