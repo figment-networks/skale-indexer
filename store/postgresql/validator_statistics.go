@@ -168,11 +168,11 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 				(SELECT $1, $2, $3, count(*) AS amount
 					FROM nodes
-					WHERE validator_id = $1 AND status = $4
+					WHERE validator_id = $1 AND status = $4 AND address != $5
 					GROUP BY validator_id LIMIT 1)
 			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive)
+		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive, zero.Hash().Big().String())
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -209,11 +209,11 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
 									(SELECT  $1, $2 , $3, count(*) AS amount
 									FROM nodes
-									WHERE validator_id = $1
+									WHERE validator_id = $1 AND address != $4
 									GROUP BY validator_id LIMIT 1)
 								ON CONFLICT (validator_id, block_height, statistic_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes)
+		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, zero.Hash().Big().String())
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {

@@ -102,6 +102,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 			for i, n := range nodes {
 				nodeIds[i] = n.NodeID.Int64()
 			}
+			// TODO: solve pq.Array(nodeIds) parameter error or remove it
 			_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
 				WHERE validator_id = $2 AND address = $3 AND node_id NOT IN ($4)`,
 				zero.Hash().Big().String(),
