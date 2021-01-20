@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
@@ -22,7 +23,7 @@ type DataStore interface {
 }
 
 type SkaleStore interface {
-	SaveNode(ctx context.Context, node structs.Node) error
+	SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 
 	SaveValidator(ctx context.Context, validator structs.Validator) error
@@ -72,8 +73,8 @@ func (s *Store) GetAccounts(ctx context.Context, params structs.AccountParams) (
 	return s.driver.GetAccounts(ctx, params)
 }
 
-func (s *Store) SaveNode(ctx context.Context, node structs.Node) error {
-	return s.driver.SaveNode(ctx, node)
+func (s *Store) SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error {
+	return s.driver.SaveNodes(ctx, nodes, removedNodeAddress)
 }
 
 func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {

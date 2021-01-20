@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"net"
 	"time"
@@ -14,7 +15,6 @@ import (
 )
 
 func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error) {
-
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -55,13 +55,18 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 			return nil, fmt.Errorf("error calling GetNodeNextRewardDate function %w", err)
 		}
 		n.NextRewardDate = nrd
+
+		adr, err := c.GetNodeAddress(ctx, bc, blockNumber, id)
+		if err != nil {
+			return nil, fmt.Errorf("error calling GetNodeAddress function %w", err)
+		}
+		n.Address = adr
 	}
 
 	return nodes, nil
 }
 
 func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error) {
-
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -81,7 +86,7 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 	err = bc.Call(co, &results, "getNodeNextRewardDate", nodeID)
 
 	if err != nil {
-		return t, fmt.Errorf("error calling delegations function %w", err)
+		return t, fmt.Errorf("error calling node function %w", err)
 	}
 
 	if len(results) == 0 {
@@ -90,6 +95,37 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 
 	nrDate := results[0].(*big.Int)
 	return time.Unix(nrDate.Int64(), 0), nil
+}
+
+func (c *Caller) GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (adr common.Address, err error) {
+	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+
+	co := &bind.CallOpts{
+		Context: ctxT,
+	}
+
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
+	}
+	results := []interface{}{}
+
+	err = bc.Call(co, &results, "getNodeAddress", nodeID)
+
+	if err != nil {
+		return adr, fmt.Errorf("error calling node function %w", err)
+	}
+
+	if len(results) == 0 {
+		return adr, errors.New("empty result")
+	}
+
+	adr = results[0].(common.Address)
+	return adr, nil
 }
 
 func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {

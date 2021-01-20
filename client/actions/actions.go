@@ -155,41 +155,25 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if err != nil {
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
-			// TODO: batch insert pq: invalid byte sequence for encoding \"UTF8\": 0x00"
+
 			for _, node := range nodes {
 				node.BlockHeight = ce.BlockHeight
-				if err := m.dataStore.SaveNode(ctx, node); err != nil {
-					return fmt.Errorf("error storing validator nodes %w", err)
+			}
+
+			removedNodeAddr := common.Address{}
+			if ce.EventName == "NodeAddressWasRemoved" {
+				nodeAddrI, ok := ce.Params["nodeAddress"]
+				if !ok {
+					return errors.New("structure is not for NodeAddressWasAdded or NodeAddressWasRemoved, it does not have nodeAddress")
+				}
+				removedNodeAddr, ok = nodeAddrI.(common.Address)
+				if !ok {
+					return errors.New("structure is not for NodeAddressWasAdded or NodeAddressWasRemoved, it does not have nodeAddress")
 				}
 			}
 
-			if ce.EventName == "NodeAddressWasRemoved" {
-				// update removed node
-				nParams := structs.NodeParams{
-					ValidatorID: vID.String(),
-				}
-				localNodes, err := m.dataStore.GetNodes(ctx, nParams)
-				if err != nil {
-					return fmt.Errorf("error getting validator local nodes %w", err)
-				}
-				localNodeIDs := make(map[string]structs.Node)
-				for _, s := range localNodes {
-					localNodeIDs[s.ID] = s
-				}
-
-				nodeIDs := make(map[string]string)
-				for _, s := range nodes {
-					nodeIDs[s.ID] = s.ID
-				}
-				for _, n := range localNodeIDs {
-					_, ok := nodeIDs[n.ID]
-					if !ok {
-						n.ValidatorID = big.NewInt(0)
-						if err := m.dataStore.SaveNode(ctx, n); err != nil {
-							return fmt.Errorf("error storing removed validator node %w", err)
-						}
-					}
-				}
+			if err := m.dataStore.SaveNodes(ctx, nodes, removedNodeAddr); err != nil {
+				return fmt.Errorf("error storing validator nodes %w", err)
 			}
 
 			vsp := structs.ValidatorStatisticsParams{
@@ -314,7 +298,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a node")
 		}
 		n.BlockHeight = ce.BlockHeight
-		if err = m.dataStore.SaveNode(ctx, n); err != nil {
+		if err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{}); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
 		vs := structs.ValidatorStatisticsParams{
@@ -566,7 +550,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 		n.NextRewardDate = t
 		n.BlockHeight = ce.BlockHeight
-		if err = m.dataStore.SaveNode(ctx, n); err != nil {
+		if err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{}); err != nil {
 			return fmt.Errorf("error storing node %w", err)
 		}
 

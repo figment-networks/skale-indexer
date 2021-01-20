@@ -24,6 +24,7 @@ type NodeParams struct {
 	NodeID      string
 	ValidatorID string
 	Status      string
+	Address     string
 }
 
 type AccountParams struct {
