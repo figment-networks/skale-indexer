@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/lib/pq"
@@ -25,7 +26,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	// upsert nodes
 	for _, n := range nodes {
 		params := structs.NodeParams{
-			NodeID: n.ID,
+			NodeID: n.NodeID.String(),
 		}
 		no, err := d.GetNodes(ctx, params)
 		if err != nil {
@@ -89,7 +90,14 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 			return err
 		}
 
-		if no == nil || (len(no) > 0 && no[0].BlockHeight <= nodes[0].BlockHeight) {
+		if no == nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return rollbackErr
+			}
+			return errors.New("removed node address is not available on db")
+		}
+
+		if no[0].BlockHeight <= nodes[0].BlockHeight {
 			nodeIds := make([]int64, len(nodes))
 			for i, n := range nodes {
 				nodeIds[i] = n.NodeID.Int64()
@@ -101,6 +109,12 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 				removedNodeAddress.Hash().Big().String(),
 				pq.Array(nodeIds),
 			)
+			if err != nil {
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					return rollbackErr
+				}
+				return err
+			}
 		}
 	}
 
@@ -110,7 +124,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 // GetNodes gets nodes
 func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
 	q := `SELECT
-			id, created_at, node_id, address, name, ip, public_ip, port, start_block, next_reward_date, last_reward_date, finish_time, status, validator_id
+			id, created_at, node_id, address, name, ip, public_ip, port, start_block, next_reward_date, last_reward_date, finish_time, status, validator_id, block_height
 		FROM nodes `
 
 	var (
@@ -162,7 +176,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		var IP string
 		var publicIP string
 		var status string
-		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &address, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &status, &validatorId)
+		err = rows.Scan(&n.ID, &n.CreatedAt, &nodeId, &address, &n.Name, &IP, &publicIP, &n.Port, &startBlock, &n.NextRewardDate, &n.LastRewardDate, &finishTime, &status, &validatorId, &n.BlockHeight)
 		if err != nil {
 			return nil, err
 		}
