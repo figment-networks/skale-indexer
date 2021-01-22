@@ -29,7 +29,7 @@ type SkaleStore interface {
 	SaveValidator(ctx context.Context, validator structs.Validator) error
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 
-	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
+	SaveDelegations(ctx context.Context, delegation []structs.Delegation) error
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 
@@ -89,8 +89,8 @@ func (s *Store) GetValidators(ctx context.Context, params structs.ValidatorParam
 	return s.driver.GetValidators(ctx, params)
 }
 
-func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegation) error {
-	return s.driver.SaveDelegation(ctx, delegation)
+func (s *Store) SaveDelegations(ctx context.Context, delegations []structs.Delegation) error {
+	return s.driver.SaveDelegations(ctx, delegations)
 }
 
 func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {

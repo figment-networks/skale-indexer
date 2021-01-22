@@ -17,7 +17,7 @@ import (
 var zero common.Address
 
 // SaveNodes saves nodes
-func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error {
+func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) (err error) {
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

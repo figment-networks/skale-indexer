@@ -45,6 +45,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
+	GetAllCurrentDelegations(ctx context.Context, bc *bind.BoundContract) (delegations []structs.Delegation, err error)
 }
 
 type BCGetter interface {
@@ -453,7 +454,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		d.TransactionHash = ce.TransactionHash
 		d.BlockHeight = ce.BlockHeight
 
-		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
+		if err := m.dataStore.SaveDelegations(ctx, []structs.Delegation{d}); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
 
