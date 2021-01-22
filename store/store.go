@@ -26,7 +26,7 @@ type SkaleStore interface {
 	SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 
-	SaveValidator(ctx context.Context, validator structs.Validator) error
+	SaveValidators(ctx context.Context, validators []structs.Validator) error
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 
 	SaveDelegations(ctx context.Context, delegation []structs.Delegation) error
@@ -81,8 +81,8 @@ func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes 
 	return s.driver.GetNodes(ctx, params)
 }
 
-func (s *Store) SaveValidator(ctx context.Context, validator structs.Validator) error {
-	return s.driver.SaveValidator(ctx, validator)
+func (s *Store) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+	return s.driver.SaveValidators(ctx, validators)
 }
 
 func (s *Store) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {

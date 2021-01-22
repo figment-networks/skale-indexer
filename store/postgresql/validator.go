@@ -12,20 +12,25 @@ import (
 
 var zerobig = big.NewInt(0)
 
-// SaveValidator saves validator
-func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
-
-	if v.Staked == nil {
-		v.Staked = zerobig
-	}
-	if v.FeeRate == nil {
-		v.FeeRate = zerobig
-	}
-	if v.MinimumDelegationAmount == nil {
-		v.MinimumDelegationAmount = zerobig
+// SaveValidators saves validators
+func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
 	}
 
-	_, err := d.db.Exec(`INSERT INTO validators (
+	for _, v := range validators {
+		if v.Staked == nil {
+			v.Staked = zerobig
+		}
+		if v.FeeRate == nil {
+			v.FeeRate = zerobig
+		}
+		if v.MinimumDelegationAmount == nil {
+			v.MinimumDelegationAmount = zerobig
+		}
+
+		_, err = tx.ExecContext(ctx, `INSERT INTO validators (
 			"validator_id",
 			"name",
 			"validator_address",
@@ -54,21 +59,29 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			authorized = EXCLUDED.authorized,
 			block_height = EXCLUDED.block_height
 		`,
-		v.ValidatorID.String(),
-		v.Name,
-		v.ValidatorAddress.Hash().Big().String(),
-		v.RequestedAddress.Hash().Big().String(),
-		v.Description,
-		v.FeeRate.String(),
-		v.RegistrationTime,
-		v.MinimumDelegationAmount.String(),
-		v.AcceptNewRequests,
-		v.Authorized,
-		v.ActiveNodes,
-		v.LinkedNodes,
-		v.Staked.String(),
-		v.BlockHeight)
-	return err
+			v.ValidatorID.String(),
+			v.Name,
+			v.ValidatorAddress.Hash().Big().String(),
+			v.RequestedAddress.Hash().Big().String(),
+			v.Description,
+			v.FeeRate.String(),
+			v.RegistrationTime,
+			v.MinimumDelegationAmount.String(),
+			v.AcceptNewRequests,
+			v.Authorized,
+			v.ActiveNodes,
+			v.LinkedNodes,
+			v.Staked.String(),
+			v.BlockHeight)
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return rollbackErr
+			}
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 // GetValidators gets validators by params

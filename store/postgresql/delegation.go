@@ -12,7 +12,7 @@ import (
 )
 
 // SaveDelegations saves delegations
-func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Delegation) (err error) {
+func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Delegation) error {
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
