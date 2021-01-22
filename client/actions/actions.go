@@ -29,6 +29,7 @@ type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
+	GetAllCurrentValidators(ctx context.Context, bc *bind.BoundContract) (validators []structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)

@@ -106,3 +106,26 @@ type ValidatorRaw struct {
 	MinimumDelegationAmount *big.Int       `json:"minimumDelegationAmount"`
 	AcceptNewRequests       bool           `json:"acceptNewRequests"`
 }
+
+func (c *Caller) GetAllCurrentValidators(ctx context.Context, bc *bind.BoundContract) (validators []structs.Validator, err error) {
+	validators = []structs.Validator{}
+	zeroBlockNumber := uint64(0)
+	vldID := int64(1)
+
+	for {
+		vldIDBig := big.NewInt(vldID)
+
+		v, err := c.GetValidator(ctx, bc, zeroBlockNumber, vldIDBig)
+		if err != nil {
+			break
+		}
+		v.Authorized, err = c.IsAuthorizedValidator(ctx, bc, zeroBlockNumber, vldIDBig)
+		if err != nil {
+			break
+		}
+		vldID++
+		validators = append(validators, v)
+	}
+
+	return validators, nil
+}
