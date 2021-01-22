@@ -173,3 +173,33 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 		BlockHeight: blockNumber,
 	}, nil
 }
+
+func (c *Caller) GetAllCurrentNodes(ctx context.Context, bc *bind.BoundContract) (nodes []structs.Node, err error) {
+	nodes = []structs.Node{}
+	zeroBlockNumber := uint64(0)
+	nodeID := int64(1)
+
+	for {
+		nIDBig := big.NewInt(nodeID)
+
+		n, err := c.GetNode(ctx, bc, zeroBlockNumber, nIDBig)
+		if err != nil {
+			break
+		}
+		nrd, err := c.GetNodeNextRewardDate(ctx, bc, zeroBlockNumber, nIDBig)
+		if err != nil {
+			break
+		}
+		n.NextRewardDate = nrd
+		adr, err := c.GetNodeAddress(ctx, bc, zeroBlockNumber, nIDBig)
+		if err != nil {
+			break
+		}
+		n.Address = adr
+
+		nodeID++
+		nodes = append(nodes, n)
+	}
+
+	return nodes, nil
+}

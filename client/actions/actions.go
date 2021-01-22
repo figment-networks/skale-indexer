@@ -36,6 +36,7 @@ type Call interface {
 	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
 	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
 	GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
+	GetAllCurrentNodes(ctx context.Context, bc *bind.BoundContract) (nodes []structs.Node, err error)
 
 	// Distributor
 	GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error)
