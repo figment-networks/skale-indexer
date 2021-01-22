@@ -14,6 +14,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Validator structure - to be used with abi.ConvertType method
+// It is decoding data using... field order. this is why we cannot change field order
+type ValidatorRaw struct {
+	Name                    string         `json:"name"`
+	ValidatorAddress        common.Address `json:"validatorAddress"`
+	RequestedAddress        common.Address `json:"requestedAddress"`
+	Description             string         `json:"description"`
+	FeeRate                 *big.Int       `json:"feeRate"`
+	RegistrationTime        *big.Int       `json:"registrationTime"`
+	MinimumDelegationAmount *big.Int       `json:"minimumDelegationAmount"`
+	AcceptNewRequests       bool           `json:"acceptNewRequests"`
+}
+
 func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
@@ -92,19 +105,6 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	}
 
 	return isAuthorized, nil
-}
-
-// Validator structure - to be used with abi.ConvertType method
-// It is decoding data using... field order. this is why we cannot change field order
-type ValidatorRaw struct {
-	Name                    string         `json:"name"`
-	ValidatorAddress        common.Address `json:"validatorAddress"`
-	RequestedAddress        common.Address `json:"requestedAddress"`
-	Description             string         `json:"description"`
-	FeeRate                 *big.Int       `json:"feeRate"`
-	RegistrationTime        *big.Int       `json:"registrationTime"`
-	MinimumDelegationAmount *big.Int       `json:"minimumDelegationAmount"`
-	AcceptNewRequests       bool           `json:"acceptNewRequests"`
 }
 
 func (c *Caller) GetAllCurrentValidators(ctx context.Context, bc *bind.BoundContract) (validators []structs.Validator, err error) {
