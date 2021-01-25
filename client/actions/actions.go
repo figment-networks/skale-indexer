@@ -30,14 +30,14 @@ type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
-	GetAllCurrentValidators(ctx context.Context, bc *bind.BoundContract) (validators []structs.Validator, err error)
+	GetAllValidators(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (validators []structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
 	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
 	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
 	GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
-	GetAllCurrentNodes(ctx context.Context, bc *bind.BoundContract) (nodes []structs.Node, err error)
+	GetAllNodes(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (nodes []structs.Node, err error)
 
 	// Distributor
 	GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error)
@@ -48,7 +48,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
-	GetAllCurrentDelegations(ctx context.Context, bc *bind.BoundContract) (delegations []structs.Delegation, err error)
+	GetAllDelegations(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (delegations []structs.Delegation, err error)
 }
 
 type BCGetter interface {
@@ -662,18 +662,23 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 	wg.Add(3)
 	var errDlg, errVld, errNode error
 	var validators []structs.Validator
+	currentBlock, err := m.tr.GetCurrentBlockHeight(ctx)
+	if err != nil {
+		//	m.l.Error("error getting the current block height")
+	}
+
 	go func() {
-		errDlg = m.SyncDelegations(ctx, c)
+		errDlg = m.SyncDelegations(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
 	go func() {
-		validators, errVld = m.SyncValidators(ctx, c)
+		validators, errVld = m.SyncValidators(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
 	go func() {
-		errNode = m.SyncNodes(ctx, c)
+		errNode = m.SyncNodes(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
@@ -681,15 +686,13 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 
 	if errDlg == nil && errVld == nil && errNode == nil {
 		for _, v := range validators {
-			// TODO: blocknumber
-			blockheight := uint64(0)
-			if err := m.saveValidatorStatChanges(ctx, v, blockheight); err != nil {
+			if err := m.saveValidatorStatChanges(ctx, v, currentBlock); err != nil {
 				m.l.Error(err.Error())
 			}
 
 			vs := structs.ValidatorStatisticsParams{
 				ValidatorID: v.ValidatorID.String(),
-				BlockHeight: blockheight,
+				BlockHeight: currentBlock,
 			}
 			if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
 				m.l.Error(err.Error())
@@ -707,7 +710,7 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 	//m.l.Info("synchronization ends for the end of epoch")
 }
 
-func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsContents) (err error) {
+func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	//m.l.Info("synchronization for delegations starts")
 	fmt.Println("starts delegation")
 	cV, ok := m.cm.GetContractByNameVersion("delegation_controller", c.Version)
@@ -715,7 +718,7 @@ func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsConte
 		//	m.l.Error("failed to synchronize delegations. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
-	delegations, err := m.c.GetAllCurrentDelegations(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi))
+	delegations, err := m.c.GetAllDelegations(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
 		//	m.l.Error("failed to synchronize delegations. error getting delegations from node.")
 		return fmt.Errorf("error getting delegations %w", err)
@@ -731,7 +734,7 @@ func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsConte
 	return err
 }
 
-func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsContents) (validators []structs.Validator, err error) {
+func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
 	//m.l.Info("synchronization for validator starts")
 	fmt.Println("starts validators")
 
@@ -740,7 +743,7 @@ func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsConten
 		//	m.l.Error("failed to synchronize validators. contract is not found.")
 		return nil, errors.New("contract is not found for version :" + c.Version)
 	}
-	validators, err = m.c.GetAllCurrentValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi))
+	validators, err = m.c.GetAllValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
 		//	m.l.Error("failed to synchronize validators. error getting validators from node.")
 		return nil, fmt.Errorf("error getting validators %w", err)
@@ -756,7 +759,7 @@ func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsConten
 	return validators, err
 }
 
-func (m *Manager) SyncNodes(ctx context.Context, c contract.ContractsContents) (err error) {
+func (m *Manager) SyncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	//m.l.Info("synchronization for nodes starts")
 	fmt.Println("starts nodes")
 
@@ -765,7 +768,7 @@ func (m *Manager) SyncNodes(ctx context.Context, c contract.ContractsContents) (
 		//m.l.Error("failed to synchronize nodes. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
-	nodes, err := m.c.GetAllCurrentNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi))
+	nodes, err := m.c.GetAllNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
 		//m.l.Error("failed to synchronize nodes. error getting validators from node.")
 		return fmt.Errorf("error getting nodes %w", err)

@@ -313,7 +313,7 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 	return delegations, nil
 }
 
-func (c *Caller) GetAllCurrentDelegations(ctx context.Context, bc *bind.BoundContract) (delegations []structs.Delegation, err error) {
+func (c *Caller) GetAllDelegations(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (delegations []structs.Delegation, err error) {
 	delegations = []structs.Delegation{}
 	bufferCount := 5
 	results := make(chan []structs.Delegation, bufferCount)
@@ -321,7 +321,7 @@ func (c *Caller) GetAllCurrentDelegations(ctx context.Context, bc *bind.BoundCon
 	roundSum := -1
 	for roundSum != 0 {
 		for i := 1; i <= bufferCount; i++ {
-			go c.fetchDelegations(ctx, bc, ind, results)
+			go c.fetchDelegations(ctx, bc, ind, currentBlock, results)
 			ind++
 		}
 		roundSum = 0
@@ -335,22 +335,22 @@ func (c *Caller) GetAllCurrentDelegations(ctx context.Context, bc *bind.BoundCon
 	return delegations, nil
 }
 
-func (c *Caller) fetchDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, cc chan<- []structs.Delegation) {
+func (c *Caller) fetchDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation) {
 	delegations := []structs.Delegation{}
-	zeroBlockNumber := uint64(0)
 	length := int64(10)
 	dlgID := (ind-1)*length + 1
 	for i := 0; i < int(length); i++ {
 		dlgIDBig := big.NewInt(dlgID)
-		d, err := c.GetDelegation(ctx, bc, zeroBlockNumber, dlgIDBig)
+		d, err := c.GetDelegation(ctx, bc, currentBlock, dlgIDBig)
 		if err != nil {
 			break
 		}
 
-		d.State, err = c.GetDelegationState(ctx, bc, zeroBlockNumber, dlgIDBig)
+		d.State, err = c.GetDelegationState(ctx, bc, currentBlock, dlgIDBig)
 		if err != nil {
 			break
 		}
+		d.BlockHeight = currentBlock
 		dlgID++
 		delegations = append(delegations, d)
 	}

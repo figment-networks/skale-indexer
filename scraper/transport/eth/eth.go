@@ -55,3 +55,8 @@ func (et *EthTransport) GetBlockHeader(ctx context.Context, height *big.Int) (h 
 	h, err = et.C.HeaderByNumber(ctx, height)
 	return h, err
 }
+
+func (et *EthTransport) GetCurrentBlockHeight(ctx context.Context) (uint64, error) {
+	blockNumber, err := et.C.BlockNumber(ctx)
+	return blockNumber, err
+}
