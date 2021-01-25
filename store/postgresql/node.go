@@ -2,10 +2,8 @@ package postgresql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/lib/pq"
 	"math/big"
 	"net"
 	"strconv"
@@ -23,23 +21,11 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 		return err
 	}
 
-	// upsert nodes
 	for _, n := range nodes {
-		params := structs.NodeParams{
-			NodeID: n.NodeID.String(),
-		}
-		no, err := d.GetNodes(ctx, params)
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
-			return err
-		}
-
-		if no == nil || (len(no) > 0 && no[0].BlockHeight <= n.BlockHeight) {
-			_, err = tx.ExecContext(ctx, `INSERT INTO nodes
+		_, err = tx.ExecContext(ctx, `INSERT INTO nodes
 			("node_id", "address", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "block_height")
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+			SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 
+				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $14 AND n2.block_height > $15) 
 			ON CONFLICT (node_id)
 			DO UPDATE SET
 				name = EXCLUDED.name,
@@ -54,20 +40,23 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 				status = EXCLUDED.status,
 				validator_id = EXCLUDED.validator_id,
 				block_height = EXCLUDED.block_height`,
-				n.NodeID.String(),
-				n.Address.Hash().Big().String(),
-				n.Name,
-				n.IP.String(),
-				n.PublicIP.String(),
-				n.Port,
-				n.StartBlock.String(),
-				n.NextRewardDate,
-				n.LastRewardDate,
-				n.FinishTime.String(),
-				n.Status.String(),
-				n.ValidatorID.String(),
-				n.BlockHeight)
-		}
+			n.NodeID.String(),
+			n.Address.Hash().Big().String(),
+			n.Name,
+			n.IP.String(),
+			n.PublicIP.String(),
+			n.Port,
+			n.StartBlock.String(),
+			n.NextRewardDate,
+			n.LastRewardDate,
+			n.FinishTime.String(),
+			n.Status.String(),
+			n.ValidatorID.String(),
+			n.BlockHeight,
+			n.NodeID.String(), // for inner query
+			n.BlockHeight,     // for inner query
+		)
+
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return rollbackErr
@@ -78,44 +67,20 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 
 	// update removed node
 	if removedNodeAddress.Hash().Big().String() != zero.Hash().Big().String() && len(nodes) > 0 {
-		params := structs.NodeParams{
-			Address:     removedNodeAddress.Hex(),
-			ValidatorID: nodes[0].ValidatorID.String(),
-		}
-		no, err := d.GetNodes(ctx, params)
+		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
+				WHERE validator_id = $2 AND address = $3 AND node_id 
+					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address = $4 AND n2.validator_id = $5)`,
+			zero.Hash().Big().String(),
+			nodes[0].ValidatorID.Int64(),
+			removedNodeAddress.Hash().Big().String(),
+			removedNodeAddress.Hash().Big().String(), // for inner query
+			nodes[0].ValidatorID.String(),            // for inner query
+		)
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return rollbackErr
 			}
 			return err
-		}
-
-		if no == nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
-			return errors.New("removed node address does not exist on database")
-		}
-
-		if no[0].BlockHeight <= nodes[0].BlockHeight {
-			nodeIds := make([]int64, len(nodes))
-			for i, n := range nodes {
-				nodeIds[i] = n.NodeID.Int64()
-			}
-			// TODO: solve pq.Array(nodeIds) parameter error or remove it
-			_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
-				WHERE validator_id = $2 AND address = $3 AND node_id NOT IN ($4)`,
-				zero.Hash().Big().String(),
-				nodes[0].ValidatorID.Int64(),
-				removedNodeAddress.Hash().Big().String(),
-				pq.Array(nodeIds),
-			)
-			if err != nil {
-				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return rollbackErr
-				}
-				return err
-			}
 		}
 	}
 
