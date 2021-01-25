@@ -711,7 +711,6 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 
 func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	m.l.Info("synchronization for delegations starts")
-	fmt.Println("starts delegation")
 	cV, ok := m.cm.GetContractByNameVersion("delegation_controller", c.Version)
 	if !ok {
 		m.l.Error("failed to synchronize delegations. contract is not found.")
@@ -729,13 +728,11 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 		msg = "failed to synchronize delegations."
 	}
 	m.l.Info(msg)
-	fmt.Println("Delegation length: ", len(delegations))
 	return err
 }
 
 func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
 	m.l.Info("synchronization for validator starts")
-	fmt.Println("starts validators")
 
 	cV, ok := m.cm.GetContractByNameVersion("validator_service", c.Version)
 	if !ok {
@@ -754,13 +751,11 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 		msg = "failed to synchronize validators."
 	}
 	m.l.Info(msg)
-	fmt.Println("validator length: ", len(validators))
 	return validators, err
 }
 
 func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	m.l.Info("synchronization for nodes starts")
-	fmt.Println("starts nodes")
 
 	cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
 	if !ok {
@@ -780,6 +775,5 @@ func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, c
 		msg = "failed to synchronize nodes."
 	}
 	m.l.Info(msg)
-	fmt.Println("nodes length: ", len(nodes))
 	return err
 }
