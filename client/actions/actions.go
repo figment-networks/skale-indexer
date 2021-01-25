@@ -656,14 +656,14 @@ func boolToBigInt(a bool) *big.Int {
 }
 
 func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsContents) {
-	//m.l.Info("synchronization starts for the end of epoch")
+	m.l.Info("synchronization starts for the end of epoch")
 	wg := new(sync.WaitGroup)
 	wg.Add(3)
 	var errDlg, errVld, errNode error
 	var validators []structs.Validator
 	currentBlock, err := m.tr.GetCurrentBlockHeight(ctx)
 	if err != nil {
-		//	m.l.Error("error getting the current block height")
+		m.l.Error("error getting the current block height")
 	}
 
 	go func() {
@@ -706,80 +706,80 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 
 		}
 	}
-	//m.l.Info("synchronization ends for the end of epoch")
+	m.l.Info("synchronization ends for the end of epoch")
 }
 
 func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
-	//m.l.Info("synchronization for delegations starts")
+	m.l.Info("synchronization for delegations starts")
 	fmt.Println("starts delegation")
 	cV, ok := m.cm.GetContractByNameVersion("delegation_controller", c.Version)
 	if !ok {
-		//	m.l.Error("failed to synchronize delegations. contract is not found.")
+		m.l.Error("failed to synchronize delegations. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
 	delegations, err := m.c.GetAllDelegations(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
-		//	m.l.Error("failed to synchronize delegations. error getting delegations from node.")
+		m.l.Error("failed to synchronize delegations. error getting delegations from node.")
 		return fmt.Errorf("error getting delegations %w", err)
 	}
 
 	err = m.dataStore.SaveDelegations(ctx, delegations)
-	//msg := "synchronization for delegations successful."
-	//if err != nil {
-	//	msg= "failed to synchronize delegations."
-	//}
-	//m.l.Info(msg)
+	msg := "synchronization for delegations successful."
+	if err != nil {
+		msg = "failed to synchronize delegations."
+	}
+	m.l.Info(msg)
 	fmt.Println("Delegation length: ", len(delegations))
 	return err
 }
 
 func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
-	//m.l.Info("synchronization for validator starts")
+	m.l.Info("synchronization for validator starts")
 	fmt.Println("starts validators")
 
 	cV, ok := m.cm.GetContractByNameVersion("validator_service", c.Version)
 	if !ok {
-		//	m.l.Error("failed to synchronize validators. contract is not found.")
+		m.l.Error("failed to synchronize validators. contract is not found.")
 		return nil, errors.New("contract is not found for version :" + c.Version)
 	}
 	validators, err = m.c.GetAllValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
-		//	m.l.Error("failed to synchronize validators. error getting validators from node.")
+		m.l.Error("failed to synchronize validators. error getting validators from node.")
 		return nil, fmt.Errorf("error getting validators %w", err)
 	}
 	err = m.dataStore.SaveValidators(ctx, validators)
 
-	//msg := "synchronization for validators successful."
-	//if err != nil {
-	//	msg= "failed to synchronize validators."
-	//}
-	//m.l.Info(msg)
+	msg := "synchronization for validators successful."
+	if err != nil {
+		msg = "failed to synchronize validators."
+	}
+	m.l.Info(msg)
 	fmt.Println("validator length: ", len(validators))
 	return validators, err
 }
 
 func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
-	//m.l.Info("synchronization for nodes starts")
+	m.l.Info("synchronization for nodes starts")
 	fmt.Println("starts nodes")
 
 	cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
 	if !ok {
-		//m.l.Error("failed to synchronize nodes. contract is not found.")
+		m.l.Error("failed to synchronize nodes. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
 	nodes, err := m.c.GetAllNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
 	if err != nil {
-		//m.l.Error("failed to synchronize nodes. error getting validators from node.")
+		m.l.Error("failed to synchronize nodes. error getting validators from node.")
 		return fmt.Errorf("error getting nodes %w", err)
 	}
 
 	err = m.dataStore.SaveNodes(ctx, nodes, common.Address{})
 
-	//msg := "synchronization for nodes successful."
-	//if err != nil {
-	//	msg= "failed to synchronize nodes."
-	//}
-	//m.l.Info(msg)
+	msg := "synchronization for nodes successful."
+	if err != nil {
+		msg = "failed to synchronize nodes."
+	}
+	m.l.Info(msg)
 	fmt.Println("nodes length: ", len(nodes))
 	return err
 }
