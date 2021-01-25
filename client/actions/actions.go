@@ -667,17 +667,17 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 	}
 
 	go func() {
-		errDlg = m.SyncDelegations(ctx, c, currentBlock)
+		errDlg = m.syncDelegations(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
 	go func() {
-		validators, errVld = m.SyncValidators(ctx, c, currentBlock)
+		validators, errVld = m.syncValidators(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
 	go func() {
-		errNode = m.SyncNodes(ctx, c, currentBlock)
+		errNode = m.syncNodes(ctx, c, currentBlock)
 		wg.Done()
 	}()
 
@@ -709,7 +709,7 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 	//m.l.Info("synchronization ends for the end of epoch")
 }
 
-func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
+func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	//m.l.Info("synchronization for delegations starts")
 	fmt.Println("starts delegation")
 	cV, ok := m.cm.GetContractByNameVersion("delegation_controller", c.Version)
@@ -733,7 +733,7 @@ func (m *Manager) SyncDelegations(ctx context.Context, c contract.ContractsConte
 	return err
 }
 
-func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
+func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
 	//m.l.Info("synchronization for validator starts")
 	fmt.Println("starts validators")
 
@@ -758,7 +758,7 @@ func (m *Manager) SyncValidators(ctx context.Context, c contract.ContractsConten
 	return validators, err
 }
 
-func (m *Manager) SyncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
+func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
 	//m.l.Info("synchronization for nodes starts")
 	fmt.Println("starts nodes")
 
