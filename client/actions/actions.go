@@ -655,7 +655,6 @@ func boolToBigInt(a bool) *big.Int {
 	return big.NewInt(0)
 }
 
-//TODO: bug: get the current block height
 func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsContents) {
 	//m.l.Info("synchronization starts for the end of epoch")
 	wg := new(sync.WaitGroup)
