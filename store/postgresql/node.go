@@ -69,7 +69,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	if removedNodeAddress.Hash().Big().String() != zero.Hash().Big().String() && len(nodes) > 0 {
 		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
 				WHERE validator_id = $2 AND address = $3 AND node_id 
-					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address = $4 AND n2.validator_id = $5)`,
+					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $4 AND n2.validator_id = $5)`,
 			zero.Hash().Big().String(),
 			nodes[0].ValidatorID.Int64(),
 			removedNodeAddress.Hash().Big().String(),
