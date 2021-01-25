@@ -172,7 +172,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 					GROUP BY validator_id LIMIT 1)
 			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive, zero.Hash().Big().String())
+		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero.Hash().Big().String())
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
