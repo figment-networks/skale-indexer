@@ -31,14 +31,13 @@ type Call interface {
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
 	GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
-	FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
 	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
+	GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
 	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
 	GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
-	FetchNextRoundNodes(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (nodes []structs.Node, err error)
 
 	// Distributor
 	GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error)
@@ -726,29 +725,27 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 		return nil, errors.New("contract is not found for version :" + c.Version)
 	}
 
-	validators = []structs.Validator{}
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	round := -1
-	ind := int64(1)
-	for round != 0 {
-		vlds, err := m.c.FetchNextRoundValidators(ctx, bc, ind, currentBlock)
+	vID := big.NewInt(1)
+	validators = []structs.Validator{}
+	for err == nil {
+		var vld structs.Validator
+		// TODO: check error type for out of index if possible
+		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
 		if err != nil {
-			m.l.Error("failed to synchronize validators. error getting validators from node.")
-			return nil, fmt.Errorf("error getting validators %w", err)
+			continue
 		}
-		round = len(vlds)
-		err = m.dataStore.SaveValidators(ctx, vlds)
+		err = m.dataStore.SaveValidators(ctx, []structs.Validator{vld})
 		if err != nil {
-			m.l.Error("failed to full synchronize validators.")
-			return nil, err
+			m.l.Error(err.Error())
+			return validators, err
 		}
-
-		validators = append(validators, vlds...)
-		ind++
+		vID.Add(vID, big.NewInt(1))
+		validators = append(validators, vld)
 	}
 
 	m.l.Info("synchronization for validators successful.")
-	return validators, err
+	return validators, nil
 }
 
 func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (err error) {
@@ -761,22 +758,20 @@ func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, c
 	}
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	round := -1
-	ind := int64(1)
-	for round != 0 {
-		nodes, err := m.c.FetchNextRoundNodes(ctx, bc, ind, currentBlock)
+	nID := big.NewInt(1)
+	for err == nil {
+		var n structs.Node
+		// TODO: check error type for out of index if possible
+		n, err = m.c.GetNodeWithInfo(ctx, bc, currentBlock, nID)
 		if err != nil {
-			m.l.Error("failed to synchronize nodes. error getting validators from node.")
-			return fmt.Errorf("error getting nodes %w", err)
+			continue
 		}
-		round = len(nodes)
-		err = m.dataStore.SaveNodes(ctx, nodes, common.Address{})
+		err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
 		if err != nil {
-			m.l.Error("failed to full synchronize nodes.")
+			m.l.Error(err.Error())
 			return err
 		}
-
-		ind++
+		nID.Add(nID, big.NewInt(1))
 	}
 
 	m.l.Info("synchronization for nodes successful.")
