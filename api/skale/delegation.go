@@ -327,30 +327,3 @@ func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContra
 
 	return delegation, nil
 }
-
-/* gets 10 delegations based on ind parameter
- * to be used for synchronization
- *
- * example: if ind is 5, then it will fetch delegations for delegation_id between 41 and 50
- */
-func (c *Caller) FetchNextRoundDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation) {
-	delegations := []structs.Delegation{}
-	length := int64(10)
-	dlgID := (ind-1)*length + 1
-	for i := 0; i < int(length); i++ {
-		dlgIDBig := big.NewInt(dlgID)
-		d, err := c.GetDelegation(ctx, bc, currentBlock, dlgIDBig)
-		if err != nil {
-			break
-		}
-
-		d.State, err = c.GetDelegationState(ctx, bc, currentBlock, dlgIDBig)
-		if err != nil {
-			break
-		}
-		d.BlockHeight = currentBlock
-		dlgID++
-		delegations = append(delegations, d)
-	}
-	cc <- delegations
-}

@@ -49,7 +49,6 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
-	FetchNextRoundDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation)
 }
 
 type BCGetter interface {
@@ -688,28 +687,22 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 		return errors.New("contract is not found for version :" + c.Version)
 	}
 
-	bufferCount := 5
-	results := make(chan []structs.Delegation, bufferCount)
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	var ind int64 = 1
-	roundSum := -1
-
-	//if round sum is zero, that means we fetch all delegations so far and no need to run next rounds
-	for roundSum != 0 {
-		for i := 1; i <= bufferCount; i++ {
-			go m.c.FetchNextRoundDelegations(ctx, bc, ind, currentBlock, results)
-			ind++
+	dID := big.NewInt(1)
+	for err == nil {
+		var d structs.Delegation
+		// TODO: check error type for out of index if possible
+		d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, dID)
+		if err != nil {
+			continue
 		}
-		roundSum = 0
-		for i := 0; i < bufferCount; i++ {
-			dlgs := <-results
-			roundSum += len(dlgs)
-			err = m.dataStore.SaveDelegations(ctx, dlgs)
-			if err != nil {
-				m.l.Error("failed to full synchronize delegations.")
-				return err
-			}
+		d.BlockHeight = currentBlock
+		err = m.dataStore.SaveDelegations(ctx, []structs.Delegation{d})
+		if err != nil {
+			m.l.Error(err.Error())
+			return err
 		}
+		dID.Add(dID, big.NewInt(1))
 	}
 
 	m.l.Info("synchronization for delegations successful.")
@@ -735,6 +728,7 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 		if err != nil {
 			continue
 		}
+		vld.BlockHeight = currentBlock
 		err = m.dataStore.SaveValidators(ctx, []structs.Validator{vld})
 		if err != nil {
 			m.l.Error(err.Error())
