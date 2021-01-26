@@ -106,7 +106,7 @@ func (c *Caller) GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blo
 	}
 
 	if c.NodeType == ENTArchive {
-		if blockNumber > 0 { // (lukanus): 0 = latest
+		if blockNumber > 0 { // (eesmerdag): 0 = latest
 			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
 		} else {
 			co.Pending = true
