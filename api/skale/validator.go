@@ -107,11 +107,11 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	return isAuthorized, nil
 }
 
-func (c *Caller) GetAllValidators(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (validators []structs.Validator, err error) {
+func (c *Caller) FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error) {
 	validators = []structs.Validator{}
-	vldID := int64(1)
-
-	for {
+	length := int64(10)
+	vldID := (ind-1)*length + 1
+	for i := 0; i < int(length); i++ {
 		vldIDBig := big.NewInt(vldID)
 
 		v, err := c.GetValidator(ctx, bc, currentBlock, vldIDBig)

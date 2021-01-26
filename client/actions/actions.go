@@ -30,7 +30,7 @@ type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
-	GetAllValidators(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (validators []structs.Validator, err error)
+	FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
@@ -753,18 +753,24 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 		m.l.Error("failed to synchronize validators. contract is not found.")
 		return nil, errors.New("contract is not found for version :" + c.Version)
 	}
-	validators, err = m.c.GetAllValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
-	if err != nil {
-		m.l.Error("failed to synchronize validators. error getting validators from node.")
-		return nil, fmt.Errorf("error getting validators %w", err)
-	}
-	err = m.dataStore.SaveValidators(ctx, validators)
 
-	msg := "synchronization for validators successful."
-	if err != nil {
-		msg = "failed to synchronize validators."
+	round := -1
+	ind := int64(1)
+	for round != 0 {
+		validators, err = m.c.FetchNextRoundValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ind, currentBlock)
+		if err != nil {
+			m.l.Error("failed to synchronize validators. error getting validators from node.")
+			return nil, fmt.Errorf("error getting validators %w", err)
+		}
+		round = len(validators)
+		err = m.dataStore.SaveValidators(ctx, validators)
+		if err != nil {
+			m.l.Error("failed to full synchronize validators.")
+			return nil, err
+		}
 	}
-	m.l.Info(msg)
+
+	m.l.Info("synchronization for validators successful.")
 	return validators, err
 }
 
