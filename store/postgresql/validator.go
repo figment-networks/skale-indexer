@@ -41,7 +41,8 @@ func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Valida
 			"linked_nodes",
 			"staked",
 			"block_height")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+			WHERE NOT EXISTS (SELECT 1 FROM validators v2 WHERE v2.validator_id = $15 AND v2.block_height > $16 LIMIT 1)
 		ON CONFLICT (validator_id)
 		DO UPDATE SET
 			name = EXCLUDED.name,
@@ -68,7 +69,10 @@ func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Valida
 			v.ActiveNodes,
 			v.LinkedNodes,
 			v.Staked.String(),
-			v.BlockHeight)
+			v.BlockHeight,
+			v.ValidatorID.String(), // for inner query
+			v.BlockHeight,          // for inner query
+		)
 		if err != nil {
 			return err
 		}
