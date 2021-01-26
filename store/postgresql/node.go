@@ -25,7 +25,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 		_, err = tx.ExecContext(ctx, `INSERT INTO nodes
 			("node_id", "address", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "block_height")
 			SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 
-				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $14 AND n2.block_height > $15 LIMIT 1) 
+				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $1 AND n2.block_height > $13 LIMIT 1) 
 			ON CONFLICT (node_id)
 			DO UPDATE SET
 				name = EXCLUDED.name,
@@ -52,10 +52,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 			n.FinishTime.String(),
 			n.Status.String(),
 			n.ValidatorID.String(),
-			n.BlockHeight,
-			n.NodeID.String(), // for inner query
-			n.BlockHeight,     // for inner query
-		)
+			n.BlockHeight)
 
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -69,13 +66,10 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	if removedNodeAddress.Hash().Big().String() != zero.Hash().Big().String() && len(nodes) > 0 {
 		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
 				WHERE validator_id = $2 AND address = $3 AND node_id 
-					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $4 AND n2.validator_id = $5)`,
+					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $3 AND n2.validator_id = $2)`,
 			zero.Hash().Big().String(),
 			nodes[0].ValidatorID.Int64(),
-			removedNodeAddress.Hash().Big().String(),
-			removedNodeAddress.Hash().Big().String(), // for inner query
-			nodes[0].ValidatorID.String(),            // for inner query
-		)
+			removedNodeAddress.Hash().Big().String())
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return rollbackErr
