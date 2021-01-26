@@ -135,3 +135,18 @@ func (c *Caller) FetchNextRoundValidators(ctx context.Context, bc *bind.BoundCon
 
 	return validators, nil
 }
+
+func (c *Caller) GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
+
+	validator, err := c.GetValidator(ctx, bc, blockNumber, validatorID)
+	if err != nil {
+		return validator, fmt.Errorf("error calling getValidator function %w", err)
+	}
+
+	validator.Authorized, err = c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
+	if err != nil {
+		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)
+	}
+
+	return validator, nil
+}

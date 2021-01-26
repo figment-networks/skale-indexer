@@ -30,6 +30,7 @@ type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
 	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
+	GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
 	FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error)
 
 	// Nodes
@@ -45,6 +46,7 @@ type Call interface {
 	// Delegation
 	GetPendingDelegationsTokens(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holderAddress common.Address) (amount *big.Int, err error)
 	GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
+	GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
@@ -137,7 +139,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a validator, it does not have valiadtorId")
 		}
 
-		v, err := m.getValidatorChanged(ctx, bc, ce.BlockHeight, vID)
+		v, err := m.c.GetValidatorWithInfo(ctx, bc, ce.BlockHeight, vID)
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
@@ -450,7 +452,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a delegation, it does not have delegationId")
 		}
 
-		d, err := m.getDelegationChanged(ctx, bc, ce.BlockHeight, dID)
+		d, err := m.c.GetDelegationWithInfo(ctx, bc, ce.BlockHeight, dID)
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
@@ -582,36 +584,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 	return m.dataStore.SaveContractEvent(ctx, ce)
 
-}
-
-func (m *Manager) getValidatorChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (structs.Validator, error) {
-
-	validator, err := m.c.GetValidator(ctx, bc, blockNumber, validatorID)
-	if err != nil {
-		return validator, fmt.Errorf("error calling getValidator function %w", err)
-	}
-
-	validator.Authorized, err = m.c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
-	if err != nil {
-		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)
-	}
-
-	return validator, nil
-}
-
-func (m *Manager) getDelegationChanged(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (structs.Delegation, error) {
-
-	delegation, err := m.c.GetDelegation(ctx, bc, blockNumber, delegationID)
-	if err != nil {
-		return delegation, fmt.Errorf("error calling GetDelegation %w", err)
-	}
-
-	delegation.State, err = m.c.GetDelegationState(ctx, bc, blockNumber, delegationID)
-	if err != nil {
-		return delegation, fmt.Errorf("error calling GetDelegationState %w", err)
-	}
-
-	return delegation, nil
 }
 
 func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator structs.Validator, blockNumber uint64) error {

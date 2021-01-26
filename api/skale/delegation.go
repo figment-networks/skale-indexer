@@ -314,6 +314,21 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 	return delegations, nil
 }
 
+// GetDelegationInfo delegation info with all parameters
+func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
+	delegation, err := c.GetDelegation(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, fmt.Errorf("error calling GetDelegation %w", err)
+	}
+
+	delegation.State, err = c.GetDelegationState(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, fmt.Errorf("error calling GetDelegationState %w", err)
+	}
+
+	return delegation, nil
+}
+
 /* gets 10 delegations based on ind parameter
  * to be used for synchronization
  *
