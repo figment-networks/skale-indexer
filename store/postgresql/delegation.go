@@ -13,13 +13,9 @@ import (
 
 // SaveDelegations saves delegations
 func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Delegation) error {
-	tx, err := d.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
 
 	for _, dl := range delegations {
-		_, err := tx.ExecContext(ctx, `INSERT INTO delegations (
+		_, err := d.db.Exec(`INSERT INTO delegations (
 				"delegation_id",
 				"holder",
 				"validator_id",
@@ -60,14 +56,11 @@ func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Dele
 			dl.State)
 
 		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
 			return err
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // GetDelegationTimeline gets all delegation information over time
