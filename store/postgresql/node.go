@@ -12,7 +12,7 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
-var zero common.Address
+const zero = 0
 
 // SaveNodes saves nodes
 func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error {
@@ -63,11 +63,11 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	}
 
 	// update removed node
-	if removedNodeAddress.Hash().Big().String() != zero.Hash().Big().String() && len(nodes) > 0 {
+	if removedNodeAddress.Hash().Big().String() != string(zero) && len(nodes) > 0 {
 		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
 				WHERE validator_id = $2 AND address = $3 AND node_id 
 					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $3 AND n2.validator_id = $2)`,
-			zero.Hash().Big().String(),
+			zero,
 			nodes[0].ValidatorID.Int64(),
 			removedNodeAddress.Hash().Big().String())
 		if err != nil {
