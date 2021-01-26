@@ -14,10 +14,6 @@ var zerobig = big.NewInt(0)
 
 // SaveValidators saves validators
 func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Validator) error {
-	tx, err := d.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
 
 	for _, v := range validators {
 		if v.Staked == nil {
@@ -30,7 +26,7 @@ func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Valida
 			v.MinimumDelegationAmount = zerobig
 		}
 
-		_, err = tx.ExecContext(ctx, `INSERT INTO validators (
+		_, err := d.db.Exec(`INSERT INTO validators (
 			"validator_id",
 			"name",
 			"validator_address",
@@ -74,14 +70,11 @@ func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Valida
 			v.Staked.String(),
 			v.BlockHeight)
 		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
 			return err
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // GetValidators gets validators by params
