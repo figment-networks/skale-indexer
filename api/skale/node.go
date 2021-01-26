@@ -175,37 +175,21 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	}, nil
 }
 
-/* gets 10 nodes based on ind parameter
- * to be used for synchronization
- *
- * example: if ind is 5, then it will fetch nodes for node_id between 41 and 50
- */
-func (c *Caller) FetchNextRoundNodes(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (nodes []structs.Node, err error) {
-	nodes = []structs.Node{}
-	length := int64(10)
-	nodeID := (ind-1)*length + 1
-	for i := 0; i < int(length); i++ {
-		nIDBig := big.NewInt(nodeID)
-
-		n, err := c.GetNode(ctx, bc, currentBlock, nIDBig)
-		if err != nil {
-			break
-		}
-		nrd, err := c.GetNodeNextRewardDate(ctx, bc, currentBlock, nIDBig)
-		if err != nil {
-			break
-		}
-		n.NextRewardDate = nrd
-		adr, err := c.GetNodeAddress(ctx, bc, currentBlock, nIDBig)
-		if err != nil {
-			break
-		}
-		n.Address = adr
-
-		n.BlockHeight = currentBlock
-		nodeID++
-		nodes = append(nodes, n)
+func (c *Caller) GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
+	n, err = c.GetNode(ctx, bc, blockNumber, nodeID)
+	if err != nil {
+		return n, fmt.Errorf("error calling GetNode %w", err)
 	}
+	nrd, err := c.GetNodeNextRewardDate(ctx, bc, blockNumber, nodeID)
+	if err != nil {
+		return n, fmt.Errorf("error calling GetNodeNextRewardDate %w", err)
+	}
+	n.NextRewardDate = nrd
+	adr, err := c.GetNodeAddress(ctx, bc, blockNumber, nodeID)
+	if err != nil {
+		return n, fmt.Errorf("error calling GetNodeAddress %w", err)
+	}
+	n.Address = adr
 
-	return nodes, nil
+	return n, nil
 }

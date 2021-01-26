@@ -107,42 +107,11 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	return isAuthorized, nil
 }
 
-/* gets 10 validators based on ind parameter
- * to be used for synchronization
- *
- * example: if ind is 5, then it will fetch validators for validator_id between 41 and 50
- */
-func (c *Caller) FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error) {
-	validators = []structs.Validator{}
-	length := int64(10)
-	vldID := (ind-1)*length + 1
-	for i := 0; i < int(length); i++ {
-		vldIDBig := big.NewInt(vldID)
-
-		v, err := c.GetValidator(ctx, bc, currentBlock, vldIDBig)
-		if err != nil {
-			break
-		}
-		v.Authorized, err = c.IsAuthorizedValidator(ctx, bc, currentBlock, vldIDBig)
-		if err != nil {
-			break
-		}
-
-		v.BlockHeight = currentBlock
-		vldID++
-		validators = append(validators, v)
-	}
-
-	return validators, nil
-}
-
 func (c *Caller) GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
-
 	validator, err := c.GetValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
 		return validator, fmt.Errorf("error calling getValidator function %w", err)
 	}
-
 	validator.Authorized, err = c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
 		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)

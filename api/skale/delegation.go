@@ -320,7 +320,6 @@ func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContra
 	if err != nil {
 		return delegation, fmt.Errorf("error calling GetDelegation %w", err)
 	}
-
 	delegation.State, err = c.GetDelegationState(ctx, bc, blockNumber, delegationID)
 	if err != nil {
 		return delegation, fmt.Errorf("error calling GetDelegationState %w", err)
