@@ -25,7 +25,7 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 		_, err = tx.ExecContext(ctx, `INSERT INTO nodes
 			("node_id", "address", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "block_height")
 			SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 
-				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $14 AND n2.block_height > $15) 
+				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $14 AND n2.block_height > $15 LIMIT 1) 
 			ON CONFLICT (node_id)
 			DO UPDATE SET
 				name = EXCLUDED.name,
