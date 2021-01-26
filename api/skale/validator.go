@@ -107,6 +107,11 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	return isAuthorized, nil
 }
 
+/* gets 10 validators based on ind parameter
+ * to be used for synchronization
+ *
+ * example: if ind is 5, then it will fetch validators for validator_id between 41 and 50
+ */
 func (c *Caller) FetchNextRoundValidators(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (validators []structs.Validator, err error) {
 	validators = []structs.Validator{}
 	length := int64(10)

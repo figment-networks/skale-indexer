@@ -313,10 +313,10 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 	return delegations, nil
 }
 
-/* gets the next 10 delegations based on ind parameter
+/* gets 10 delegations based on ind parameter
  * to be used for synchronization
  *
- * example: if ind is 5, then it will fetch delegations for delegation_id between 50 and 60
+ * example: if ind is 5, then it will fetch delegations for delegation_id between 41 and 50
  */
 func (c *Caller) FetchNextRoundDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation) {
 	delegations := []structs.Delegation{}

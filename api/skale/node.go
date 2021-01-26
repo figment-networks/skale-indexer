@@ -174,11 +174,16 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	}, nil
 }
 
-func (c *Caller) GetAllNodes(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (nodes []structs.Node, err error) {
+/* gets 10 nodes based on ind parameter
+ * to be used for synchronization
+ *
+ * example: if ind is 5, then it will fetch nodes for node_id between 41 and 50
+ */
+func (c *Caller) FetchNextRoundNodes(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (nodes []structs.Node, err error) {
 	nodes = []structs.Node{}
-	nodeID := int64(1)
-
-	for {
+	length := int64(10)
+	nodeID := (ind-1)*length + 1
+	for i := 0; i < int(length); i++ {
 		nIDBig := big.NewInt(nodeID)
 
 		n, err := c.GetNode(ctx, bc, currentBlock, nIDBig)

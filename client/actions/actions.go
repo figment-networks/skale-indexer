@@ -37,7 +37,7 @@ type Call interface {
 	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
 	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
 	GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
-	GetAllNodes(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (nodes []structs.Node, err error)
+	FetchNextRoundNodes(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64) (nodes []structs.Node, err error)
 
 	// Distributor
 	GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error)
@@ -719,9 +719,9 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 
 	bufferCount := 5
 	results := make(chan []structs.Delegation, bufferCount)
+	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var ind int64 = 1
 	roundSum := -1
-	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 
 	//if round sum is zero, that means we fetch all delegations so far and no need to run next rounds
 	for roundSum != 0 {
@@ -754,20 +754,25 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 		return nil, errors.New("contract is not found for version :" + c.Version)
 	}
 
+	validators = []structs.Validator{}
+	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	round := -1
 	ind := int64(1)
 	for round != 0 {
-		validators, err = m.c.FetchNextRoundValidators(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ind, currentBlock)
+		vlds, err := m.c.FetchNextRoundValidators(ctx, bc, ind, currentBlock)
 		if err != nil {
 			m.l.Error("failed to synchronize validators. error getting validators from node.")
 			return nil, fmt.Errorf("error getting validators %w", err)
 		}
-		round = len(validators)
-		err = m.dataStore.SaveValidators(ctx, validators)
+		round = len(vlds)
+		err = m.dataStore.SaveValidators(ctx, vlds)
 		if err != nil {
 			m.l.Error("failed to full synchronize validators.")
 			return nil, err
 		}
+
+		validators = append(validators, vlds...)
+		ind++
 	}
 
 	m.l.Info("synchronization for validators successful.")
@@ -782,18 +787,26 @@ func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, c
 		m.l.Error("failed to synchronize nodes. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
-	nodes, err := m.c.GetAllNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
-	if err != nil {
-		m.l.Error("failed to synchronize nodes. error getting validators from node.")
-		return fmt.Errorf("error getting nodes %w", err)
+
+	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
+	round := -1
+	ind := int64(1)
+	for round != 0 {
+		nodes, err := m.c.FetchNextRoundNodes(ctx, bc, ind, currentBlock)
+		if err != nil {
+			m.l.Error("failed to synchronize nodes. error getting validators from node.")
+			return fmt.Errorf("error getting nodes %w", err)
+		}
+		round = len(nodes)
+		err = m.dataStore.SaveNodes(ctx, nodes, common.Address{})
+		if err != nil {
+			m.l.Error("failed to full synchronize nodes.")
+			return err
+		}
+
+		ind++
 	}
 
-	err = m.dataStore.SaveNodes(ctx, nodes, common.Address{})
-
-	msg := "synchronization for nodes successful."
-	if err != nil {
-		msg = "failed to synchronize nodes."
-	}
-	m.l.Info(msg)
+	m.l.Info("synchronization for nodes successful.")
 	return err
 }
