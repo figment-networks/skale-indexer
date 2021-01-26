@@ -313,29 +313,12 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 	return delegations, nil
 }
 
-func (c *Caller) GetAllDelegations(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (delegations []structs.Delegation, err error) {
-	delegations = []structs.Delegation{}
-	bufferCount := 5
-	results := make(chan []structs.Delegation, bufferCount)
-	var ind int64 = 1
-	roundSum := -1
-	for roundSum != 0 {
-		for i := 1; i <= bufferCount; i++ {
-			go c.fetchDelegations(ctx, bc, ind, currentBlock, results)
-			ind++
-		}
-		roundSum = 0
-		for i := 0; i < bufferCount; i++ {
-			dlgs := <-results
-			delegations = append(delegations, dlgs...)
-			roundSum += len(dlgs)
-		}
-	}
-
-	return delegations, nil
-}
-
-func (c *Caller) fetchDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation) {
+/* gets the next 10 delegations based on ind parameter
+ * to be used for synchronization
+ *
+ * example: if ind is 5, then it will fetch delegations for delegation_id between 50 and 60
+ */
+func (c *Caller) FetchNextRoundDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation) {
 	delegations := []structs.Delegation{}
 	length := int64(10)
 	dlgID := (ind-1)*length + 1

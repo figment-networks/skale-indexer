@@ -48,7 +48,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
-	GetAllDelegations(ctx context.Context, bc *bind.BoundContract, currentBlock uint64) (delegations []structs.Delegation, err error)
+	FetchNextRoundDelegations(ctx context.Context, bc *bind.BoundContract, ind int64, currentBlock uint64, cc chan<- []structs.Delegation)
 }
 
 type BCGetter interface {
@@ -716,18 +716,32 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 		m.l.Error("failed to synchronize delegations. contract is not found.")
 		return errors.New("contract is not found for version :" + c.Version)
 	}
-	delegations, err := m.c.GetAllDelegations(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), currentBlock)
-	if err != nil {
-		m.l.Error("failed to synchronize delegations. error getting delegations from node.")
-		return fmt.Errorf("error getting delegations %w", err)
+
+	bufferCount := 5
+	results := make(chan []structs.Delegation, bufferCount)
+	var ind int64 = 1
+	roundSum := -1
+	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
+
+	//if round sum is zero, that means we fetch all delegations so far and no need to run next rounds
+	for roundSum != 0 {
+		for i := 1; i <= bufferCount; i++ {
+			go m.c.FetchNextRoundDelegations(ctx, bc, ind, currentBlock, results)
+			ind++
+		}
+		roundSum = 0
+		for i := 0; i < bufferCount; i++ {
+			dlgs := <-results
+			roundSum += len(dlgs)
+			err = m.dataStore.SaveDelegations(ctx, dlgs)
+			if err != nil {
+				m.l.Error("failed to full synchronize delegations.")
+				return err
+			}
+		}
 	}
 
-	err = m.dataStore.SaveDelegations(ctx, delegations)
-	msg := "synchronization for delegations successful."
-	if err != nil {
-		msg = "failed to synchronize delegations."
-	}
-	m.l.Info(msg)
+	m.l.Info("synchronization for delegations successful.")
 	return err
 }
 
