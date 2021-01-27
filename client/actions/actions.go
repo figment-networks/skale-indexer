@@ -26,6 +26,8 @@ import (
 
 var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
 
+const outOfIndexErrMsg = "abi: attempting to unmarshall an empty string while arguments are expected"
+
 type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
@@ -691,9 +693,11 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 	dID := big.NewInt(1)
 	for err == nil {
 		var d structs.Delegation
-		// TODO: check error type for out of index if possible
 		d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, dID)
 		if err != nil {
+			if err.Error() != outOfIndexErrMsg {
+				return err
+			}
 			continue
 		}
 		d.BlockHeight = currentBlock
@@ -723,9 +727,11 @@ func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsConten
 	validators = []structs.Validator{}
 	for err == nil {
 		var vld structs.Validator
-		// TODO: check error type for out of index if possible
 		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
 		if err != nil {
+			if err.Error() != outOfIndexErrMsg {
+				return validators, err
+			}
 			continue
 		}
 		vld.BlockHeight = currentBlock
@@ -755,9 +761,11 @@ func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, c
 	nID := big.NewInt(1)
 	for err == nil {
 		var n structs.Node
-		// TODO: check error type for out of index if possible
 		n, err = m.c.GetNodeWithInfo(ctx, bc, currentBlock, nID)
 		if err != nil {
+			if err.Error() != outOfIndexErrMsg {
+				return err
+			}
 			continue
 		}
 		err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
