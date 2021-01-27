@@ -710,7 +710,7 @@ func (m *Manager) syncDelegations(ctx context.Context, c contract.ContractsConte
 	}
 
 	m.l.Info("synchronization for delegations successful.")
-	return err
+	return nil
 }
 
 func (m *Manager) syncValidators(ctx context.Context, c contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
@@ -777,5 +777,5 @@ func (m *Manager) syncNodes(ctx context.Context, c contract.ContractsContents, c
 	}
 
 	m.l.Info("synchronization for nodes successful.")
-	return err
+	return nil
 }
