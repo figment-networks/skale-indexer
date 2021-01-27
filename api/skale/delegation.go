@@ -45,7 +45,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	err = bc.Call(co, &results, "delegations", delegationID)
 
 	if err != nil {
-		return d, fmt.Errorf("error calling delegations function %w", err)
+		return d, err
 	}
 
 	if len(results) == 0 {
@@ -318,11 +318,11 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
 	delegation, err := c.GetDelegation(ctx, bc, blockNumber, delegationID)
 	if err != nil {
-		return delegation, fmt.Errorf("error calling GetDelegation %w", err)
+		return delegation, err
 	}
 	delegation.State, err = c.GetDelegationState(ctx, bc, blockNumber, delegationID)
 	if err != nil {
-		return delegation, fmt.Errorf("error calling GetDelegationState %w", err)
+		return delegation, err
 	}
 
 	return delegation, nil

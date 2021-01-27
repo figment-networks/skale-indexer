@@ -148,7 +148,7 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	err = bc.Call(co, &results, "nodes", nodeID)
 
 	if err != nil {
-		return n, fmt.Errorf("error getting nodes function %w", err)
+		return n, err
 	}
 
 	if len(results) == 0 {
@@ -178,16 +178,16 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 func (c *Caller) GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
 	n, err = c.GetNode(ctx, bc, blockNumber, nodeID)
 	if err != nil {
-		return n, fmt.Errorf("error calling GetNode %w", err)
+		return n, err
 	}
 	nrd, err := c.GetNodeNextRewardDate(ctx, bc, blockNumber, nodeID)
 	if err != nil {
-		return n, fmt.Errorf("error calling GetNodeNextRewardDate %w", err)
+		return n, err
 	}
 	n.NextRewardDate = nrd
 	adr, err := c.GetNodeAddress(ctx, bc, blockNumber, nodeID)
 	if err != nil {
-		return n, fmt.Errorf("error calling GetNodeAddress %w", err)
+		return n, err
 	}
 	n.Address = adr
 

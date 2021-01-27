@@ -48,7 +48,7 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 	err = bc.Call(co, &results, "getValidator", validatorID)
 
 	if err != nil {
-		return v, fmt.Errorf("error calling getValidator function %w", err)
+		return v, err
 	}
 
 	if len(results) == 0 {
@@ -110,11 +110,11 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 func (c *Caller) GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
 	validator, err := c.GetValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
-		return validator, fmt.Errorf("error calling getValidator function %w", err)
+		return validator, err
 	}
 	validator.Authorized, err = c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
-		return validator, fmt.Errorf("error calling IsAuthorizedValidator function %w", err)
+		return validator, err
 	}
 
 	return validator, nil
