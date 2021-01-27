@@ -194,8 +194,6 @@ type Validator struct {
 	LinkedNodes uint `json:"linked_nodes"`
 	// Staked - total stake amount
 	Staked  string   `json:"staked"`
-	Pending *big.Int `json:"pending"`
-	Rewards *big.Int `json:"rewards"`
 }
 
 // ValidatorStatistic validator statistic value in given block
