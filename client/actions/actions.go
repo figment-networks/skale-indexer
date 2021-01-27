@@ -696,7 +696,7 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 		var d structs.Delegation
 		d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, dID)
 		if err != nil {
-			if !errors.Is(err, ErrOutOfIndex) {
+			if err.Error() != ErrOutOfIndex.Error() {
 				m.l.Error("error occurs on sync GetDelegationWithInfo", zap.Error(err))
 				return err
 			}
@@ -725,7 +725,7 @@ func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsConte
 		var vld structs.Validator
 		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
 		if err != nil {
-			if !errors.Is(err, ErrOutOfIndex) {
+			if err.Error() != ErrOutOfIndex.Error() {
 				m.l.Error("error occurs on sync GetValidatorWithInfo", zap.Error(err))
 				return validators, err
 			}
@@ -754,7 +754,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 		var n structs.Node
 		n, err = m.c.GetNodeWithInfo(ctx, bc, currentBlock, nID)
 		if err != nil {
-			if !errors.Is(err, ErrOutOfIndex) {
+			if err.Error() != ErrOutOfIndex.Error() {
 				m.l.Error("error occurs on sync GetNodeWithInfo", zap.Error(err))
 				return err
 			}
