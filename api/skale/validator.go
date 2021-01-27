@@ -57,7 +57,7 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 
 	vr := &ValidatorRaw{}
 	vraw := *abi.ConvertType(results[0], vr).(*ValidatorRaw)
-	vID := big.NewInt(validatorID.Int64())
+	vID := validatorID
 	return structs.Validator{
 		ValidatorID:             vID,
 		Name:                    vraw.Name,

@@ -57,7 +57,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	}
 
 	createT := results[4].(*big.Int)
-	dID := big.NewInt(delegationID.Int64())
+	dID := delegationID
 	dg := structs.Delegation{
 		DelegationID:     dID,
 		Holder:           results[0].(common.Address),

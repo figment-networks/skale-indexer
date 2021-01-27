@@ -193,7 +193,7 @@ type Validator struct {
 	// LinkedNodes - number of all nodes attached to the validator
 	LinkedNodes uint `json:"linked_nodes"`
 	// Staked - total stake amount
-	Staked  string   `json:"staked"`
+	Staked string `json:"staked"`
 }
 
 // ValidatorStatistic validator statistic value in given block
