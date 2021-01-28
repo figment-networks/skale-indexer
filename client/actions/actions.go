@@ -626,8 +626,8 @@ func boolToBigInt(a bool) *big.Int {
 	return big.NewInt(0)
 }
 
-func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64) error {
-	m.l.Info("synchronization starts for the end of epoch")
+func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64) error {
+	m.l.Info("synchronization starts for the beginning of epoch")
 	var errDlg, errVld, errNode error
 	var validators []structs.Validator
 
@@ -683,7 +683,7 @@ func (m *Manager) SyncForEndOfEpoch(ctx context.Context, c contract.ContractsCon
 		}
 	}
 
-	m.l.Info("synchronization ends for the end of epoch")
+	m.l.Info("synchronization successfully finishes for the beginning of epoch")
 	return nil
 }
 

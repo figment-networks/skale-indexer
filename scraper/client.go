@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,11 +21,14 @@ type ActionManager interface {
 	GetImplementedContractNames() []string
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
 	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error
-	SyncForEndOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64) error
+	SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64) error
 }
 
 type EthereumAPI struct {
-	log *zap.Logger
+	log                *zap.Logger
+	mu                 sync.Mutex
+	lastLogBlockHeight uint64
+	syncRunning        bool
 
 	transport transport.EthereumTransport
 	AM        ActionManager
@@ -36,6 +40,32 @@ func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am A
 		transport: transport,
 		AM:        am,
 	}
+}
+
+func (eAPI *EthereumAPI) setLastLogBlockHeight(height uint64) {
+	eAPI.mu.Lock()
+	eAPI.lastLogBlockHeight = height
+	eAPI.mu.Unlock()
+}
+
+func (eAPI *EthereumAPI) getLastLogBlockHeight() uint64 {
+	eAPI.mu.Lock()
+	h := eAPI.lastLogBlockHeight
+	eAPI.mu.Unlock()
+	return h
+}
+
+func (eAPI *EthereumAPI) setSyncRunning(syncRunning bool) {
+	eAPI.mu.Lock()
+	eAPI.syncRunning = syncRunning
+	eAPI.mu.Unlock()
+}
+
+func (eAPI *EthereumAPI) isSyncRunning() bool {
+	eAPI.mu.Lock()
+	s := eAPI.syncRunning
+	eAPI.mu.Unlock()
+	return s
 }
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
@@ -61,7 +91,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	input := make(chan ProcInput, workerCount)
 	output := make(chan ProcOutput, workerCount)
 
-	go populateToWokers(logs, input)
+	go populateToWorkers(logs, input)
 
 	for i := 0; i < workerCount; i++ {
 		go eAPI.processLogAsync(ctx, ccs, input, output)
@@ -109,7 +139,7 @@ type ProcOutput struct {
 	Error error
 }
 
-func populateToWokers(logs []types.Log, populateCh chan ProcInput) {
+func populateToWorkers(logs []types.Log, populateCh chan ProcInput) {
 	for i, l := range logs {
 		populateCh <- ProcInput{i, l}
 	}
@@ -128,7 +158,6 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			if !ok {
 				return
 			}
-
 			h, err := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.Log.BlockNumber))
 			if err != nil {
 				out <- ProcOutput{Error: err}
@@ -147,6 +176,25 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				continue
 			}
 			out <- ProcOutput{inp.Order, ce, err}
+
+			// running sync function for the first log of the new epoch
+			prvBlockNumber := eAPI.getLastLogBlockHeight()
+			if prvBlockNumber != 0 && prvBlockNumber < inp.Log.BlockNumber && !eAPI.isSyncRunning() {
+				prvHeader, _ := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(prvBlockNumber))
+				hTime := time.Unix(int64(h.Time), 0)
+				prvTime := time.Unix(int64(prvHeader.Time), 0)
+				if (hTime.Year() > prvTime.Year()) || (hTime.Month() > prvTime.Month()) {
+					eAPI.setSyncRunning(true)
+					eAPI.setLastLogBlockHeight(inp.Log.BlockNumber)
+					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber)
+					if err != nil {
+						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
+					}
+					eAPI.setSyncRunning(false)
+				}
+			} else if prvBlockNumber == 0 || prvBlockNumber < inp.Log.BlockNumber {
+				eAPI.setLastLogBlockHeight(inp.Log.BlockNumber)
+			}
 		}
 	}
 }
