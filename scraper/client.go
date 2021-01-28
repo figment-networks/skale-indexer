@@ -21,7 +21,7 @@ type ActionManager interface {
 	GetImplementedContractNames() []string
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
 	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error
-	SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64) error
+	SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64, time time.Time) error
 }
 
 type EthereumAPI struct {
@@ -195,7 +195,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				if !inp.state.isSyncRunning() && ((hTime.Year() > prvTime.Year()) || (hTime.Month() > prvTime.Month())) {
 					inp.state.setSyncRunning(true)
 					inp.state.setLastLogBlockHeight(inp.Log.BlockNumber)
-					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber)
+					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber, hTime)
 					if err != nil {
 						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
 					}

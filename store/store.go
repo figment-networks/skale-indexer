@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -36,8 +37,7 @@ type SkaleStore interface {
 	SaveAccount(ctx context.Context, account structs.Account) error
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 
-	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
-
+	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, time time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
@@ -121,8 +121,8 @@ func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.Validat
 	return s.driver.CalculateLinkedNodes(ctx, params)
 }
 
-func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
-	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount)
+func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, time time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, time, statisticsType, amount)
 }
 
 // Contract events

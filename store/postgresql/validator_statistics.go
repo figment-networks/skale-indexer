@@ -6,30 +6,31 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
-func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, time time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
 	// (lukanus): Update value in validator_statistics unless the value already exists
 	_, err = d.db.ExecContext(ctx, `
-	INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
-		( SELECT $1, $2, $3, $4	WHERE
+	INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
+		( SELECT $1, $2, $3, $4, $5	WHERE
 			NOT EXISTS (
 					SELECT 1 FROM validator_statistics
-					WHERE validator_id = $1 AND statistic_type = $3 AND block_height < $2 AND amount = $4
+					WHERE validator_id = $1 AND statistic_type = $4 AND block_height < $2 AND amount = $5
 					ORDER BY block_height DESC LIMIT 1
 					)
 		)
 		ON CONFLICT (validator_id, block_height, statistic_type)
-		DO UPDATE SET amount = EXCLUDED.amount;
-		`, validatorID.String(), blockHeight, statisticsType, amount.String())
+		DO UPDATE SET amount = EXCLUDED.amount;`,
+		validatorID.String(), blockHeight, time, statisticsType, amount.String())
 	return nil
 }
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
 	q := `SELECT
-			DISTINCT ON (validator_id, statistic_type) id, created_at, validator_id, amount, block_height, statistic_type
+			DISTINCT ON (validator_id, statistic_type) id, created_at, validator_id, amount, block_height, time, statistic_type
 			FROM validator_statistics `
 	var (
 		args   []interface{}
@@ -66,7 +67,7 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Type)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Time, &vs.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +84,7 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx,
-		`SELECT id, created_at, validator_id, amount, block_height, statistic_type
+		`SELECT id, created_at, validator_id, amount, block_height, time, statistic_type
 			FROM validator_statistics
 			WHERE
 				validator_id = $1 AND statistic_type = $2
@@ -100,7 +101,7 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 
 	for rows.Next() {
 		vs := structs.ValidatorStatistics{}
-		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Type)
+		err = rows.Scan(&vs.ID, &vs.CreatedAt, &vldId, &amount, &vs.BlockHeight, &vs.Time, &vs.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -119,17 +120,17 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
-										SELECT $3, $1, $2, sum(t1.amount) AS amount
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
+										SELECT $1, $2, $3, $4, sum(t1.amount) AS amount
 									FROM
 											( SELECT DISTINCT ON (delegation_id) validator_id, delegation_id, block_height, state, amount
 												FROM delegations
-												WHERE validator_id = $3 AND block_height <=$4
+												WHERE validator_id = $1 AND block_height <=$2
 												ORDER BY delegation_id, block_height DESC) t1
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
 									ON CONFLICT (validator_id, block_height, statistic_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
-		params.BlockHeight, structs.ValidatorStatisticsTypeTotalStake, params.ValidatorID, params.BlockHeight, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
+		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -165,14 +166,14 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
-				(SELECT $1, $2, $3, count(*) AS amount
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
+				(SELECT $1, $2, $3, $4, count(*) AS amount
 					FROM nodes
-					WHERE validator_id = $1 AND status = $4 AND address != $5
+					WHERE validator_id = $1 AND status = $5 AND address != $6
 					GROUP BY validator_id LIMIT 1)
 			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero)
+		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -206,14 +207,14 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, statistic_type, amount)
-									(SELECT  $1, $2 , $3, count(*) AS amount
+	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
+									(SELECT  $1, $2, $3, $4, count(*) AS amount
 									FROM nodes
-									WHERE validator_id = $1 AND address != $4
+									WHERE validator_id = $1 AND address != $5
 									GROUP BY validator_id LIMIT 1)
 								ON CONFLICT (validator_id, block_height, statistic_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, structs.ValidatorStatisticsTypeLinkedNodes, zero)
+		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeLinkedNodes, zero)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {

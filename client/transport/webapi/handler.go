@@ -428,6 +428,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			Type:        v.Type.String(),
 			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
+			Time:        v.Time,
 			Amount:      v.Amount.String(),
 		})
 	}
