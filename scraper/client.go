@@ -192,7 +192,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				prvHeader, _ := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(prvBlockNumber))
 				hTime := time.Unix(int64(h.Time), 0)
 				prvTime := time.Unix(int64(prvHeader.Time), 0)
-				if (hTime.Year() > prvTime.Year()) || (hTime.Month() > prvTime.Month()) {
+				if !inp.state.isSyncRunning() && ((hTime.Year() > prvTime.Year()) || (hTime.Month() > prvTime.Month())) {
 					inp.state.setSyncRunning(true)
 					inp.state.setLastLogBlockHeight(inp.Log.BlockNumber)
 					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber)
