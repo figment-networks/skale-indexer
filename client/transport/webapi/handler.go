@@ -533,6 +533,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
+		holder := req.URL.Query().Get("holder")
 		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if f, ok := m["from"]; ok {
@@ -547,12 +548,16 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			if d, ok := m["id"]; ok {
 				dID = d
 			}
+			if h, ok := m["holder"]; ok {
+				holder = h
+			}
 			if _, ok := m["timeline"]; ok {
 				params.Timeline = true
 			}
 		}
 		params.ValidatorID = vID
 		params.DelegationID = dID
+		params.Holder = holder
 
 		var errFrom, errTo error
 		if from != "" && to != "" {
@@ -583,6 +588,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
+		Holder:       params.Holder,
 		TimeFrom:     params.TimeFrom,
 		TimeTo:       params.TimeTo,
 	}
@@ -1094,6 +1100,11 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: holder
+	//     type: string
+	//     description: holder address
+	//     required: false
 	//   - in: query
 	//     name: timeline
 	//     type: boolean
