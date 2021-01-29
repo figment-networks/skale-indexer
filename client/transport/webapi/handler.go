@@ -424,13 +424,18 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	var vlds []ValidatorStatistic
 	for _, v := range res {
-		vlds = append(vlds, ValidatorStatistic{
+		vld := ValidatorStatistic{
 			Type:        v.Type.String(),
 			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
 			Time:        v.Time,
 			Amount:      v.Amount.String(),
-		})
+		}
+		if v.Type == structs.ValidatorStatisticsTypeValidatorAddress || v.Type == structs.ValidatorStatisticsTypeRequestedAddress {
+			vld.Amount = common.ToHex(v.Amount.Bytes())
+		}
+
+		vlds = append(vlds, vld)
 	}
 
 	enc := json.NewEncoder(w)
