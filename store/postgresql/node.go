@@ -118,7 +118,7 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		q += strings.Join(wherec, " AND ")
 	}
 
-	q += ` ORDER BY node_id, start_block`
+	q += ` ORDER BY node_id`
 
 	rows, err := d.db.QueryContext(ctx, q, args...)
 	if err != nil {

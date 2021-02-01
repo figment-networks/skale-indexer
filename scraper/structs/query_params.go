@@ -36,7 +36,6 @@ type ValidatorParams struct {
 	ValidatorID    string
 	OrderBy        string
 	OrderDirection string
-	Active         string
 	TimeFrom       time.Time
 	TimeTo         time.Time
 }
@@ -45,9 +44,11 @@ type ValidatorStatisticsParams struct {
 	ValidatorID string
 	Type        StatisticTypeVS
 	BlockHeight uint64
+	BlockTime   time.Time
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
+
 type SystemEventParams struct {
 	After      uint64
 	Kind       string

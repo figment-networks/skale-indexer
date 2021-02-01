@@ -204,8 +204,10 @@ type ValidatorStatistic struct {
 	ValidatorID *big.Int `json:"id"`
 	// Amount - statistics amount
 	Amount string `json:"amount"`
-	// BlockHeight - starting block height on ETH mainnet
+	// BlockHeight - block height on ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
+	// BlockTime - block timestamp on ETH mainnet
+	BlockTime time.Time `json:"block_time"`
 	// Type - statistics type
 	Type string `json:"type"`
 }
