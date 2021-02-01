@@ -36,7 +36,6 @@ type ValidatorParams struct {
 	ValidatorID    string
 	OrderBy        string
 	OrderDirection string
-	Active         string
 	TimeFrom       time.Time
 	TimeTo         time.Time
 }
