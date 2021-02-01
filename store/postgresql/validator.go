@@ -110,11 +110,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		args = append(args, params.ValidatorID)
 		i++
 	}
-	if params.Active != "" {
-		whereC = append(whereC, ` authorized =  $`+strconv.Itoa(i))
-		args = append(args, params.Active)
-		i++
-	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` registration_time BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
