@@ -11,3 +11,4 @@ CREATE TABLE IF NOT EXISTS validator_statistics
 );
 
 CREATE UNIQUE INDEX idx_v_s_unique_st_vid_bh ON validator_statistics ( validator_id, block_height, statistic_type);
+CREATE INDEX idx_v_s_time ON delegations (time);
