@@ -184,7 +184,6 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				out <- ProcOutput{Error: err}
 				continue
 			}
-			out <- ProcOutput{inp.Order, ce, err}
 
 			// running sync function for the first log of the new epoch
 			prvBlockNumber := inp.state.getLastLogBlockHeight()
@@ -198,12 +197,16 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber, hTime)
 					if err != nil {
 						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
+						out <- ProcOutput{Error: err}
+						continue
 					}
 					inp.state.setSyncRunning(false)
 				}
 			} else if prvBlockNumber == 0 || prvBlockNumber < inp.Log.BlockNumber {
 				inp.state.setLastLogBlockHeight(inp.Log.BlockNumber)
 			}
+
+			out <- ProcOutput{inp.Order, ce, err}
 		}
 	}
 }

@@ -27,10 +27,10 @@ type SkaleStore interface {
 	SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 
-	SaveValidators(ctx context.Context, validators []structs.Validator) error
+	SaveValidator(ctx context.Context, validator structs.Validator) error
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 
-	SaveDelegations(ctx context.Context, delegation []structs.Delegation) error
+	SaveDelegation(ctx context.Context, delegation structs.Delegation) error
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 
@@ -81,16 +81,16 @@ func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes 
 	return s.driver.GetNodes(ctx, params)
 }
 
-func (s *Store) SaveValidators(ctx context.Context, validators []structs.Validator) error {
-	return s.driver.SaveValidators(ctx, validators)
+func (s *Store) SaveValidator(ctx context.Context, validator structs.Validator) error {
+	return s.driver.SaveValidator(ctx, validator)
 }
 
 func (s *Store) GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error) {
 	return s.driver.GetValidators(ctx, params)
 }
 
-func (s *Store) SaveDelegations(ctx context.Context, delegations []structs.Delegation) error {
-	return s.driver.SaveDelegations(ctx, delegations)
+func (s *Store) SaveDelegation(ctx context.Context, delegation structs.Delegation) error {
+	return s.driver.SaveDelegation(ctx, delegation)
 }
 
 func (s *Store) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {

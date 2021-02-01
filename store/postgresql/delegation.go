@@ -11,11 +11,10 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
-// SaveDelegations saves delegations
-func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Delegation) error {
+// SaveDelegation saves delegation
+func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
 
-	for _, dl := range delegations {
-		_, err := d.db.Exec(`INSERT INTO delegations (
+	_, err := d.db.Exec(`INSERT INTO delegations (
 				"delegation_id",
 				"holder",
 				"validator_id",
@@ -42,25 +41,20 @@ func (d *Driver) SaveDelegations(ctx context.Context, delegations []structs.Dele
 			info = EXCLUDED.info,
 			state = EXCLUDED.state
 		`,
-			dl.DelegationID.String(),
-			dl.Holder.Hash().Big().String(),
-			dl.ValidatorID.String(),
-			dl.BlockHeight,
-			dl.TransactionHash.Big().String(),
-			dl.Amount.String(),
-			dl.DelegationPeriod.String(),
-			dl.Created,
-			dl.Started.String(),
-			dl.Finished.String(),
-			dl.Info,
-			dl.State)
+		dl.DelegationID.String(),
+		dl.Holder.Hash().Big().String(),
+		dl.ValidatorID.String(),
+		dl.BlockHeight,
+		dl.TransactionHash.Big().String(),
+		dl.Amount.String(),
+		dl.DelegationPeriod.String(),
+		dl.Created,
+		dl.Started.String(),
+		dl.Finished.String(),
+		dl.Info,
+		dl.State)
 
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 // GetDelegationTimeline gets all delegation information over time

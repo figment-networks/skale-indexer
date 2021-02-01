@@ -12,21 +12,20 @@ import (
 
 var zerobig = big.NewInt(0)
 
-// SaveValidators saves validators
-func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+// SaveValidator saves validator
+func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 
-	for _, v := range validators {
-		if v.Staked == nil {
-			v.Staked = zerobig
-		}
-		if v.FeeRate == nil {
-			v.FeeRate = zerobig
-		}
-		if v.MinimumDelegationAmount == nil {
-			v.MinimumDelegationAmount = zerobig
-		}
+	if v.Staked == nil {
+		v.Staked = zerobig
+	}
+	if v.FeeRate == nil {
+		v.FeeRate = zerobig
+	}
+	if v.MinimumDelegationAmount == nil {
+		v.MinimumDelegationAmount = zerobig
+	}
 
-		_, err := d.db.Exec(`INSERT INTO validators (
+	_, err := d.db.Exec(`INSERT INTO validators (
 			"validator_id",
 			"name",
 			"validator_address",
@@ -56,26 +55,22 @@ func (d *Driver) SaveValidators(ctx context.Context, validators []structs.Valida
 			authorized = EXCLUDED.authorized,
 			block_height = EXCLUDED.block_height
 		`,
-			v.ValidatorID.String(),
-			v.Name,
-			v.ValidatorAddress.Hash().Big().String(),
-			v.RequestedAddress.Hash().Big().String(),
-			v.Description,
-			v.FeeRate.String(),
-			v.RegistrationTime,
-			v.MinimumDelegationAmount.String(),
-			v.AcceptNewRequests,
-			v.Authorized,
-			v.ActiveNodes,
-			v.LinkedNodes,
-			v.Staked.String(),
-			v.BlockHeight)
-		if err != nil {
-			return err
-		}
-	}
+		v.ValidatorID.String(),
+		v.Name,
+		v.ValidatorAddress.Hash().Big().String(),
+		v.RequestedAddress.Hash().Big().String(),
+		v.Description,
+		v.FeeRate.String(),
+		v.RegistrationTime,
+		v.MinimumDelegationAmount.String(),
+		v.AcceptNewRequests,
+		v.Authorized,
+		v.ActiveNodes,
+		v.LinkedNodes,
+		v.Staked.String(),
+		v.BlockHeight)
 
-	return nil
+	return err
 }
 
 // GetValidators gets validators by params

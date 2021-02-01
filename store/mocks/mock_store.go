@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"
+	time "time"
 )
 
 // MockDBDriver is a mock of DBDriver interface
@@ -123,18 +124,18 @@ func (mr *MockDBDriverMockRecorder) GetNodes(ctx, params interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDBDriver)(nil).GetNodes), ctx, params)
 }
 
-// SaveValidators mocks base method
-func (m *MockDBDriver) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+// SaveValidator mocks base method
+func (m *MockDBDriver) SaveValidator(ctx context.Context, validator structs.Validator) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidators", ctx, validators)
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveValidators indicates an expected call of SaveValidators
-func (mr *MockDBDriverMockRecorder) SaveValidators(ctx, validators interface{}) *gomock.Call {
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockDBDriverMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidators", reflect.TypeOf((*MockDBDriver)(nil).SaveValidators), ctx, validators)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockDBDriver)(nil).SaveValidator), ctx, validator)
 }
 
 // GetValidators mocks base method
@@ -152,18 +153,18 @@ func (mr *MockDBDriverMockRecorder) GetValidators(ctx, params interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDBDriver)(nil).GetValidators), ctx, params)
 }
 
-// SaveDelegations mocks base method
-func (m *MockDBDriver) SaveDelegations(ctx context.Context, delegation []structs.Delegation) error {
+// SaveDelegation mocks base method
+func (m *MockDBDriver) SaveDelegation(ctx context.Context, delegation structs.Delegation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveDelegations", ctx, delegation)
+	ret := m.ctrl.Call(m, "SaveDelegation", ctx, delegation)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveDelegations indicates an expected call of SaveDelegations
-func (mr *MockDBDriverMockRecorder) SaveDelegations(ctx, delegation interface{}) *gomock.Call {
+// SaveDelegation indicates an expected call of SaveDelegation
+func (mr *MockDBDriverMockRecorder) SaveDelegation(ctx, delegation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegations", reflect.TypeOf((*MockDBDriver)(nil).SaveDelegations), ctx, delegation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegation", reflect.TypeOf((*MockDBDriver)(nil).SaveDelegation), ctx, delegation)
 }
 
 // GetDelegations mocks base method
@@ -226,17 +227,17 @@ func (mr *MockDBDriverMockRecorder) GetAccounts(ctx, params interface{}) *gomock
 }
 
 // SaveValidatorStatistic mocks base method
-func (m *MockDBDriver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
+func (m *MockDBDriver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, statisticsType, amount)
+	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveValidatorStatistic indicates an expected call of SaveValidatorStatistic
-func (mr *MockDBDriverMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount interface{}) *gomock.Call {
+func (mr *MockDBDriverMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, blockTime, statisticsType, amount interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDBDriver)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, statisticsType, amount)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDBDriver)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 }
 
 // GetValidatorStatistics mocks base method
@@ -421,18 +422,18 @@ func (mr *MockDataStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockDataStore)(nil).GetNodes), ctx, params)
 }
 
-// SaveValidators mocks base method
-func (m *MockDataStore) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+// SaveValidator mocks base method
+func (m *MockDataStore) SaveValidator(ctx context.Context, validator structs.Validator) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidators", ctx, validators)
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveValidators indicates an expected call of SaveValidators
-func (mr *MockDataStoreMockRecorder) SaveValidators(ctx, validators interface{}) *gomock.Call {
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockDataStoreMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidators", reflect.TypeOf((*MockDataStore)(nil).SaveValidators), ctx, validators)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockDataStore)(nil).SaveValidator), ctx, validator)
 }
 
 // GetValidators mocks base method
@@ -450,18 +451,18 @@ func (mr *MockDataStoreMockRecorder) GetValidators(ctx, params interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockDataStore)(nil).GetValidators), ctx, params)
 }
 
-// SaveDelegations mocks base method
-func (m *MockDataStore) SaveDelegations(ctx context.Context, delegation []structs.Delegation) error {
+// SaveDelegation mocks base method
+func (m *MockDataStore) SaveDelegation(ctx context.Context, delegation structs.Delegation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveDelegations", ctx, delegation)
+	ret := m.ctrl.Call(m, "SaveDelegation", ctx, delegation)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveDelegations indicates an expected call of SaveDelegations
-func (mr *MockDataStoreMockRecorder) SaveDelegations(ctx, delegation interface{}) *gomock.Call {
+// SaveDelegation indicates an expected call of SaveDelegation
+func (mr *MockDataStoreMockRecorder) SaveDelegation(ctx, delegation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegations", reflect.TypeOf((*MockDataStore)(nil).SaveDelegations), ctx, delegation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegation", reflect.TypeOf((*MockDataStore)(nil).SaveDelegation), ctx, delegation)
 }
 
 // GetDelegations mocks base method
@@ -524,17 +525,17 @@ func (mr *MockDataStoreMockRecorder) GetAccounts(ctx, params interface{}) *gomoc
 }
 
 // SaveValidatorStatistic mocks base method
-func (m *MockDataStore) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
+func (m *MockDataStore) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, statisticsType, amount)
+	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveValidatorStatistic indicates an expected call of SaveValidatorStatistic
-func (mr *MockDataStoreMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount interface{}) *gomock.Call {
+func (mr *MockDataStoreMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, blockTime, statisticsType, amount interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, statisticsType, amount)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 }
 
 // GetValidatorStatistics mocks base method
@@ -661,18 +662,18 @@ func (mr *MockSkaleStoreMockRecorder) GetNodes(ctx, params interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodes", reflect.TypeOf((*MockSkaleStore)(nil).GetNodes), ctx, params)
 }
 
-// SaveValidators mocks base method
-func (m *MockSkaleStore) SaveValidators(ctx context.Context, validators []structs.Validator) error {
+// SaveValidator mocks base method
+func (m *MockSkaleStore) SaveValidator(ctx context.Context, validator structs.Validator) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidators", ctx, validators)
+	ret := m.ctrl.Call(m, "SaveValidator", ctx, validator)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveValidators indicates an expected call of SaveValidators
-func (mr *MockSkaleStoreMockRecorder) SaveValidators(ctx, validators interface{}) *gomock.Call {
+// SaveValidator indicates an expected call of SaveValidator
+func (mr *MockSkaleStoreMockRecorder) SaveValidator(ctx, validator interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidators", reflect.TypeOf((*MockSkaleStore)(nil).SaveValidators), ctx, validators)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidator", reflect.TypeOf((*MockSkaleStore)(nil).SaveValidator), ctx, validator)
 }
 
 // GetValidators mocks base method
@@ -690,18 +691,18 @@ func (mr *MockSkaleStoreMockRecorder) GetValidators(ctx, params interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidators", reflect.TypeOf((*MockSkaleStore)(nil).GetValidators), ctx, params)
 }
 
-// SaveDelegations mocks base method
-func (m *MockSkaleStore) SaveDelegations(ctx context.Context, delegation []structs.Delegation) error {
+// SaveDelegation mocks base method
+func (m *MockSkaleStore) SaveDelegation(ctx context.Context, delegation structs.Delegation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveDelegations", ctx, delegation)
+	ret := m.ctrl.Call(m, "SaveDelegation", ctx, delegation)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveDelegations indicates an expected call of SaveDelegations
-func (mr *MockSkaleStoreMockRecorder) SaveDelegations(ctx, delegation interface{}) *gomock.Call {
+// SaveDelegation indicates an expected call of SaveDelegation
+func (mr *MockSkaleStoreMockRecorder) SaveDelegation(ctx, delegation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegations", reflect.TypeOf((*MockSkaleStore)(nil).SaveDelegations), ctx, delegation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegation", reflect.TypeOf((*MockSkaleStore)(nil).SaveDelegation), ctx, delegation)
 }
 
 // GetDelegations mocks base method
@@ -764,17 +765,17 @@ func (mr *MockSkaleStoreMockRecorder) GetAccounts(ctx, params interface{}) *gomo
 }
 
 // SaveValidatorStatistic mocks base method
-func (m *MockSkaleStore) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
+func (m *MockSkaleStore) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, statisticsType, amount)
+	ret := m.ctrl.Call(m, "SaveValidatorStatistic", ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveValidatorStatistic indicates an expected call of SaveValidatorStatistic
-func (mr *MockSkaleStoreMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount interface{}) *gomock.Call {
+func (mr *MockSkaleStoreMockRecorder) SaveValidatorStatistic(ctx, validatorID, blockHeight, blockTime, statisticsType, amount interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockSkaleStore)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, statisticsType, amount)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockSkaleStore)(nil).SaveValidatorStatistic), ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 }
 
 // GetValidatorStatistics mocks base method

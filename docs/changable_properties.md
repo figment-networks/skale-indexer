@@ -38,4 +38,4 @@ This document is about properties we keep for Hubble and to show if they are upd
 | Delegation  | Started  | started  epoch | No  | No  |
 | Delegation  | Finished  | finished  epoch | No  | No  |
 | Delegation  | Info  | delegation information | No  | No  |
-| Delegation  | Status  | delegation status | N/A  | N/A  |
+| Delegation  | Status  | delegation status | Yes  | Yes  |
