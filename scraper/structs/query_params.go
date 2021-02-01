@@ -16,6 +16,7 @@ type EventParams struct {
 type DelegationParams struct {
 	ValidatorID  string
 	DelegationID string
+	Holder       string
 	TimeFrom     time.Time
 	TimeTo       time.Time
 }
@@ -47,6 +48,7 @@ type ValidatorStatisticsParams struct {
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
+
 type SystemEventParams struct {
 	After      uint64
 	Kind       string

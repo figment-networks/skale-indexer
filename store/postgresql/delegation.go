@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
@@ -74,6 +75,11 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Holder != "" {
+		whereC = append(whereC, ` holder =  $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -156,6 +162,11 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Holder != "" {
+		whereC = append(whereC, ` holder =  $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {

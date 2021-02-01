@@ -72,6 +72,10 @@ type DelegationParams struct {
 	//
 	// format: unsigned integer
 	ValidatorID string `json:"validator_id"`
+	// Holder - holder address
+	//
+	// format: hexadecimal
+	Holder string `json:"holder"`
 	// TimeFrom - the inclusive beginning of the time range for delegation created time
 	//
 	// supposed to be sent with time to
