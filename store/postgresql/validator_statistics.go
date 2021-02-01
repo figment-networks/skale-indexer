@@ -11,7 +11,7 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
-func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, time time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
 	// (lukanus): Update value in validator_statistics unless the value already exists
 	_, err = d.db.ExecContext(ctx, `
 	INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
@@ -24,7 +24,7 @@ func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.In
 		)
 		ON CONFLICT (validator_id, block_height, statistic_type)
 		DO UPDATE SET amount = EXCLUDED.amount;`,
-		validatorID.String(), blockHeight, time, statisticsType, amount.String())
+		validatorID.String(), blockHeight, blockTime, statisticsType, amount.String())
 	return nil
 }
 
@@ -130,7 +130,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
 									ON CONFLICT (validator_id, block_height, statistic_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -173,7 +173,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 					GROUP BY validator_id LIMIT 1)
 			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
-		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -214,7 +214,7 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 									GROUP BY validator_id LIMIT 1)
 								ON CONFLICT (validator_id, block_height, statistic_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, params.Time, structs.ValidatorStatisticsTypeLinkedNodes, zero)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeLinkedNodes, zero)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {

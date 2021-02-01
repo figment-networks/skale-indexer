@@ -21,7 +21,7 @@ type ActionManager interface {
 	GetImplementedContractNames() []string
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
 	AfterEventLog(ctx context.Context, c contract.ContractsContents, ce structs.ContractEvent) error
-	SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64, time time.Time) error
+	SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64, blockTime time.Time) error
 }
 
 type EthereumAPI struct {

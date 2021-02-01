@@ -185,7 +185,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			vsp := structs.ValidatorStatisticsParams{
 				ValidatorID: vID.String(),
 				BlockHeight: ce.BlockHeight,
-				Time:        ce.Time,
+				BlockTime:   ce.Time,
 			}
 
 			if err := m.dataStore.CalculateActiveNodes(ctx, vsp); err != nil {
@@ -311,7 +311,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		vs := structs.ValidatorStatisticsParams{
 			ValidatorID: n.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
-			Time:        ce.Time,
+			BlockTime:   ce.Time,
 		}
 		err = m.dataStore.CalculateActiveNodes(ctx, vs)
 		if err != nil {
@@ -474,7 +474,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		if err := m.dataStore.CalculateTotalStake(ctx, structs.ValidatorStatisticsParams{
 			ValidatorID: d.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
-			Time:        ce.Time,
+			BlockTime:   ce.Time,
 		}); err != nil {
 			return fmt.Errorf("error calculating total stake %w", err)
 		}
@@ -588,32 +588,32 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 }
 
-func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator structs.Validator, blockNumber uint64, time time.Time) error {
+func (m *Manager) saveValidatorStatChanges(ctx context.Context, validator structs.Validator, blockNumber uint64, blockTime time.Time) error {
 
-	err := m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, time, structs.ValidatorStatisticsTypeFee, validator.FeeRate)
+	err := m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeFee, validator.FeeRate)
 	if err != nil {
 		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeFee) %w", err)
 	}
 
-	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, time, structs.ValidatorStatisticsTypeMDR, validator.MinimumDelegationAmount)
+	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeMDR, validator.MinimumDelegationAmount)
 	if err != nil {
 		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeMDR) %w", err)
 	}
 
-	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, time, structs.ValidatorStatisticsTypeAuthorized, boolToBigInt(validator.Authorized))
+	err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeAuthorized, boolToBigInt(validator.Authorized))
 	if err != nil {
 		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
 	}
 
 	if validator.ValidatorAddress.String() != "" {
-		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, time, structs.ValidatorStatisticsTypeValidatorAddress, validator.ValidatorAddress.Hash().Big())
+		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeValidatorAddress, validator.ValidatorAddress.Hash().Big())
 		if err != nil {
 			return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
 		}
 	}
 
 	if validator.RequestedAddress.String() != "" {
-		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, time, structs.ValidatorStatisticsTypeRequestedAddress, validator.RequestedAddress.Hash().Big())
+		err = m.dataStore.SaveValidatorStatistic(ctx, validator.ValidatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeRequestedAddress, validator.RequestedAddress.Hash().Big())
 		if err != nil {
 			return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeAuthorized) %w", err)
 		}
@@ -629,7 +629,7 @@ func boolToBigInt(a bool) *big.Int {
 	return big.NewInt(0)
 }
 
-func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64, time time.Time) error {
+func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, c contract.ContractsContents, currentBlock uint64, blockTime time.Time) error {
 	m.l.Info("synchronization starts for the beginning of epoch")
 	var errDlg, errVld, errNode error
 	var validators []structs.Validator
@@ -668,13 +668,13 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, c contract.Contra
 	}
 
 	for _, v := range validators {
-		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, time); err != nil {
+		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, blockTime); err != nil {
 			m.l.Error(err.Error())
 		}
 		vs := structs.ValidatorStatisticsParams{
 			ValidatorID: v.ValidatorID.String(),
 			BlockHeight: currentBlock,
-			Time:        time,
+			BlockTime:   blockTime,
 		}
 		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
 			m.l.Error(err.Error())

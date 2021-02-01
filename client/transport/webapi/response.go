@@ -206,8 +206,8 @@ type ValidatorStatistic struct {
 	Amount string `json:"amount"`
 	// BlockHeight - block height on ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
-	// Time - block timestamp on ETH mainnet
-	Time time.Time `json:"time"`
+	// BlockTime - block timestamp on ETH mainnet
+	BlockTime time.Time `json:"block_time"`
 	// Type - statistics type
 	Type string `json:"type"`
 }

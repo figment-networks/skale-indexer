@@ -44,10 +44,11 @@ type ValidatorStatisticsParams struct {
 	ValidatorID string
 	Type        StatisticTypeVS
 	BlockHeight uint64
-	Time        time.Time
+	BlockTime   time.Time
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }
+
 type SystemEventParams struct {
 	After      uint64
 	Kind       string

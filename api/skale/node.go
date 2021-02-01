@@ -158,9 +158,8 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	lrDate := results[5].(*big.Int)
 	IP := results[1].([4]byte)
 	publicIP := results[2].([4]byte)
-	nID, _ := new(big.Int).SetString(nodeID.String(), 10)
 	return structs.Node{
-		NodeID:         nID,
+		NodeID:         new(big.Int).Set(nodeID),
 		Name:           results[0].(string),
 		IP:             net.IPv4(IP[0], IP[1], IP[2], IP[3]),
 		PublicIP:       net.IPv4(publicIP[0], publicIP[1], publicIP[2], publicIP[3]),

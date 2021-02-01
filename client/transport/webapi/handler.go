@@ -361,10 +361,18 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	params := ValidatorStatisticsParams{}
 	switch req.Method {
 	case http.MethodGet:
+		from := req.URL.Query().Get("from")
+		to := req.URL.Query().Get("to")
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
 		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
+			if f, ok := m["from"]; ok {
+				from = f
+			}
+			if t, ok := m["to"]; ok {
+				to = t
+			}
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
 			}
@@ -374,6 +382,17 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if _, ok := m["timeline"]; ok {
 				params.Timeline = true
 			}
+		}
+
+		timeFrom, errFrom := time.Parse(structs.Layout, from)
+		timeTo, errTo := time.Parse(structs.Layout, to)
+		if errFrom == nil && errTo == nil {
+			params.TimeFrom = timeFrom
+			params.TimeTo = timeTo
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+			return
 		}
 
 		if params.Timeline && params.ValidatorID == "" {
@@ -398,6 +417,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	vParams := structs.ValidatorStatisticsParams{
 		ValidatorID: params.ValidatorID,
+		TimeFrom:    params.TimeFrom,
+		TimeTo:      params.TimeTo,
 	}
 
 	if params.Type != "" || params.Timeline {
@@ -428,7 +449,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			Type:        v.Type.String(),
 			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
-			Time:        v.Time,
+			BlockTime:   v.Time,
 			Amount:      v.Amount.String(),
 		}
 		if v.Type == structs.ValidatorStatisticsTypeValidatorAddress || v.Type == structs.ValidatorStatisticsTypeRequestedAddress {
@@ -1023,6 +1044,23 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: boolean
 	//     required: false
 	//     description: returns whether the latest or statistics changes timeline
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive beginning of the time range for block time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: false
+	//     description: the inclusive ending of the time range for block time
+	//
 	//
 	// Responses:
 	//   default:
