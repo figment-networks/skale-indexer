@@ -1,0 +1,2 @@
+ALTER TABLE validators DROP COLUMN IF EXISTS staked;
+ALTER TABLE validators DROP COLUMN IF EXISTS pending;

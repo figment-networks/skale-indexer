@@ -22,4 +22,3 @@ CREATE TABLE IF NOT EXISTS delegations
 CREATE INDEX idx_del_h ON delegations (holder);
 CREATE INDEX idx_del_v_id_bl_height ON delegations (validator_id, block_height);
 CREATE UNIQUE INDEX idx_del_unique ON delegations (delegation_id, transaction_hash);
-CREATE INDEX idx_del_created ON delegations (created);

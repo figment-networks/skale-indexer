@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS validators
     active_nodes                SMALLINT                 NOT NULL DEFAULT 0,
     linked_nodes                SMALLINT                 NOT NULL DEFAULT 0,
     staked                      DECIMAL(65, 0)           NOT NULL DEFAULT 0,
+    pending                     DECIMAL(65, 0)           NOT NULL DEFAULT 0,
+    rewards                     DECIMAL(65, 0)           NOT NULL DEFAULT 0,
     block_height                DECIMAL(65, 0)           NOT NULL,
     name                        TEXT                     ,
     description                 TEXT                     ,
