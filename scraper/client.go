@@ -101,26 +101,12 @@ OutputLoop:
 }
 
 type State struct {
-	mu                 sync.Mutex
-	lastLogBlockHeight uint64
-	syncRunning        bool
+	mu          sync.Mutex
+	syncRunning bool
 }
 
 func NewState() *State {
 	return &State{}
-}
-
-func (st *State) setLastLogBlockHeight(height uint64) {
-	st.mu.Lock()
-	st.lastLogBlockHeight = height
-	st.mu.Unlock()
-}
-
-func (st *State) getLastLogBlockHeight() uint64 {
-	st.mu.Lock()
-	h := st.lastLogBlockHeight
-	st.mu.Unlock()
-	return h
 }
 
 func (st *State) setSyncRunning(syncRunning bool) {
@@ -144,9 +130,10 @@ func (st *State) isInRange(crnTime, prvTime time.Time) bool {
 }
 
 type ProcInput struct {
-	Order int
-	Log   types.Log
-	state *State
+	Order          int
+	Log            types.Log
+	state          *State
+	PreviousHeight uint64
 }
 
 type ProcOutput struct {
@@ -156,8 +143,10 @@ type ProcOutput struct {
 }
 
 func populateToWorkers(logs []types.Log, populateCh chan ProcInput, s *State) {
+	var prevHeight uint64
 	for i, l := range logs {
-		populateCh <- ProcInput{i, l, s}
+		populateCh <- ProcInput{i, l, s, prevHeight}
+		prevHeight = l.BlockNumber
 	}
 
 	close(populateCh)
@@ -193,14 +182,12 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			}
 
 			// running sync function for the first log of the new epoch
-			prvBlockNumber := inp.state.getLastLogBlockHeight()
-			if prvBlockNumber != 0 && prvBlockNumber < inp.Log.BlockNumber && !inp.state.isSyncRunning() {
-				prvHeader, _ := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(prvBlockNumber))
+			if inp.PreviousHeight != 0 && inp.PreviousHeight < inp.Log.BlockNumber && !inp.state.isSyncRunning() {
+				prvHeader, _ := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.PreviousHeight))
 				hTime := time.Unix(int64(h.Time), 0)
 				prvTime := time.Unix(int64(prvHeader.Time), 0)
 				if inp.state.isInRange(hTime, prvTime) {
 					inp.state.setSyncRunning(true)
-					inp.state.setLastLogBlockHeight(inp.Log.BlockNumber)
 					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber, hTime)
 					if err != nil {
 						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
@@ -209,8 +196,6 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 					}
 					inp.state.setSyncRunning(false)
 				}
-			} else if prvBlockNumber == 0 || prvBlockNumber < inp.Log.BlockNumber {
-				inp.state.setLastLogBlockHeight(inp.Log.BlockNumber)
 			}
 
 			out <- ProcOutput{inp.Order, ce, err}
