@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -26,16 +27,67 @@ type ActionManager interface {
 type EthereumAPI struct {
 	log *zap.Logger
 
-	transport transport.EthereumTransport
-	AM        ActionManager
+	transport       transport.EthereumTransport
+	AM              ActionManager
+	rangeBlockCache rangeBlockCache
 }
 
 func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am ActionManager) *EthereumAPI {
 	return &EthereumAPI{
-		log:       log,
-		transport: transport,
-		AM:        am,
+		log:             log,
+		transport:       transport,
+		AM:              am,
+		rangeBlockCache: newLastBlockCache(),
 	}
+}
+
+type rangeBlockCache struct {
+	rangeBlockCache map[string]rangeInfo
+}
+
+type rangeInfo struct {
+	from uint64
+	to   uint64
+}
+
+func newLastBlockCache() rangeBlockCache {
+	return rangeBlockCache{rangeBlockCache: make(map[string]rangeInfo)}
+}
+
+func (rbc *rangeBlockCache) clear() {
+	rbc.rangeBlockCache = make(map[string]rangeInfo)
+}
+
+func (rbc *rangeBlockCache) add(r rangeInfo) {
+	key := fmt.Sprintf("%d_%d", r.from, r.to)
+	rbc.rangeBlockCache[key] = r
+}
+
+func (rbc *rangeBlockCache) isInCheckedRange(bgnBlock uint64) bool {
+	for _, value := range rbc.rangeBlockCache {
+		if bgnBlock >= value.from && bgnBlock <= value.to {
+			return true
+		}
+	}
+	return false
+}
+
+func (eAPI *EthereumAPI) setBackwards(ctx context.Context, from, to big.Int, addr []common.Address) (block uint64, err error) {
+	var logsLength uint64
+	r := big.NewInt(50)
+	for logsLength == 0 {
+		from.Sub(&from, r)
+		logsBackwards, err := eAPI.transport.GetLogs(ctx, from, to, addr)
+		if err != nil {
+			return block, errors.New("error on getting logs for backwards")
+		}
+		logsLength = uint64(len(logsBackwards))
+		if logsLength > 0 {
+			toRange := logsBackwards[len(logsBackwards)-1].BlockNumber
+			return toRange, err
+		}
+	}
+	return block, errors.New("error on getting logs for backwards")
 }
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
@@ -54,14 +106,32 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	eAPI.log.Debug("[EthTransport] GetLogs  ", zap.Int("len", len(logs)), zap.Any("request", logs))
 
 	if len(logs) == 0 {
+		eAPI.rangeBlockCache.clear()
+		eAPI.rangeBlockCache.add(rangeInfo{from: from.Uint64(), to: to.Uint64()})
 		return nil
 	}
+
+	var lastLoggedBlockTime time.Time
+	var lastLoggedBlockHeader *types.Header
+	if eAPI.rangeBlockCache.isInCheckedRange(logs[0].BlockNumber) {
+		lastLoggedBlockHeader, _ = eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(logs[0].BlockNumber))
+		lastLoggedBlockTime = time.Unix(int64(lastLoggedBlockHeader.Time), 0)
+	} else {
+		lastLoggedBlock, err := eAPI.setBackwards(ctx, *new(big.Int).SetUint64(logs[0].BlockNumber - 1), *new(big.Int).SetUint64(logs[0].BlockNumber - 1), addr)
+		if err != nil {
+			return err
+		}
+		lastLoggedBlockHeader, _ = eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(lastLoggedBlock))
+		lastLoggedBlockTime = time.Unix(int64(lastLoggedBlockHeader.Time), 0)
+	}
+
+	eAPI.rangeBlockCache.add(rangeInfo{from: from.Uint64(), to: to.Uint64()})
 
 	// TODO(lukanus): Make it configurable
 	input := make(chan ProcInput, workerCount)
 	output := make(chan ProcOutput, workerCount)
 
-	go populateToWorkers(logs, input)
+	go populateToWorkers(logs, input, lastLoggedBlockTime)
 
 	for i := 0; i < workerCount; i++ {
 		go eAPI.processLogAsync(ctx, ccs, input, output)
@@ -103,9 +173,10 @@ func isInRange(crnTime, prvTime time.Time) bool {
 }
 
 type ProcInput struct {
-	Order          int
-	Log            types.Log
-	PreviousHeight uint64
+	Order               int
+	Log                 types.Log
+	PreviousHeight      uint64
+	lastLoggedBlockTime time.Time
 }
 
 type ProcOutput struct {
@@ -114,10 +185,10 @@ type ProcOutput struct {
 	Error error
 }
 
-func populateToWorkers(logs []types.Log, populateCh chan ProcInput) {
+func populateToWorkers(logs []types.Log, populateCh chan ProcInput, lastLoggedBlockTime time.Time) {
 	var prevHeight uint64
 	for i, l := range logs {
-		populateCh <- ProcInput{i, l, prevHeight}
+		populateCh <- ProcInput{i, l, prevHeight, lastLoggedBlockTime}
 		prevHeight = l.BlockNumber
 	}
 
@@ -153,12 +224,23 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				continue
 			}
 
+			hTime := time.Unix(int64(h.Time), 0)
+
 			// running sync function for the first log of the new epoch
 			if inp.PreviousHeight != 0 && inp.PreviousHeight < inp.Log.BlockNumber {
 				prvHeader, _ := eAPI.AM.GetBlockHeader(ctx, new(big.Int).SetUint64(inp.PreviousHeight))
-				hTime := time.Unix(int64(h.Time), 0)
 				prvTime := time.Unix(int64(prvHeader.Time), 0)
 				if isInRange(hTime, prvTime) {
+					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber, hTime)
+					if err != nil {
+						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
+						out <- ProcOutput{Error: err}
+						continue
+					}
+				}
+			} else if inp.PreviousHeight == 0 {
+				// this is the case for the first block of the current logs' round
+				if isInRange(hTime, inp.lastLoggedBlockTime) {
 					err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c, inp.Log.BlockNumber, hTime)
 					if err != nil {
 						eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
