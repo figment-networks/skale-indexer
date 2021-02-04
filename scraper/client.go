@@ -28,17 +28,19 @@ type ActionManager interface {
 type EthereumAPI struct {
 	log *zap.Logger
 
-	transport       transport.EthereumTransport
-	AM              ActionManager
-	rangeBlockCache *rangeBlockCache
+	transport                 transport.EthereumTransport
+	AM                        ActionManager
+	rangeBlockCache           *rangeBlockCache
+	lowerThresholdForBackward uint64
 }
 
-func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am ActionManager) *EthereumAPI {
+func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am ActionManager, lowerThresholdForBackward uint64) *EthereumAPI {
 	return &EthereumAPI{
-		log:             log,
-		transport:       transport,
-		AM:              am,
-		rangeBlockCache: newLastBlockCache(),
+		log:                       log,
+		transport:                 transport,
+		AM:                        am,
+		rangeBlockCache:           newLastBlockCache(),
+		lowerThresholdForBackward: lowerThresholdForBackward,
 	}
 }
 
@@ -77,7 +79,7 @@ func (rbc *rangeBlockCache) isInCheckedRange(bgnBlock uint64) bool {
 func (eAPI *EthereumAPI) setBackwards(ctx context.Context, from, to big.Int, addr []common.Address) (block uint64, err error) {
 	var logsLength uint64
 	r := big.NewInt(50)
-	for logsLength == 0 {
+	for logsLength == 0 && from.Uint64() >= eAPI.lowerThresholdForBackward {
 		from.Sub(&from, r)
 		logsBackwards, err := eAPI.transport.GetLogs(ctx, from, to, addr)
 		if err != nil {
@@ -89,7 +91,7 @@ func (eAPI *EthereumAPI) setBackwards(ctx context.Context, from, to big.Int, add
 			return toRange, err
 		}
 	}
-	return block, errors.New("error on getting logs for backwards")
+	return eAPI.lowerThresholdForBackward, nil
 }
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {

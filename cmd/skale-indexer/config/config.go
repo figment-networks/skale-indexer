@@ -31,8 +31,9 @@ type Config struct {
 	Port     string `json:"port" envconfig:"PORT" default:"3000"`
 	HTTPPort string `json:"http_port" envconfig:"HTTP_PORT" default:"8087"`
 
-	EthereumAddress string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"http://0.0.0.0:8545"`
-	SkaleABIDir     string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+	EthereumAddress           string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"http://0.0.0.0:8545"`
+	SkaleABIDir               string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+	LowerThresholdForBackward uint64 `json:"lower_threshold_for_backward" envconfig:"LOWER_THRESHOLD_FOR_BACKWARD" default:"0"`
 
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
