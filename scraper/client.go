@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -29,7 +30,7 @@ type EthereumAPI struct {
 
 	transport       transport.EthereumTransport
 	AM              ActionManager
-	rangeBlockCache rangeBlockCache
+	rangeBlockCache *rangeBlockCache
 }
 
 func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am ActionManager) *EthereumAPI {
@@ -42,7 +43,8 @@ func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, am A
 }
 
 type rangeBlockCache struct {
-	rangeBlockCache map[string]rangeInfo
+	mu              sync.Mutex
+	rangeBlockCache map[rangeInfo]uint64
 }
 
 type rangeInfo struct {
@@ -50,25 +52,25 @@ type rangeInfo struct {
 	to   uint64
 }
 
-func newLastBlockCache() rangeBlockCache {
-	return rangeBlockCache{rangeBlockCache: make(map[string]rangeInfo)}
-}
-
-func (rbc *rangeBlockCache) clear() {
-	rbc.rangeBlockCache = make(map[string]rangeInfo)
+func newLastBlockCache() *rangeBlockCache {
+	return &rangeBlockCache{rangeBlockCache: make(map[rangeInfo]uint64)}
 }
 
 func (rbc *rangeBlockCache) add(r rangeInfo) {
-	key := fmt.Sprintf("%d_%d", r.from, r.to)
-	rbc.rangeBlockCache[key] = r
+	rbc.mu.Lock()
+	rbc.rangeBlockCache[r] = r.from + r.to
+	rbc.mu.Unlock()
 }
 
 func (rbc *rangeBlockCache) isInCheckedRange(bgnBlock uint64) bool {
-	for _, value := range rbc.rangeBlockCache {
-		if bgnBlock >= value.from && bgnBlock <= value.to {
+	rbc.mu.Lock()
+	for key, _ := range rbc.rangeBlockCache {
+		if bgnBlock >= key.from && bgnBlock <= key.to {
+			rbc.mu.Unlock()
 			return true
 		}
 	}
+	rbc.mu.Unlock()
 	return false
 }
 
@@ -106,7 +108,6 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	eAPI.log.Debug("[EthTransport] GetLogs  ", zap.Int("len", len(logs)), zap.Any("request", logs))
 
 	if len(logs) == 0 {
-		eAPI.rangeBlockCache.clear()
 		eAPI.rangeBlockCache.add(rangeInfo{from: from.Uint64(), to: to.Uint64()})
 		return nil
 	}
