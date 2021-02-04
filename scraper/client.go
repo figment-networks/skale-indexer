@@ -59,20 +59,21 @@ func newLastBlockCache() *rangeBlockCache {
 }
 
 func (rbc *rangeBlockCache) add(r rangeInfo) {
+	defer rbc.mu.Unlock()
+
 	rbc.mu.Lock()
 	rbc.rangeBlockCache[r] = r.from + r.to
-	rbc.mu.Unlock()
 }
 
 func (rbc *rangeBlockCache) isInCheckedRange(bgnBlock uint64) bool {
+	defer rbc.mu.Unlock()
+
 	rbc.mu.Lock()
 	for key, _ := range rbc.rangeBlockCache {
 		if bgnBlock >= key.from && bgnBlock <= key.to {
-			rbc.mu.Unlock()
 			return true
 		}
 	}
-	rbc.mu.Unlock()
 	return false
 }
 
