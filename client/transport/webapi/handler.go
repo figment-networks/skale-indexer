@@ -1050,7 +1050,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//       import:
 	//         package: "time"
 	//     type: string
-	//     required: false
+	//     required: true
 	//     description: the inclusive beginning of the time range for block time
 	//   - in: query
 	//     name: to
@@ -1058,7 +1058,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//       import:
 	//         package: "time"
 	//     type: string
-	//     required: false
+	//     required: true
 	//     description: the inclusive ending of the time range for block time
 	//
 	//
