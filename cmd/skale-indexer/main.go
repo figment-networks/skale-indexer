@@ -118,7 +118,7 @@ func main() {
 		}
 		defer tr.Close(ctx)
 		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
-		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
+		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am, cfg.LowerThresholdForBackward)
 		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 		sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
 		sCli.AttachToHandler(mux)
