@@ -16,7 +16,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const workerCount = 5
+const (
+	workerCount            = 5
+	backCheckSlidingWindow = 50
+)
 
 type ActionManager interface {
 	GetImplementedContractNames() []string
@@ -90,12 +93,12 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 		return fmt.Errorf("error in GetLogs request: %w", err)
 	}
 
-	eAPI.log.Debug("[EthTransport] GetLogs ", zap.Int("len", len(logs)), zap.Uint64("from", from.Uint64()), zap.Uint64("to", to.Uint64())) // zap.Any("request", logs),
+	eAPI.log.Debug("[EthTransport] GetLogs ", zap.Int("len", len(logs)), zap.Uint64("from", from.Uint64()), zap.Uint64("to", to.Uint64()))
 
 	if len(logs) == 0 { // spot tx block crossing month
 		lastLoggedBlockTime := eAPI.rangeBlockCache.Get(from.Uint64())
 		if lastLoggedBlockTime.IsZero() {
-			lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, from.Uint64(), 50, addr) //TODO: config
+			lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, from.Uint64(), backCheckSlidingWindow, addr)
 			if err != nil {
 				return err
 			}
@@ -120,7 +123,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 
 	lastLoggedBlockTime := eAPI.rangeBlockCache.Get(logs[0].BlockNumber)
 	if lastLoggedBlockTime.IsZero() {
-		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber, 50, addr) //TODO: config
+		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber, backCheckSlidingWindow, addr)
 		if err != nil {
 			return err
 		}
@@ -279,7 +282,7 @@ func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.
 			case "uint256":
 				mapped[v.Name] = abi.ReadInteger(v.Type, l.Topics[i].Bytes())
 			case "address":
-				mapped[v.Name] = common.BytesToAddress(l.Topics[i].Bytes()) // l.Data)
+				mapped[v.Name] = common.BytesToAddress(l.Topics[i].Bytes())
 			}
 			i++
 		}
