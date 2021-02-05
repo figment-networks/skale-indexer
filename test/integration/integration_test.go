@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/skale-indexer/api/skale"
 	"github.com/figment-networks/skale-indexer/client/actions"
 	"github.com/figment-networks/skale-indexer/scraper"
@@ -88,7 +89,7 @@ func TestGetLogs(t *testing.T) {
 			mockDB := storeMocks.NewMockDataStore(mockCtrl)
 
 			am := actions.NewManager(caller, mockDB, tr, cm, zl)
-			eAPI := scraper.NewEthereumAPI(zl, tr, am)
+			eAPI := scraper.NewEthereumAPI(zl, tr, types.Header{Number: big.NewInt(1234), Time: uint64(1234)}, am)
 
 			ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
@@ -144,6 +145,52 @@ func TestCallWithBlockNumber(t *testing.T) {
 			ds, err := caller.GetDelegationState(ctx, bc, uint64(10814408), big.NewInt(2316))
 			require.NoError(t, err)
 			require.Equal(t, ds, clientStructures.DelegationStateCOMPLETED)
+
+		})
+	}
+}
+
+func TestGetAndUpdateEarnedBountyAmountOf(t *testing.T) {
+	type args struct {
+		address  string
+		contract common.Address
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantDelegations []clientStructures.Delegation
+		wantErr         bool
+	}{
+		{
+			name: "test1",
+			args: args{
+				address:  "http://localhost:8545",
+				contract: common.HexToAddress("0x2a42Ccca55FdE8a9CA2D7f3C66fcddE99B4baB90"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			tr := eth.NewEthTransport(tt.args.address)
+			if err := tr.Dial(ctx); err != nil {
+				t.Errorf("Error dialing %s : %w", tt.args.address, err)
+				return
+			}
+			defer tr.Close(ctx)
+
+			cm := contract.NewManager()
+			if err := cm.LoadContractsFromDir("./testFiles"); err != nil {
+				t.Error(err)
+				return
+			}
+			caller := &skale.Caller{}
+			ac, _ := cm.GetContract(tt.args.contract)
+			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
+
+			_, _, err := caller.GetAndUpdateEarnedBountyAmountOf(ctx, bc, big.NewInt(53), common.HexToAddress("0xFFEA818a2a4bF047Af42487A30290cF6F8e80dd2"), 0)
+			require.NoError(t, err)
 
 		})
 	}

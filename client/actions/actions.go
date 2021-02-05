@@ -551,7 +551,7 @@ type syncOutp struct {
 }
 
 func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, currentBlock uint64, blockTime time.Time) error {
-	m.l.Info("synchronization starts", zap.Uint64("block", currentBlock), zap.Time("blocTime", blockTime))
+	m.l.Info("synchronization starts", zap.Uint64("block", currentBlock), zap.Time("blockTime", blockTime))
 
 	contractForValidator, ok := m.cm.GetContractByNameVersion("validator_service", version)
 	if !ok {

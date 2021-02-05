@@ -121,9 +121,9 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 		return nil
 	}
 
-	lastLoggedBlockTime := eAPI.rangeBlockCache.Get(logs[0].BlockNumber)
+	lastLoggedBlockTime := eAPI.rangeBlockCache.Get(logs[0].BlockNumber - 1)
 	if lastLoggedBlockTime.IsZero() {
-		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber, backCheckSlidingWindow, addr)
+		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber-1, backCheckSlidingWindow, addr)
 		if err != nil {
 			return err
 		}
