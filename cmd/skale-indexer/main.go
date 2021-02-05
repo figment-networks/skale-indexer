@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"flag"
 	"log"
+	"math/big"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/indexing-engine/metrics"
 	"github.com/figment-networks/indexing-engine/metrics/prometheusmetrics"
 
@@ -118,7 +120,7 @@ func main() {
 		}
 		defer tr.Close(ctx)
 		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
-		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am, cfg.LowerThresholdForBackward)
+		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, types.Header{Number: new(big.Int).SetUint64(cfg.EthereumSmallestBlockNumber), Time: cfg.EthereumSmallestTime}, am)
 		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 		sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
 		sCli.AttachToHandler(mux)
