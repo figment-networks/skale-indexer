@@ -461,16 +461,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("Node contract is not found for version :" + c.Version)
 		}
 
-		n, err := m.c.GetNode(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, nID)
+		n, err := m.c.GetNodeWithInfo(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, nID)
 		if err != nil {
 			return errors.New("structure is not a skale_manager")
 		}
 
-		t, err := m.c.GetNodeNextRewardDate(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, nID)
-		if err != nil {
-			return errors.New("structure is not a node")
-		}
-		n.NextRewardDate = t
 		n.BlockHeight = ce.BlockHeight
 		if err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{}); err != nil {
 			return fmt.Errorf("error storing node %w", err)
@@ -733,7 +728,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 	m.l.Info("synchronization for nodes starts", zap.Uint64("block height", currentBlock))
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	nID := big.NewInt(1)
+	nID := big.NewInt(17) // ignore first test nodes
 	var n structs.Node
 	for err == nil {
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))
