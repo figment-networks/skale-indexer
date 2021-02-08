@@ -632,8 +632,8 @@ func populate(ch, end chan int64) {
 			close(ch)
 			return
 		case ch <- i:
+			i++
 		}
-		i++
 	}
 }
 
@@ -642,6 +642,7 @@ func (m *Manager) syncDelegationsAsync(ctx context.Context, cV contract.Contract
 	wg := &sync.WaitGroup{}
 	ch := make(chan int64)
 	end := make(chan int64)
+	defer close(end)
 	for i := 0; i < 40; i++ {
 		wg.Add(1)
 		go m.syncDelegationsAsyncC(ctx, cV, currentBlock, ch, end, wg)
@@ -649,6 +650,7 @@ func (m *Manager) syncDelegationsAsync(ctx context.Context, cV contract.Contract
 	go populate(ch, end)
 	wg.Wait()
 
+	m.l.Info("sending delegations")
 	outp <- syncOutp{
 		typ: "delegations",
 	}
@@ -660,7 +662,12 @@ func (m *Manager) syncDelegationsAsyncC(ctx context.Context, cV contract.Contrac
 	defer wg.Done()
 	for i := range in {
 		if err := m.syncDelegations(ctx, cV, *big.NewInt(i), currentBlock); err != nil {
-			end <- 1
+			m.l.Debug("populating end", zap.Error(err))
+			select {
+			case end <- 1:
+			default:
+			}
+
 			break
 		}
 	}
@@ -672,7 +679,7 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	var d structs.Delegation
 
 	d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, &dID)
-	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()))
+	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
 	if err != nil {
 		if err.Error() != ErrOutOfIndex.Error() {
 			m.l.Error("error occurs on sync GetDelegationWithInfo", zap.Error(err))
