@@ -728,7 +728,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 	m.l.Info("synchronization for nodes starts", zap.Uint64("block height", currentBlock))
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	nID := big.NewInt(17) // ignore first test nodes
+	nID := big.NewInt(1) 
 	var n structs.Node
 	for err == nil {
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))
