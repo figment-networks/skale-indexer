@@ -97,7 +97,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 
 	if len(logs) == 0 { // spot tx block crossing month
 		lastLoggedBlockTime := eAPI.rangeBlockCache.Get(from.Uint64())
-		if lastLoggedBlockTime.IsZero() {
+		if lastLoggedBlockTime.IsZero() || lastLoggedBlockTime.Unix() == 0 {
 			lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, from.Uint64(), backCheckSlidingWindow, addr)
 			if err != nil {
 				return err
@@ -122,7 +122,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	}
 
 	lastLoggedBlockTime := eAPI.rangeBlockCache.Get(logs[0].BlockNumber - 1)
-	if lastLoggedBlockTime.IsZero() {
+	if lastLoggedBlockTime.IsZero() || lastLoggedBlockTime.Unix() == 0 {
 		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber-1, backCheckSlidingWindow, addr)
 		if err != nil {
 			return err
