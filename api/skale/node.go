@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"net"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"github.com/figment-networks/skale-indexer/scraper/transport"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
-func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error) {
+func (c *Caller) GetValidatorNodes(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -31,9 +33,12 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 	}
 	results := []interface{}{}
 
-	err = bc.Call(co, &results, "getValidatorNodeIndexes", validatorID)
+	contr := bc.GetContract()
+	if contr == nil {
+		return nil, fmt.Errorf("Contract is nil")
+	}
 
-	if err != nil {
+	if err = contr.Call(co, &results, "getValidatorNodeIndexes", validatorID); err != nil {
 		return nil, fmt.Errorf("error calling delegations function %w", err)
 	}
 
@@ -66,7 +71,7 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, 
 	return nodes, nil
 }
 
-func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error) {
+func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (t time.Time, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -83,9 +88,12 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 	}
 	results := []interface{}{}
 
-	err = bc.Call(co, &results, "getNodeNextRewardDate", nodeID)
+	contr := bc.GetContract()
+	if contr == nil {
+		return t, fmt.Errorf("Contract is nil")
+	}
 
-	if err != nil {
+	if err = contr.Call(co, &results, "getNodeNextRewardDate", nodeID); err != nil {
 		return t, fmt.Errorf("error calling node function %w", err)
 	}
 
@@ -97,7 +105,7 @@ func (c *Caller) GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContra
 	return time.Unix(nrDate.Int64(), 0), nil
 }
 
-func (c *Caller) GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (adr common.Address, err error) {
+func (c *Caller) GetNodeAddress(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (adr common.Address, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -114,10 +122,17 @@ func (c *Caller) GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blo
 	}
 	results := []interface{}{}
 
-	err = bc.Call(co, &results, "getNodeAddress", nodeID)
+	contr := bc.GetContract()
+	if contr == nil {
+		return adr, fmt.Errorf("Contract is nil")
+	}
 
-	if err != nil {
-		return adr, fmt.Errorf("error calling node function %w", err)
+	if err = contr.Call(co, &results, "getNodeAddress", nodeID); err != nil {
+		_, err2 := bc.RawCall(ctx, co, "getNodeAddress", nodeID)
+		if err2 == transport.ErrEmptyResponse {
+			return adr, nil
+		}
+		return adr, fmt.Errorf("error calling node function %w ", err)
 	}
 
 	if len(results) == 0 {
@@ -128,7 +143,7 @@ func (c *Caller) GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blo
 	return adr, nil
 }
 
-func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
+func (c *Caller) GetNode(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -145,9 +160,12 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 			co.Pending = true
 		}
 	}
-	err = bc.Call(co, &results, "nodes", nodeID)
 
-	if err != nil {
+	contr := bc.GetContract()
+	if contr == nil {
+		return n, fmt.Errorf("Contract is nil")
+	}
+	if err = contr.Call(co, &results, "nodes", nodeID); err != nil {
 		return n, err
 	}
 
@@ -174,7 +192,7 @@ func (c *Caller) GetNode(ctx context.Context, bc *bind.BoundContract, blockNumbe
 	}, nil
 }
 
-func (c *Caller) GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
+func (c *Caller) GetNodeWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error) {
 	n, err = c.GetNode(ctx, bc, blockNumber, nodeID)
 	if err != nil {
 		return n, err
@@ -184,6 +202,7 @@ func (c *Caller) GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, bl
 		return n, err
 	}
 	n.NextRewardDate = nrd
+
 	adr, err := c.GetNodeAddress(ctx, bc, blockNumber, nodeID)
 	if err != nil {
 		return n, err

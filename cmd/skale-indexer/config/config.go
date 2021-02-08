@@ -40,6 +40,9 @@ type Config struct {
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
 
 	EthereumNodeType string `json:"ethereum_node_type" envconfig:"ETHEREUM_NODE_TYPE" default:"archive"`
+
+	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
+	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
 }
 
 // IdentityString returns the full app version string
