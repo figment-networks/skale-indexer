@@ -139,10 +139,10 @@ func TestCallWithBlockNumber(t *testing.T) {
 			ac, _ := cm.GetContract(tt.args.contract)
 			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
 
-			a, err := caller.GetDelegation(ctx, bc, uint64(10814408), big.NewInt(2316))
+			a, err := caller.GetDelegation(ctx, bc.GetContract(), uint64(10814408), big.NewInt(2316))
 			require.NoError(t, err)
 			require.Equal(t, a.DelegationID, big.NewInt(2316))
-			ds, err := caller.GetDelegationState(ctx, bc, uint64(10814408), big.NewInt(2316))
+			ds, err := caller.GetDelegationState(ctx, bc.GetContract(), uint64(10814408), big.NewInt(2316))
 			require.NoError(t, err)
 			require.Equal(t, ds, clientStructures.DelegationStateCOMPLETED)
 
@@ -189,7 +189,53 @@ func TestGetAndUpdateEarnedBountyAmountOf(t *testing.T) {
 			ac, _ := cm.GetContract(tt.args.contract)
 			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
 
-			_, _, err := caller.GetAndUpdateEarnedBountyAmountOf(ctx, bc, big.NewInt(53), common.HexToAddress("0xFFEA818a2a4bF047Af42487A30290cF6F8e80dd2"), 0)
+			_, _, err := caller.GetAndUpdateEarnedBountyAmountOf(ctx, bc.GetContract(), big.NewInt(53), common.HexToAddress("0xFFEA818a2a4bF047Af42487A30290cF6F8e80dd2"), 0)
+			require.NoError(t, err)
+
+		})
+	}
+}
+
+func TestGetNodeAddress(t *testing.T) {
+	type args struct {
+		address  string
+		contract common.Address
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantDelegations []clientStructures.Delegation
+		wantErr         bool
+	}{
+		{
+			name: "test1",
+			args: args{
+				address:  "http://localhost:8545",
+				contract: common.HexToAddress("0xD489665414D051336CE2F2C6e4184De0409e40ba"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			tr := eth.NewEthTransport(tt.args.address)
+			if err := tr.Dial(ctx); err != nil {
+				t.Errorf("Error dialing %s : %w", tt.args.address, err)
+				return
+			}
+			defer tr.Close(ctx)
+
+			cm := contract.NewManager()
+			if err := cm.LoadContractsFromDir("./testFiles"); err != nil {
+				t.Error(err)
+				return
+			}
+			caller := &skale.Caller{}
+			ac, _ := cm.GetContract(tt.args.contract)
+			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
+
+			_, err := caller.GetNodeAddress(ctx, bc, 10930066, big.NewInt(1))
 			require.NoError(t, err)
 
 		})

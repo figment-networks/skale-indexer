@@ -35,11 +35,11 @@ type Call interface {
 	GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
 
 	// Nodes
-	GetValidatorNodes(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
-	GetNode(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
-	GetNodeWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
-	GetNodeNextRewardDate(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
-	GetNodeAddress(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
+	GetValidatorNodes(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
+	GetNode(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
+	GetNodeWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (n structs.Node, err error)
+	GetNodeNextRewardDate(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (t time.Time, err error)
+	GetNodeAddress(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, nodeID *big.Int) (address common.Address, err error)
 
 	// Distributor
 	GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error)
@@ -110,7 +110,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a validator, it does not have valiadtorId")
 		}
 
-		v, err := m.c.GetValidatorWithInfo(ctx, bc, ce.BlockHeight, vID)
+		v, err := m.c.GetValidatorWithInfo(ctx, bc.GetContract(), ce.BlockHeight, vID)
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
@@ -389,7 +389,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a delegation, it does not have delegationId")
 		}
 
-		d, err := m.c.GetDelegationWithInfo(ctx, bc, ce.BlockHeight, dID)
+		d, err := m.c.GetDelegationWithInfo(ctx, bc.GetContract(), ce.BlockHeight, dID)
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
@@ -678,7 +678,7 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
 
-	d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, &dID)
+	d, err = m.c.GetDelegationWithInfo(ctx, bc.GetContract(), currentBlock, &dID)
 	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
 	if err != nil {
 		if err.Error() != ErrOutOfIndex.Error() {
@@ -705,7 +705,7 @@ func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsConte
 	var vld structs.Validator
 	for err == nil {
 		m.l.Debug("syncValidators", zap.Uint64("id", vID.Uint64()))
-		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
+		vld, err = m.c.GetValidatorWithInfo(ctx, bc.GetContract(), currentBlock, vID)
 		if err != nil {
 			if err.Error() != ErrOutOfIndex.Error() {
 				m.l.Error("error occurs on sync GetValidatorWithInfo", zap.Error(err))
