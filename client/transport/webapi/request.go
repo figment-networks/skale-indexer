@@ -129,6 +129,18 @@ type ValidatorStatisticsParams struct {
 	Type string `json:"type"`
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"height"`
+	// TimeFrom - the inclusive beginning of the time range for block time
+	//
+	// supposed to be sent with time to
+	// time format: RFC3339
+	// example: 2020-09-22T12:42:31Z
+	TimeFrom time.Time `json:"from"`
+	// TimeTo - the inclusive ending of the time range for block time
+	//
+	// supposed to be sent with time to
+	// time format: RFC3339
+	// example: 2021-09-22T12:42:31Z
+	TimeTo time.Time `json:"to"`
 	// Timeline - returns whether the latest or statistics changes timeline
 	//
 	// case false to fetch recent info for filtered statistics

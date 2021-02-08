@@ -1,0 +1,2 @@
+ALTER TABLE validators DROP COLUMN IF EXISTS rewards;
+ALTER TABLE validators DROP COLUMN IF EXISTS pending;

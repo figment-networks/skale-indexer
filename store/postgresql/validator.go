@@ -18,12 +18,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 	if v.Staked == nil {
 		v.Staked = zerobig
 	}
-	if v.Pending == nil {
-		v.Pending = zerobig
-	}
-	if v.Rewards == nil {
-		v.Rewards = zerobig
-	}
 	if v.FeeRate == nil {
 		v.FeeRate = zerobig
 	}
@@ -45,10 +39,9 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			"active_nodes",
 			"linked_nodes",
 			"staked",
-			"pending",
-			"rewards",
 			"block_height")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+			WHERE NOT EXISTS (SELECT 1 FROM validators v2 WHERE v2.validator_id = $1 AND v2.block_height > $14 LIMIT 1)
 		ON CONFLICT (validator_id)
 		DO UPDATE SET
 			name = EXCLUDED.name,
@@ -60,8 +53,6 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 			minimum_delegation_amount = EXCLUDED.minimum_delegation_amount,
 			accept_new_requests = EXCLUDED.accept_new_requests,
 			authorized = EXCLUDED.authorized,
-			pending = EXCLUDED.pending,
-			rewards = EXCLUDED.rewards,
 			block_height = EXCLUDED.block_height
 		`,
 		v.ValidatorID.String(),
@@ -77,9 +68,8 @@ func (d *Driver) SaveValidator(ctx context.Context, v structs.Validator) error {
 		v.ActiveNodes,
 		v.LinkedNodes,
 		v.Staked.String(),
-		v.Pending.String(),
-		v.Rewards.String(),
 		v.BlockHeight)
+
 	return err
 }
 
@@ -101,8 +91,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 				active_nodes,
 				linked_nodes,
 				staked,
-				pending,
-				rewards,
 				block_height
 			FROM validators`
 
@@ -115,11 +103,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
-		i++
-	}
-	if params.Active != "" {
-		whereC = append(whereC, ` authorized =  $`+strconv.Itoa(i))
-		args = append(args, params.Active)
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -155,8 +138,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		feeRate      string
 		mnmDlgAmount string
 		staked       string
-		pending      string
-		rewards      string
 	)
 	for rows.Next() {
 		vld := structs.Validator{}
@@ -179,8 +160,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 			&vld.ActiveNodes,
 			&vld.LinkedNodes,
 			&staked,
-			&pending,
-			&rewards,
 			&vld.BlockHeight)
 		if err != nil {
 			return nil, err
@@ -195,8 +174,6 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		vld.FeeRate, _ = new(big.Int).SetString(feeRate, 10)
 		vld.MinimumDelegationAmount, _ = new(big.Int).SetString(mnmDlgAmount, 10)
 		vld.Staked, _ = new(big.Int).SetString(staked, 10)
-		vld.Pending, _ = new(big.Int).SetString(pending, 10)
-		vld.Rewards, _ = new(big.Int).SetString(rewards, 10)
 		validators = append(validators, vld)
 	}
 	return validators, nil

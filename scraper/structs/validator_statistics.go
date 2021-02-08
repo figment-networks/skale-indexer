@@ -11,6 +11,7 @@ type ValidatorStatistics struct {
 	ValidatorID *big.Int        `json:"validator_id"`
 	Amount      *big.Int        `json:"amount"`
 	BlockHeight uint64          `json:"block_height"`
+	Time        time.Time       `json:"registration_time"`
 	Type        StatisticTypeVS `json:"type"`
 }
 

@@ -25,6 +25,7 @@ type NodeParams struct {
 	NodeID      string
 	ValidatorID string
 	Status      string
+	Address     string
 }
 
 type AccountParams struct {
@@ -36,7 +37,6 @@ type ValidatorParams struct {
 	ValidatorID    string
 	OrderBy        string
 	OrderDirection string
-	Active         string
 	TimeFrom       time.Time
 	TimeTo         time.Time
 }
@@ -45,6 +45,7 @@ type ValidatorStatisticsParams struct {
 	ValidatorID string
 	Type        StatisticTypeVS
 	BlockHeight uint64
+	BlockTime   time.Time
 	TimeFrom    time.Time
 	TimeTo      time.Time
 }

@@ -31,14 +31,18 @@ type Config struct {
 	Port     string `json:"port" envconfig:"PORT" default:"3000"`
 	HTTPPort string `json:"http_port" envconfig:"HTTP_PORT" default:"8087"`
 
-	EthereumAddress string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"http://0.0.0.0:8545"`
-	SkaleABIDir     string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+	EthereumAddress           string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"http://0.0.0.0:8545"`
+	SkaleABIDir               string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+	LowerThresholdForBackward uint64 `json:"lower_threshold_for_backward" envconfig:"LOWER_THRESHOLD_FOR_BACKWARD" default:"0"`
 
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
 
 	EthereumNodeType string `json:"ethereum_node_type" envconfig:"ETHEREUM_NODE_TYPE" default:"archive"`
+
+	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
+	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
 }
 
 // IdentityString returns the full app version string

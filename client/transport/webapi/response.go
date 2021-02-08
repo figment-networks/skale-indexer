@@ -108,6 +108,8 @@ type Delegation struct {
 	Finished *big.Int `json:"finished"`
 	// Info - delegation information
 	Info string `json:"info"`
+	// State - delegation state
+	State string `json:"state"`
 }
 
 // Node a set of fields to show returned nodes by search
@@ -191,9 +193,7 @@ type Validator struct {
 	// LinkedNodes - number of all nodes attached to the validator
 	LinkedNodes uint `json:"linked_nodes"`
 	// Staked - total stake amount
-	Staked  string   `json:"staked"`
-	Pending *big.Int `json:"pending"`
-	Rewards *big.Int `json:"rewards"`
+	Staked string `json:"staked"`
 }
 
 // ValidatorStatistic validator statistic value in given block
@@ -204,8 +204,10 @@ type ValidatorStatistic struct {
 	ValidatorID *big.Int `json:"id"`
 	// Amount - statistics amount
 	Amount string `json:"amount"`
-	// BlockHeight - starting block height on ETH mainnet
+	// BlockHeight - block height on ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
+	// BlockTime - block timestamp on ETH mainnet
+	BlockTime time.Time `json:"block_time"`
 	// Type - statistics type
 	Type string `json:"type"`
 }

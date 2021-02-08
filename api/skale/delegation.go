@@ -45,7 +45,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 	err = bc.Call(co, &results, "delegations", delegationID)
 
 	if err != nil {
-		return d, fmt.Errorf("error calling delegations function %w", err)
+		return d, err
 	}
 
 	if len(results) == 0 {
@@ -58,7 +58,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 
 	createT := results[4].(*big.Int)
 	dg := structs.Delegation{
-		DelegationID:     delegationID,
+		DelegationID:     new(big.Int).Set(delegationID),
 		Holder:           results[0].(common.Address),
 		ValidatorID:      results[1].(*big.Int),
 		Amount:           results[2].(*big.Int),
@@ -311,4 +311,18 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 	}
 
 	return delegations, nil
+}
+
+// GetDelegationInfo delegation info with all parameters
+func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
+	delegation, err := c.GetDelegation(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, err
+	}
+	delegation.State, err = c.GetDelegationState(ctx, bc, blockNumber, delegationID)
+	if err != nil {
+		return delegation, err
+	}
+
+	return delegation, nil
 }

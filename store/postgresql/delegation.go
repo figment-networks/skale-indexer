@@ -14,6 +14,7 @@ import (
 
 // SaveDelegation saves delegation
 func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
+
 	_, err := d.db.Exec(`INSERT INTO delegations (
 				"delegation_id",
 				"holder",
@@ -53,6 +54,7 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 		dl.Finished.String(),
 		dl.Info,
 		dl.State)
+
 	return err
 }
 
