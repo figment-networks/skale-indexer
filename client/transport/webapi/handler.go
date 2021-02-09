@@ -276,8 +276,12 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
 			}
-			timeFrom, _ = m["from"]
-			timeTo, _ = m["to"]
+			if f, ok := m["from"]; ok {
+				timeFrom = f
+			}
+			if t, ok := m["to"]; ok {
+				timeTo = t
+			}
 		}
 		var errFrom, errTo error
 		if !(timeFrom == "" && timeTo == "") {

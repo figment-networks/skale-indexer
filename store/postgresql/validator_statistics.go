@@ -47,6 +47,12 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 		args = append(args, params.Type)
 		i++
 	}
+	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
+		wherec = append(wherec, ` time BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
+		args = append(args, params.TimeFrom)
+		args = append(args, params.TimeTo)
+		i += 2
+	}
 	if len(args) > 0 {
 		q += ` WHERE `
 	}
@@ -87,8 +93,8 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 		`SELECT id, created_at, validator_id, amount, block_height, time, statistic_type
 			FROM validator_statistics
 			WHERE
-				validator_id = $1 AND statistic_type = $2
-			ORDER BY block_height DESC`, params.ValidatorID, params.Type)
+				validator_id = $1 AND statistic_type = $2 AND time BETWEEN $3 AND $4 
+			ORDER BY block_height DESC`, params.ValidatorID, params.Type, params.TimeFrom, params.TimeTo)
 	if err != nil {
 		return nil, err
 	}

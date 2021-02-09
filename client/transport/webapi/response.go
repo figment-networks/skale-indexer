@@ -238,7 +238,6 @@ type SystemEvent struct {
 }
 
 // SystemEventData value for SystemEvent
-// swagger:model
 type SystemEventData struct {
 	Before big.Int   `json:"before"`
 	After  big.Int   `json:"after"`

@@ -110,7 +110,7 @@ type ValidatorParams struct {
 	TimeFrom time.Time `json:"from"`
 	// TimeTo - the inclusive ending of the time range for registration time
 	//
-	// supposed to be sent with time to
+	// supposed to be sent with time from
 	// time format: RFC3339
 	// example: 2021-09-22T12:42:31Z
 	TimeTo time.Time `json:"to"`
@@ -149,7 +149,6 @@ type ValidatorStatisticsParams struct {
 }
 
 // SystemEventParams a set of fields to be used for system events
-// swagger:model
 type SystemEventParams struct {
 	After      uint64 `json:"after"`
 	Kind       string `json:"kind"`
