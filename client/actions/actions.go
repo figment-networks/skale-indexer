@@ -246,15 +246,26 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			// TODO: change err message from line 203
 			return errors.New("structure is not a node")
 		}
-		n.BlockHeight = ce.BlockHeight
-		if err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{}); err != nil {
+
+		nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
+		if err != nil {
+			return fmt.Errorf("error getting validator nodes %w", err)
+		}
+
+		for _, node := range nodes {
+			node.BlockHeight = ce.BlockHeight
+		}
+
+		if err = m.dataStore.SaveNodes(ctx, nodes, common.Address{}); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
+
 		vs := structs.ValidatorStatisticsParams{
 			ValidatorID: n.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
 			BlockTime:   ce.Time,
 		}
+
 		err = m.dataStore.CalculateActiveNodes(ctx, vs)
 		if err != nil {
 			return fmt.Errorf("error calculating active nodes %w", err)
@@ -735,7 +746,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 	m.l.Info("synchronization for nodes starts", zap.Uint64("block height", currentBlock))
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	nID := big.NewInt(1) 
+	nID := big.NewInt(1)
 	var n structs.Node
 	for err == nil {
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))
