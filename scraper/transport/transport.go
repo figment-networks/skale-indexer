@@ -24,5 +24,5 @@ type EthereumTransport interface {
 	GetLogs(ctx context.Context, from, to big.Int, contracts []common.Address) (logs []types.Log, err error)
 	GetBlockHeader(ctx context.Context, height *big.Int) (h *types.Header, err error)
 	GetBoundContractCaller(ctx context.Context, address common.Address, a abi.ABI) BoundContractCaller
-	GetCurrentBlockHeight(ctx context.Context) (uint64, error)
+	GetLatestBlockHeight(ctx context.Context) (uint64, error)
 }

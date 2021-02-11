@@ -94,9 +94,6 @@ func main() {
 	storeDB := store.New(pgsqlDriver)
 
 	mux := http.NewServeMux()
-	cli := client.NewClient(logger.GetLogger(), storeDB)
-	hCli := webapi.NewClientConnector(cli)
-	hCli.AttachToHandler(mux)
 
 	if cfg.EnableScraper {
 		logger.GetLogger().Info("Indexer is in scraping mode")
@@ -122,10 +119,19 @@ func main() {
 		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
 		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, types.Header{Number: new(big.Int).SetUint64(cfg.EthereumSmallestBlockNumber), Time: cfg.EthereumSmallestTime}, am)
 		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
-		sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
+
+		cli := client.NewClient(logger.GetLogger(), storeDB, eAPI, ccs, cfg.EthereumSmallestBlockNumber, cfg.MaxHeightsPerRequest)
+		hCli := webapi.NewClientConnector(cli)
+		hCli.AttachToHandler(mux)
+
+		sCli := webapi.NewScrapeConnector(logger.GetLogger(), cli)
 		sCli.AttachToHandler(mux)
 	} else {
 		logger.GetLogger().Info("Indexer is not in scraping mode")
+
+		cli := client.NewClient(logger.GetLogger(), storeDB, nil, nil, cfg.EthereumSmallestBlockNumber, cfg.MaxHeightsPerRequest)
+		hCli := webapi.NewClientConnector(cli)
+		hCli.AttachToHandler(mux)
 	}
 
 	mux.Handle("/metrics", metrics.Handler())

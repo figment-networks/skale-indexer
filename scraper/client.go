@@ -80,6 +80,10 @@ func (eAPI *EthereumAPI) getLastBlockTimeBefore(ctx context.Context, fromBlockID
 	}
 }
 
+func (eAPI *EthereumAPI) GetLatestBlockHeight(ctx context.Context) (uint64, error) {
+	return eAPI.transport.GetLatestBlockHeight(ctx)
+}
+
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
 
 	addr := make([]common.Address, len(ccs))
@@ -139,7 +143,6 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	}
 
 	processed := make(map[uint64][]ProcOutput, len(logs))
-
 	var gotResponses int
 OutputLoop:
 	for {
@@ -166,7 +169,17 @@ OutputLoop:
 		}
 	}
 	eAPI.log.Debug("finishing...")
-	eAPI.rangeBlockCache.Set(rangeInfo{from: from.Uint64(), to: to.Uint64()}, types.Header{Number: new(big.Int).SetUint64(logs[len(logs)-1].BlockNumber)})
+	lastBlock := logs[len(logs)-1]
+
+	a := processed[lastBlock.BlockNumber]
+
+	eAPI.rangeBlockCache.Set(rangeInfo{
+		from: from.Uint64(),
+		to:   to.Uint64()},
+		types.Header{
+			Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
+			Time:   uint64(a[0].CE.Time.Unix()),
+		})
 
 	return nil
 }
@@ -270,11 +283,12 @@ func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.
 		return ce, fmt.Errorf("getLogs list has empty topic list %w", err)
 	}
 	mapped := make(map[string]interface{}, len(event.Inputs))
-	err = event.Inputs.UnpackIntoMap(mapped, l.Data)
-	if err != nil {
-		return ce, fmt.Errorf("error unpacking into map %w", err)
+	if len(l.Data) > 0 {
+		err = event.Inputs.UnpackIntoMap(mapped, l.Data)
+		if err != nil {
+			return ce, fmt.Errorf("error unpacking into map %w", err)
+		}
 	}
-
 	i := 1 // skip first topic, because it's event data
 	for _, v := range event.Inputs {
 		if v.Indexed == true {
@@ -337,7 +351,6 @@ func (rbc *rangeBlockCache) Set(r rangeInfo, h types.Header) {
 			} else {
 				rbc.c[rangeInfo{from: r.from, to: k.to}] = h
 			}
-
 		} else if k.to == r.from || (k.to == r.from-1) { // right sided - join
 			inMap = true
 			delete(rbc.c, k)

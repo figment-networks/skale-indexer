@@ -98,6 +98,33 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
 
+	if ce.EventName == "RoleGranted" {
+		// BUG(lukanus): save this in correct form
+		/*
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "bytes32",
+					"name": "role",
+					"type": "bytes32"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				}
+			],*/
+		ce.BoundType = "delegation"
+		return m.dataStore.SaveContractEvent(ctx, ce)
+	}
+
 	switch ce.ContractName {
 	case "validator_service":
 
@@ -735,7 +762,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 	m.l.Info("synchronization for nodes starts", zap.Uint64("block height", currentBlock))
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
-	nID := big.NewInt(1) 
+	nID := big.NewInt(1)
 	var n structs.Node
 	for err == nil {
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))

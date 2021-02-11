@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'boundtype') THEN
-        CREATE TYPE BOUNDTYPE AS ENUM ('validator', 'delegation', 'node', 'token');
+        CREATE TYPE BOUNDTYPE AS ENUM ('validator', 'delegation', 'node', 'token', 'none');
     END IF;
     --more types here...
 END$$;
