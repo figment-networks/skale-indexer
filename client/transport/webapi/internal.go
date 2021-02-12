@@ -68,32 +68,6 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-/*
-type LatestDataRequest struct {
-	Network string `json:"network"`
-	ChainID string `json:"chain_id"`
-	Version string `json:"version"`
-
-	LastHash   string    `json:"lastHash"`
-	LastEpoch  string    `json:"lastEpoch"`
-	LastHeight uint64    `json:"lastHeight"`
-	LastTime   time.Time `json:"lastTime"`
-	Retry      uint64    `json:"retry"`
-	Nonce      []byte    `json:"nonce"`
-
-	SelfCheck bool `json:"selfCheck"`
-}
-
-type LatestDataResponse struct {
-	LastHash   string    `json:"lastHash"`
-	LastHeight uint64    `json:"lastHeight"`
-	LastTime   time.Time `json:"lastTime"`
-	LastEpoch  string    `json:"lastEpoch"`
-	Retry      uint64    `json:"retry"`
-	Nonce      []byte    `json:"nonce"`
-}
-*/
-
 type LatestDataRequest struct {
 	Network string `json:"network"`
 	ChainID string `json:"chain_id"`
@@ -106,6 +80,7 @@ type LatestDataRequest struct {
 type LatestDataResponse struct {
 	LastHeight uint64 `json:"lastHeight"`
 	Error      []byte `json:"error"`
+	Processing bool   `json:"processing"`
 }
 
 /*
@@ -142,12 +117,14 @@ func (sc *ScrapeConnector) GetLatest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	lDResp.LastHeight = lastHeight
 	if isRunning == true {
-		w.WriteHeader(http.StatusProcessing)
+		w.WriteHeader(http.StatusOK)
+		lDResp.Processing = true
+		enc.Encode(lDResp)
 		return
 	}
 
+	lDResp.LastHeight = lastHeight
 	w.WriteHeader(http.StatusOK)
 	err = enc.Encode(lDResp)
 	if err != nil {
