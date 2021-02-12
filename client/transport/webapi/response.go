@@ -149,6 +149,11 @@ type Node struct {
 	ValidatorID *big.Int `json:"validator_id"`
 	// Status - node status
 	Status string `json:"status"`
+	// Address - node address on SKALE (Address represents the 20 byte address of an Ethereum account)
+	//
+	// package: github.com/ethereum/go-ethereum/common
+	// format: [20]byte
+	Address common.Address `json:"address"`
 }
 
 // Validator a set of fields to show returned validators by search

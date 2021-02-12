@@ -240,6 +240,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			FinishTime:     n.FinishTime,
 			ValidatorID:    n.ValidatorID,
 			Status:         n.Status.String(),
+			Address:        n.Address,
 		})
 	}
 
