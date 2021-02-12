@@ -6,12 +6,13 @@ import (
 	"math/big"
 	"net/http"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 type ScrapeContractor interface {
-	ParseLogs(ctx context.Context, from, to big.Int) error
-	GetLatestData(ctx context.Context, latest uint64) (lastHeight uint64, isRunning bool, err error)
+	ParseLogs(ctx context.Context, taskID string, from, to big.Int) error
+	GetLatestData(ctx context.Context, taskID string, latest uint64) (lastHeight uint64, isRunning bool, err error)
 }
 
 // ScrapeConnector is main HTTP connector for manager
@@ -58,7 +59,7 @@ func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := sc.cli.ParseLogs(req.Context(), *from, *to); err != nil {
+	if err := sc.cli.ParseLogs(req.Context(), uuid.New().String(), *from, *to); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 		return
@@ -98,6 +99,7 @@ type LatestDataRequest struct {
 	ChainID string `json:"chain_id"`
 	Version string `json:"version"`
 
+	TaskID     string `json:"task_id"`
 	LastHeight uint64 `json:"lastHeight"`
 }
 
@@ -131,15 +133,16 @@ func (sc *ScrapeConnector) GetLatest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// TODO(lukanus): Check the version
-	lastHeight, isRunning, err := sc.cli.GetLatestData(req.Context(), ldr.LastHeight)
-	lDResp.LastHeight = lastHeight
+	lastHeight, isRunning, err := sc.cli.GetLatestData(req.Context(), ldr.TaskID, ldr.LastHeight)
 	if err != nil {
+		lDResp.LastHeight = ldr.LastHeight
 		w.WriteHeader(http.StatusInternalServerError)
-		lDResp.Error = []byte(`{"error":"error decoding LatestDataRequest format "}`)
+		lDResp.Error = []byte(err.Error())
 		enc.Encode(lDResp)
 		return
 	}
 
+	lDResp.LastHeight = lastHeight
 	if isRunning == true {
 		w.WriteHeader(http.StatusProcessing)
 		return

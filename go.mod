@@ -13,6 +13,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.8.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

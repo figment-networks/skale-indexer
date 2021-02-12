@@ -92,7 +92,7 @@ func TestGetLogs(t *testing.T) {
 			eAPI := scraper.NewEthereumAPI(zl, tr, types.Header{Number: big.NewInt(1234), Time: uint64(1234)}, am)
 
 			ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
-			if err := eAPI.ParseLogs(ctx, ccs, tt.args.from, tt.args.to); err != nil {
+			if err := eAPI.ParseLogs(ctx, ccs, "", tt.args.from, tt.args.to); err != nil {
 				t.Error(err)
 				return
 			}

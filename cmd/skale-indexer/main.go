@@ -109,6 +109,8 @@ func main() {
 		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
 			logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
 			return
+		} else {
+			logger.GetLogger().Info("Loaded contracts", zap.String("dir", cfg.SkaleABIDir))
 		}
 		tr := eth.NewEthTransport(cfg.EthereumAddress)
 		if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
@@ -118,9 +120,12 @@ func main() {
 		defer tr.Close(ctx)
 		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
 		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, types.Header{Number: new(big.Int).SetUint64(cfg.EthereumSmallestBlockNumber), Time: cfg.EthereumSmallestTime}, am)
-		ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
 
-		cli := client.NewClient(logger.GetLogger(), storeDB, eAPI, ccs, cfg.EthereumSmallestBlockNumber, cfg.MaxHeightsPerRequest)
+		cli := client.NewClient(logger.GetLogger(),
+			storeDB, eAPI,
+			cm.GetContractsByNames(am.GetImplementedContractNames()),
+			cfg.EthereumSmallestBlockNumber,
+			cfg.MaxHeightsPerRequest)
 		hCli := webapi.NewClientConnector(cli)
 		hCli.AttachToHandler(mux)
 

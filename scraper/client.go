@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -18,7 +20,8 @@ import (
 
 const (
 	workerCount            = 5
-	backCheckSlidingWindow = 50
+	backCheckSlidingWindow = 10000
+	cacheSize              = 1000
 )
 
 type ActionManager interface {
@@ -32,21 +35,22 @@ type EthereumAPI struct {
 	log                   *zap.Logger
 	transport             transport.EthereumTransport
 	AM                    ActionManager
-	rangeBlockCache       rangeBlockCache
+	blockLRU              *lru.Cache
 	smallestPossibleBlock types.Header
 }
 
 func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, spb types.Header, am ActionManager) *EthereumAPI {
+	cache, _ := lru.New(cacheSize)
 	return &EthereumAPI{
 		log:                   log,
 		transport:             transport,
 		AM:                    am,
 		smallestPossibleBlock: spb,
-		rangeBlockCache:       newLastBlockCache(),
+		blockLRU:              cache,
 	}
 }
 
-func (eAPI *EthereumAPI) getLastBlockTimeBefore(ctx context.Context, fromBlockID uint64, window uint64, addr []common.Address) (blockTime time.Time, err error) {
+func (eAPI *EthereumAPI) getLastBlockTimeBefore(ctx context.Context, taskID string, fromBlockID uint64, window uint64, addr []common.Address) (blockTime time.Time, err error) {
 
 	f, t := fromBlockID-window, fromBlockID
 	for {
@@ -54,10 +58,10 @@ func (eAPI *EthereumAPI) getLastBlockTimeBefore(ctx context.Context, fromBlockID
 
 		if f < eAPI.smallestPossibleBlock.Number.Uint64() {
 			blockTime = time.Unix(int64(eAPI.smallestPossibleBlock.Time), 0)
-			eAPI.rangeBlockCache.Set(rangeInfo{from: f, to: t}, eAPI.smallestPossibleBlock)
+			eAPI.blockLRU.Add(taskID, eAPI.smallestPossibleBlock)
 			return
 		}
-
+		eAPI.log.Debug("Running GetLogs", zap.Uint64("from", f), zap.Uint64("to", t))
 		logsBackwards, err := eAPI.transport.GetLogs(ctx, *new(big.Int).SetUint64(f), *new(big.Int).SetUint64(t), addr)
 		if err != nil {
 			return blockTime, fmt.Errorf("error on getting logs for last block before :%w", err)
@@ -70,12 +74,9 @@ func (eAPI *EthereumAPI) getLastBlockTimeBefore(ctx context.Context, fromBlockID
 				return blockTime, fmt.Errorf("error on getting block header for last block before :%w", err)
 			}
 			blockTime = time.Unix(int64(lastLoggedBlockHeader.Time), 0)
-			eAPI.rangeBlockCache.Set(rangeInfo{from: f, to: t}, *lastLoggedBlockHeader)
+			eAPI.blockLRU.Add(taskID, *lastLoggedBlockHeader)
 			return blockTime, nil
 		}
-
-		eAPI.rangeBlockCache.Set(rangeInfo{from: f, to: t}, types.Header{})
-
 		f, t = f-window, t-window
 	}
 }
@@ -84,7 +85,7 @@ func (eAPI *EthereumAPI) GetLatestBlockHeight(ctx context.Context) (uint64, erro
 	return eAPI.transport.GetLatestBlockHeight(ctx)
 }
 
-func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error {
+func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) error {
 
 	addr := make([]common.Address, len(ccs))
 	var i int
@@ -97,14 +98,20 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 		return fmt.Errorf("error in GetLogs request: %w", err)
 	}
 
-	eAPI.log.Debug("[EthTransport] GetLogs ", zap.Int("len", len(logs)), zap.Uint64("from", from.Uint64()), zap.Uint64("to", to.Uint64()))
+	eAPI.log.Debug("[EthTransport] GetLogs ", zap.Int("len", len(logs)), zap.String("taskID", taskID), zap.Uint64("from", from.Uint64()), zap.Uint64("to", to.Uint64()))
 
 	if len(logs) == 0 { // spot tx block crossing month
-		lastLoggedBlockTime := eAPI.rangeBlockCache.Get(from.Uint64())
-		if lastLoggedBlockTime.IsZero() || lastLoggedBlockTime.Unix() == 0 {
-			lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, from.Uint64(), backCheckSlidingWindow, addr)
-			if err != nil {
-				return err
+		var lastLoggedBlockTime types.Header
+		llbt, ok := eAPI.blockLRU.Get(taskID)
+		if ok {
+			lastLoggedBlockTime = llbt.(types.Header)
+			if lastLoggedBlockTime.Time == 0 {
+				lbtB, err := eAPI.getLastBlockTimeBefore(ctx, taskID, from.Uint64(), backCheckSlidingWindow, addr)
+				if err != nil {
+					return err
+				}
+				lastLoggedBlockTime.Time = uint64(lbtB.Unix())
+
 			}
 		}
 		h, err := eAPI.AM.GetBlockHeader(ctx, to)
@@ -113,33 +120,43 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 		}
 
 		hTime := time.Unix(int64(h.Time), 0)
-		if isInRange(lastLoggedBlockTime, hTime) {
-			if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, "1.6.2", h.Number.Uint64(), hTime); err != nil { // latest version?
+		a := time.Unix(int64(lastLoggedBlockTime.Time), 0)
+		if isInRange(a, hTime) {
+			if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, "1.7.2", h.Number.Uint64(), hTime); err != nil { // latest version?
 				return err
 			}
-			eAPI.rangeBlockCache.Set(rangeInfo{from: from.Uint64(), to: to.Uint64()}, *h)
+			eAPI.blockLRU.Add(taskID, *h)
 			return nil
 		}
 
-		eAPI.rangeBlockCache.Set(rangeInfo{from: from.Uint64(), to: to.Uint64()}, types.Header{})
+		eAPI.blockLRU.Add(taskID, *h)
 		return nil
 	}
 
-	lastLoggedBlockTime := eAPI.rangeBlockCache.Get(logs[0].BlockNumber - 1)
-	if lastLoggedBlockTime.IsZero() || lastLoggedBlockTime.Unix() == 0 {
-		lastLoggedBlockTime, err = eAPI.getLastBlockTimeBefore(ctx, logs[0].BlockNumber-1, backCheckSlidingWindow, addr)
+	var lastLoggedBlockTime types.Header
+	llbt, _ := eAPI.blockLRU.Get(taskID)
+	if llbt != nil {
+		lastLoggedBlockTime = llbt.(types.Header)
+	}
+
+	if lastLoggedBlockTime.Time == 0 {
+		lbtB, err := eAPI.getLastBlockTimeBefore(ctx, taskID, from.Uint64(), backCheckSlidingWindow, addr)
 		if err != nil {
 			return err
 		}
+		lastLoggedBlockTime.Time = uint64(lbtB.Unix())
 	}
 
 	input := make(chan ProcInput, workerCount)
 	output := make(chan ProcOutput, workerCount*2)
 	defer close(output)
 
-	go eAPI.populateToWorkers(ctx, logs, input, lastLoggedBlockTime)
+	cCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go eAPI.populateToWorkers(ctx, logs, input, time.Unix(int64(lastLoggedBlockTime.Time), 0))
 	for i := 0; i < workerCount; i++ {
-		go eAPI.processLogAsync(ctx, ccs, input, output)
+		go eAPI.processLogAsync(cCtx, ccs, input, output)
 	}
 
 	processed := make(map[uint64][]ProcOutput, len(logs))
@@ -153,6 +170,7 @@ OutputLoop:
 			gotResponses++
 			if o.Error != nil {
 				eAPI.log.Error("Error", zap.Error(o.Error))
+				cancel()
 				return err
 				//continue
 			}
@@ -172,14 +190,17 @@ OutputLoop:
 	lastBlock := logs[len(logs)-1]
 
 	a := processed[lastBlock.BlockNumber]
-
-	eAPI.rangeBlockCache.Set(rangeInfo{
+	eAPI.blockLRU.Add(taskID, types.Header{
+		Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
+		Time:   uint64(a[0].CE.Time.Unix()),
+	})
+	/*	eAPI.rangeBlockCache.Set(rangeInfo{
 		from: from.Uint64(),
 		to:   to.Uint64()},
 		types.Header{
 			Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
 			Time:   uint64(a[0].CE.Time.Unix()),
-		})
+		})*/
 
 	return nil
 }
@@ -232,19 +253,29 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				return
 			}
 			if inp.Error != nil {
-				out <- ProcOutput{Error: inp.Error}
+				select {
+				case <-ctx.Done():
+				case out <- ProcOutput{Error: inp.Error}:
+				}
+
 				continue
 			}
 
 			ce, err := processLog(eAPI.log, inp.Log, inp.Header, ccs)
 			if err != nil {
-				out <- ProcOutput{Error: err}
+				select {
+				case <-ctx.Done():
+				case out <- ProcOutput{Error: err}:
+				}
 				continue
 			}
 			c, ok := ccs[inp.Log.Address]
 			err = eAPI.AM.AfterEventLog(ctx, c, ce)
 			if err != nil {
-				out <- ProcOutput{Error: err}
+				select {
+				case <-ctx.Done():
+				case out <- ProcOutput{Error: err}:
+				}
 				continue
 			}
 
@@ -252,7 +283,10 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			if isInRange(inp.PreviousBlockTime, hTime) {
 				if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c.Version, inp.Log.BlockNumber, hTime); err != nil {
 					eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
-					out <- ProcOutput{Error: err}
+					select {
+					case <-ctx.Done():
+					case out <- ProcOutput{Error: err}:
+					}
 					continue
 				}
 			}
@@ -297,6 +331,8 @@ func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.
 				mapped[v.Name] = abi.ReadInteger(v.Type, l.Topics[i].Bytes())
 			case "address":
 				mapped[v.Name] = common.BytesToAddress(l.Topics[i].Bytes())
+			case "bytes32":
+				mapped[v.Name] = l.Topics[i].Bytes()
 			}
 			i++
 		}
@@ -372,14 +408,26 @@ func (rbc *rangeBlockCache) Set(r rangeInfo, h types.Header) {
 
 }
 
-func (rbc *rangeBlockCache) Get(bgnBlock uint64) time.Time {
+func (rbc *rangeBlockCache) Get(bgnBlock uint64) (time.Time, bool) {
 	rbc.l.RLock()
 	defer rbc.l.RUnlock()
 
 	for k, t := range rbc.c {
 		if bgnBlock >= k.from && bgnBlock <= k.to {
-			return time.Unix(int64(t.Time), 0)
+			return time.Unix(int64(t.Time), 0), true
 		}
 	}
-	return time.Time{}
+	return time.Time{}, false
+}
+
+func (rbc *rangeBlockCache) GetRange(start, stop uint64) (time.Time, bool) {
+	rbc.l.RLock()
+	defer rbc.l.RUnlock()
+
+	for k, t := range rbc.c {
+		if start >= k.from && stop <= k.to {
+			return time.Unix(int64(t.Time), 0), true
+		}
+	}
+	return time.Time{}, false
 }

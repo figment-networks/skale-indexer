@@ -14,7 +14,7 @@ import (
 )
 
 type EthereumConnector interface {
-	ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error
+	ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) error
 	GetLatestBlockHeight(ctx context.Context) (uint64, error)
 }
 
@@ -116,15 +116,15 @@ func (c *Client) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	return systemEvents, err
 }
 
-func (c *Client) ParseLogs(ctx context.Context, from, to big.Int) error {
-	err := c.ethConn.ParseLogs(ctx, c.ccs, from, to)
+func (c *Client) ParseLogs(ctx context.Context, taskID string, from, to big.Int) error {
+	err := c.ethConn.ParseLogs(ctx, c.ccs, taskID, from, to)
 	if err != nil {
-		c.log.Error("[CLIENT] Error in ParseLogs:", zap.Uint64("from", from.Uint64()), zap.Uint64("to", to.Uint64()), zap.Error(err))
+		c.log.Error("[CLIENT] Error in ParseLogs:", zap.Uint64("from", from.Uint64()), zap.String("task_id", taskID), zap.Uint64("to", to.Uint64()), zap.Error(err))
 	}
 	return err
 }
 
-func (c *Client) GetLatestData(ctx context.Context, latest uint64) (latestBlock uint64, isRunning bool, err error) {
+func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64) (latestBlock uint64, isRunning bool, err error) {
 
 	height, err := c.ethConn.GetLatestBlockHeight(ctx)
 	if err != nil {
@@ -133,7 +133,7 @@ func (c *Client) GetLatestData(ctx context.Context, latest uint64) (latestBlock 
 
 	var lastJobFinished uint64
 	c.r.lock.RLock()
-	p, ok := c.r.Processes[PSig{LatestHeight: latest}]
+	p, ok := c.r.Processes[PSig{LatestHeight: latest, TaskID: taskID}]
 	c.r.lock.RUnlock()
 	if ok {
 		if !p.Finished {
@@ -142,7 +142,7 @@ func (c *Client) GetLatestData(ctx context.Context, latest uint64) (latestBlock 
 		}
 
 		lastJobFinished = p.EndHeight
-		delete(c.r.Processes, PSig{LatestHeight: latest})
+		delete(c.r.Processes, PSig{LatestHeight: latest, TaskID: taskID})
 	}
 
 	from, to := &big.Int{}, &big.Int{}
@@ -164,13 +164,13 @@ func (c *Client) GetLatestData(ctx context.Context, latest uint64) (latestBlock 
 	}
 
 	c.r.lock.Lock()
-	psig := PSig{latest}
+	psig := PSig{latest, taskID}
 	c.r.Processes[psig] = Process{
 		Started:   time.Now(),
 		EndHeight: to.Uint64(),
 	}
 	out := make(chan struct{})
-	go c.getRange(ctx, *from, *to, psig, out)
+	go c.getRange(ctx, taskID, *from, *to, psig, out)
 	c.r.lock.Unlock()
 
 	select {
@@ -192,9 +192,9 @@ func (c *Client) GetLatestData(ctx context.Context, latest uint64) (latestBlock 
 
 }
 
-func (c *Client) getRange(ctx context.Context, from, to big.Int, sig PSig, out chan struct{}) {
+func (c *Client) getRange(ctx context.Context, taskID string, from, to big.Int, sig PSig, out chan struct{}) {
 
-	err := c.ethConn.ParseLogs(context.Background(), c.ccs, from, to)
+	err := c.ethConn.ParseLogs(context.Background(), c.ccs, taskID, from, to)
 
 	c.r.lock.Lock()
 	p, ok := c.r.Processes[sig]
@@ -202,6 +202,7 @@ func (c *Client) getRange(ctx context.Context, from, to big.Int, sig PSig, out c
 		p.Error = err
 		p.Finished = true
 	}
+	c.r.Processes[sig] = p
 	c.r.lock.Unlock()
 
 	select {
@@ -214,6 +215,7 @@ func (c *Client) getRange(ctx context.Context, from, to big.Int, sig PSig, out c
 
 type PSig struct {
 	LatestHeight uint64
+	TaskID       string
 }
 
 func NewRunning() *Running {

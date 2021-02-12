@@ -100,8 +100,7 @@ func (m *Manager) LoadContractsFromDir(inputFolder string) error {
 						abiF.Close()
 						return fmt.Errorf("error reading file (%s) %w ", filePath, err)
 					}
-
-					err = m.getContracts(abiF, inputFolder)
+					err = m.getContracts(abiF, d.Name())
 					if err != nil {
 						abiF.Close()
 

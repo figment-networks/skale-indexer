@@ -121,13 +121,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 					"type": "address"
 				}
 			],*/
-		ce.BoundType = "delegation"
+		ce.BoundType = "none"
 		return m.dataStore.SaveContractEvent(ctx, ce)
 	}
 
 	switch ce.ContractName {
 	case "validator_service":
-
 		vIDI, ok := ce.Params["validatorId"]
 		if !ok {
 			return errors.New("structure is not a validator, it does not have valiadtorId")
