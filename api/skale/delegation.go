@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"github.com/figment-networks/skale-indexer/scraper/transport"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -27,7 +28,7 @@ type DelegationRaw struct {
 	Info             string         `json:"info"`
 }
 
-func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
+func (c *Caller) GetDelegation(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
@@ -42,10 +43,17 @@ func (c *Caller) GetDelegation(ctx context.Context, bc *bind.BoundContract, bloc
 		}
 	}
 
-	err = bc.Call(co, &results, "delegations", delegationID)
+	contr := bc.GetContract()
+	if contr == nil {
+		return d, fmt.Errorf("Contract is nil")
+	}
 
-	if err != nil {
-		return d, err
+	if err = contr.Call(co, &results, "delegations", delegationID); err != nil {
+		_, err2 := bc.RawCall(ctx, co, "delegations", delegationID)
+		if err2 == transport.ErrEmptyResponse {
+			return d, nil
+		}
+		return d, fmt.Errorf("error calling delegations  %w ", err)
 	}
 
 	if len(results) == 0 {
@@ -141,10 +149,11 @@ func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.Bound
 	return amount, nil
 }
 
-func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error) {
+func (c *Caller) GetValidatorDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
+	caller := bc.GetContract()
 
 	co := &bind.CallOpts{
 		Context: ctxT,
@@ -161,7 +170,7 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 
 	results := []interface{}{}
 
-	err = bc.Call(co, &results, "getDelegationsByValidatorLength", validatorID)
+	err = caller.Call(co, &results, "getDelegationsByValidatorLength", validatorID)
 
 	if err != nil {
 		return nil, fmt.Errorf("error calling delegations function %w", err)
@@ -195,7 +204,7 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 
 		resultsA := []interface{}{}
 
-		err = bc.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
+		err = caller.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
 
 		cancelA()
 		if err != nil {
@@ -216,7 +225,7 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 			return nil, fmt.Errorf("error calling delegations function %w", err)
 		}
 
-		d.State, err = c.GetDelegationState(ctx, bc, blockNumber, id)
+		d.State, err = c.GetDelegationState(ctx, caller, blockNumber, id)
 		if err != nil {
 			return nil, fmt.Errorf("error getting delegation state %w", err)
 		}
@@ -227,11 +236,11 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc *bind.BoundCont
 	return delegations, nil
 }
 
-func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error) {
+func (c *Caller) GetHolderDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
-
+	caller := bc.GetContract()
 	co := &bind.CallOpts{
 		Context: ctxT,
 		Pending: true,
@@ -247,7 +256,7 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 
 	results := []interface{}{}
 
-	err = bc.Call(co, &results, "getDelegationsByHolderLength", holder)
+	err = caller.Call(co, &results, "getDelegationsByHolderLength", holder)
 
 	if err != nil {
 		return nil, fmt.Errorf("error calling delegations function %w", err)
@@ -281,7 +290,7 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 
 		resultsA := []interface{}{}
 
-		err = bc.Call(co, &resultsA, "delegationsByHolder", holder, new(big.Int).SetUint64(i))
+		err = caller.Call(co, &resultsA, "delegationsByHolder", holder, new(big.Int).SetUint64(i))
 
 		cancelA()
 		if err != nil {
@@ -302,7 +311,7 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 			return nil, fmt.Errorf("error calling delegations function %w", err)
 		}
 
-		d.State, err = c.GetDelegationState(ctx, bc, blockNumber, id)
+		d.State, err = c.GetDelegationState(ctx, caller, blockNumber, id)
 		if err != nil {
 			return nil, fmt.Errorf("error getting delegation state %w", err)
 		}
@@ -314,12 +323,12 @@ func (c *Caller) GetHolderDelegations(ctx context.Context, bc *bind.BoundContrac
 }
 
 // GetDelegationInfo delegation info with all parameters
-func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
+func (c *Caller) GetDelegationWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
 	delegation, err := c.GetDelegation(ctx, bc, blockNumber, delegationID)
 	if err != nil {
 		return delegation, err
 	}
-	delegation.State, err = c.GetDelegationState(ctx, bc, blockNumber, delegationID)
+	delegation.State, err = c.GetDelegationState(ctx, bc.GetContract(), blockNumber, delegationID)
 	if err != nil {
 		return delegation, err
 	}

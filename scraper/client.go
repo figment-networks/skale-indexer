@@ -20,7 +20,7 @@ import (
 
 const (
 	workerCount            = 5
-	backCheckSlidingWindow = 10000
+	backCheckSlidingWindow = 1000
 	cacheSize              = 1000
 )
 
@@ -87,7 +87,7 @@ func (eAPI *EthereumAPI) GetLatestBlockHeight(ctx context.Context) (uint64, erro
 	return eAPI.transport.GetLatestBlockHeight(ctx)
 }
 
-func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) error {
+func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) (err error) {
 	defer eAPI.log.Sync()
 
 	addr := make([]common.Address, len(ccs))
@@ -157,48 +157,60 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	cCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go eAPI.populateToWorkers(ctx, logs, input, time.Unix(int64(lastLoggedBlockTime.Time), 0))
+	wg := &sync.WaitGroup{}
+
+	go eAPI.populateToWorkers(cCtx, logs, input, time.Unix(int64(lastLoggedBlockTime.Time), 0))
 	for i := 0; i < workerCount; i++ {
-		go eAPI.processLogAsync(cCtx, ccs, input, output)
+		wg.Add(1)
+		go eAPI.processLogAsync(cCtx, ccs, wg, input, output)
 	}
 
 	processed := make(map[uint64][]ProcOutput, len(logs))
 	var gotResponses int
+
 OutputLoop:
 	for {
 		select {
 		case <-ctx.Done():
 			break OutputLoop
+		case <-cCtx.Done():
+			break OutputLoop
 		case o := <-output:
 			gotResponses++
 			if o.Error != nil {
+				err = o.Error
 				cancel()
-				eAPI.log.Error("Error", zap.Error(o.Error))
-				return err
+				eAPI.log.Error("[ScraperCLient] ParseLogs Error", zap.Error(o.Error))
+				continue
 			}
-			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
+			eAPI.log.Debug("[ScraperCLient] Process contract Event", zap.Any("ContractEvent", o.CE))
 			p, ok := processed[o.CE.BlockHeight]
 			if !ok {
 				p = []ProcOutput{}
 			}
 			p = append(p, o)
 			processed[o.CE.BlockHeight] = p
+
 			if gotResponses == len(logs) {
 				break OutputLoop
 			}
 		}
 	}
 
-	lastBlock := logs[len(logs)-1]
-	eAPI.log.Debug("Processed", zap.Uint64("last_height", lastBlock.BlockNumber))
+	if err == nil {
+		lastBlock := logs[len(logs)-1]
 
-	a := processed[lastBlock.BlockNumber]
-	eAPI.blockLRU.Add(taskID, types.Header{
-		Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
-		Time:   uint64(a[0].CE.Time.Unix()),
-	})
+		a := processed[lastBlock.BlockNumber]
+		eAPI.blockLRU.Add(taskID, types.Header{
+			Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
+			Time:   uint64(a[0].CE.Time.Unix()),
+		})
+		eAPI.log.Debug("[ScraperCLient] Processed", zap.Uint64("last_height", lastBlock.BlockNumber))
+	}
 
-	return nil
+	wg.Wait()
+
+	return err
 }
 
 func isInRange(prvTime, crnTime time.Time) bool {
@@ -222,8 +234,15 @@ type ProcOutput struct {
 
 func (eAPI *EthereumAPI) populateToWorkers(ctx context.Context, logs []types.Log, populateCh chan ProcInput, lastLoggedBlockTime time.Time) {
 
+	defer close(populateCh)
 	previousBlockTime := lastLoggedBlockTime
 	for i, l := range logs {
+		select {
+		case <-ctx.Done():
+			return
+		//	populateCh <- ProcInput{}
+		default:
+		}
 		h, err := eAPI.AM.GetBlockHeader(ctx, *new(big.Int).SetUint64(l.BlockNumber))
 		if err != nil {
 			populateCh <- ProcInput{Error: err}
@@ -234,11 +253,11 @@ func (eAPI *EthereumAPI) populateToWorkers(ctx context.Context, logs []types.Log
 		previousBlockTime = time.Unix(int64(h.Time), 0)
 	}
 
-	close(populateCh)
 }
 
-func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Address]contract.ContractsContents, in chan ProcInput, out chan ProcOutput) {
+func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Address]contract.ContractsContents, wg *sync.WaitGroup, in chan ProcInput, out chan ProcOutput) {
 	defer eAPI.log.Sync()
+	defer wg.Done()
 
 	for {
 		select {
@@ -249,7 +268,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				return
 			}
 			if inp.Error != nil {
-				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: inp.Error}) {
+				if eAPI.sendIfPossible(ctx, out, ProcOutput{Error: inp.Error}) {
 					return
 				}
 				continue
@@ -257,14 +276,14 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 
 			ce, err := processLog(eAPI.log, inp.Log, inp.Header, ccs)
 			if err != nil {
-				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+				if eAPI.sendIfPossible(ctx, out, ProcOutput{Error: err}) {
 					return
 				}
 				continue
 			}
 			c, ok := ccs[inp.Log.Address]
 			if err = eAPI.AM.AfterEventLog(ctx, c, ce); err != nil {
-				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+				if eAPI.sendIfPossible(ctx, out, ProcOutput{Error: err}) {
 					return
 				}
 				continue
@@ -274,24 +293,22 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			if isInRange(inp.PreviousBlockTime, hTime) {
 				if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c.Version, inp.Log.BlockNumber, hTime); err != nil {
 					eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
-					if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+					if eAPI.sendIfPossible(ctx, out, ProcOutput{Error: err}) {
 						return
 					}
 					continue
 				}
 			}
-			if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{inp.Order, ce, err}) {
+			if eAPI.sendIfPossible(ctx, out, ProcOutput{inp.Order, ce, err}) {
 				return
 			}
 		}
 	}
 }
 
-func (eAPI *EthereumAPI) sendIfPossible(done <-chan struct{}, out chan ProcOutput, po ProcOutput) bool {
-	eAPI.slock.Lock()
-	defer eAPI.slock.Unlock()
+func (eAPI *EthereumAPI) sendIfPossible(ctx context.Context, out chan ProcOutput, po ProcOutput) bool {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		return true
 	case out <- po:
 	}
@@ -401,7 +418,6 @@ func (rbc *rangeBlockCache) Set(r rangeInfo, h types.Header) {
 			}
 		}
 	}
-
 	if !inMap {
 		if h.Time != 0 {
 			rbc.c[rangeInfo{from: h.Number.Uint64(), to: r.to}] = h

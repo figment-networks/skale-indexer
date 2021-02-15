@@ -76,11 +76,11 @@ type LatestDataRequest struct {
 	Version string `json:"version"`
 
 	TaskID     string `json:"task_id"`
-	LastHeight uint64 `json:"lastHeight"`
+	LastHeight uint64 `json:"last_height"`
 }
 
 type LatestDataResponse struct {
-	LastHeight uint64 `json:"lastHeight"`
+	LastHeight uint64 `json:"last_height"`
 	Error      []byte `json:"error"`
 	Processing bool   `json:"processing"`
 }

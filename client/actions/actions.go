@@ -46,11 +46,11 @@ type Call interface {
 
 	// Delegation
 	GetPendingDelegationsTokens(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holderAddress common.Address) (amount *big.Int, err error)
-	GetDelegation(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
-	GetDelegationWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
+	GetDelegation(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
+	GetDelegationWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error)
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
-	GetValidatorDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
-	GetHolderDelegations(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
+	GetValidatorDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
+	GetHolderDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
 }
 
 type BCGetter interface {
@@ -99,39 +99,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
 
 	if ce.EventName == "RoleGranted" ||
-		ce.EventName == "RoleRevoked" {
-		// BUG(lukanus): save this in correct form
-		/*
-
-			"inputs": [
-				{
-					"indexed": true,
-					"internalType": "bytes32",
-					"name": "role",
-					"type": "bytes32"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "account",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "sender",
-					"type": "address"
-				}
-			],*/
+		ce.EventName == "RoleRevoked" ||
+		ce.EventName == "Upgraded" ||
+		ce.EventName == "AdminChanged" {
 		ce.BoundType = "none"
 		return m.dataStore.SaveContractEvent(ctx, ce)
 	}
-
-	if ce.EventName == "Upgraded" || ce.EventName == "AdminChanged" {
-		ce.BoundType = "none"
-		return m.dataStore.SaveContractEvent(ctx, ce)
-	}
-
 	switch ce.ContractName {
 	case "validator_service":
 		vIDI, ok := ce.Params["validatorId"]
@@ -422,7 +395,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a delegation, it does not have delegationId")
 		}
 
-		d, err := m.c.GetDelegationWithInfo(ctx, bc.GetContract(), ce.BlockHeight, dID)
+		d, err := m.c.GetDelegationWithInfo(ctx, bc, ce.BlockHeight, dID)
 		if err != nil {
 			return fmt.Errorf("error running delegationChanged  %w", err)
 		}
@@ -706,7 +679,7 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
 
-	d, err = m.c.GetDelegationWithInfo(ctx, bc.GetContract(), currentBlock, &dID)
+	d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, &dID)
 	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
 	if err != nil {
 		if err.Error() != ErrOutOfIndex.Error() {

@@ -92,42 +92,42 @@ func Test_rangeBlockCache_Set(t *testing.T) {
 		{
 			name: "join right - header",
 			fields: fields{c: map[rangeInfo]types.Header{
-				{from: 1, to: 20}: types.Header{},
+				{from: 1, to: 20}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 21, to: 40},
 				h: types.Header{Number: big.NewInt(25), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					{from: 25, to: 40}: types.Header{Number: big.NewInt(25), Time: 12345},
+					{from: 25, to: 40}: {Number: big.NewInt(25), Time: 12345},
 				},
 			},
 		},
 		{
 			name: "Intersection",
 			fields: fields{c: map[rangeInfo]types.Header{
-				{from: 1, to: 40}: types.Header{},
+				{from: 1, to: 40}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 10, to: 30},
 				h: types.Header{},
 				expected: map[rangeInfo]types.Header{
-					{from: 1, to: 40}: types.Header{},
+					{from: 1, to: 40}: {},
 				},
 			},
 		},
 		{
 			name: "Intersection - header",
 			fields: fields{c: map[rangeInfo]types.Header{
-				{from: 1, to: 40}: types.Header{},
+				{from: 1, to: 40}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 10, to: 30},
 				h: types.Header{Number: big.NewInt(25), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					{from: 25, to: 40}: types.Header{Number: big.NewInt(25), Time: 12345},
+					{from: 25, to: 40}: {Number: big.NewInt(25), Time: 12345},
 				},
 			},
 		},

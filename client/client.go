@@ -136,6 +136,11 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 	c.r.lock.RUnlock()
 	if ok {
 		if !p.Finished {
+			if p.Error != nil {
+				c.log.Warn("[CLIENT] Last request errored", zap.Error(p.Error), zap.Uint64("height", latest), zap.Duration("since", time.Since(p.Started)))
+				delete(c.r.Processes, PSig{TaskID: taskID})
+				return latest, false, p.Error
+			}
 			c.log.Warn("[CLIENT] Last request is still processing", zap.Uint64("height", latest), zap.Duration("since", time.Since(p.Started)))
 			return latest, true, nil
 		}
@@ -157,8 +162,8 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 		}
 	}
 
-	c.r.lock.Lock()
 	psig := PSig{TaskID: taskID}
+	c.r.lock.Lock()
 	c.r.Processes[psig] = Process{
 		Started:   time.Now(),
 		EndHeight: to.Uint64(),
@@ -169,7 +174,11 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 
 	select {
 	case <-ctx.Done():
-		return latest, true, nil
+		p, ok = c.r.Processes[psig]
+		if ok {
+			latest = p.EndHeight
+		}
+		return latest, true, p.Error
 	case <-out:
 	}
 
