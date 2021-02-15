@@ -127,6 +127,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		return m.dataStore.SaveContractEvent(ctx, ce)
 	}
 
+	if ce.EventName == "Upgraded" || ce.EventName == "AdminChanged" {
+		ce.BoundType = "none"
+		return m.dataStore.SaveContractEvent(ctx, ce)
+	}
+
 	switch ce.ContractName {
 	case "validator_service":
 		vIDI, ok := ce.Params["validatorId"]

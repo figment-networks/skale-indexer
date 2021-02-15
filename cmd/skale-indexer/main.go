@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"os"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/indexing-engine/metrics"
@@ -106,12 +107,28 @@ func main() {
 		logger.GetLogger().Info(nodeTypeMessage)
 
 		cm := contract.NewManager()
-		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
-			logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
-			return
-		} else {
-			logger.GetLogger().Info("Loaded contracts", zap.String("dir", cfg.SkaleABIDir))
+
+		if cfg.AdditionalABI != "" {
+			f, err := os.Open(cfg.AdditionalABI)
+			if err != nil {
+				logger.Fatal("Error opening default events file", zap.Error(err))
+				return
+			}
+
+			if err = cm.AddGlobalEvents(f); err != nil {
+				f.Close()
+				logger.Fatal("Error loading default events ", zap.Error(err))
+				return
+			}
+			f.Close()
 		}
+
+		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
+			logger.Fatal("Error getting contracts", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
+			return
+		}
+		logger.GetLogger().Info("Loaded contracts", zap.String("dir", cfg.SkaleABIDir))
+
 		tr := eth.NewEthTransport(cfg.EthereumAddress)
 		if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
 			logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))

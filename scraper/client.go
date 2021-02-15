@@ -37,6 +37,8 @@ type EthereumAPI struct {
 	AM                    ActionManager
 	blockLRU              *lru.Cache
 	smallestPossibleBlock types.Header
+
+	slock sync.Mutex
 }
 
 func NewEthereumAPI(log *zap.Logger, transport transport.EthereumTransport, spb types.Header, am ActionManager) *EthereumAPI {
@@ -86,6 +88,7 @@ func (eAPI *EthereumAPI) GetLatestBlockHeight(ctx context.Context) (uint64, erro
 }
 
 func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) error {
+	defer eAPI.log.Sync()
 
 	addr := make([]common.Address, len(ccs))
 	var i int
@@ -148,7 +151,7 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]c
 	}
 
 	input := make(chan ProcInput, workerCount)
-	output := make(chan ProcOutput, workerCount*2)
+	output := make(chan ProcOutput, workerCount)
 	defer close(output)
 
 	cCtx, cancel := context.WithCancel(ctx)
@@ -169,10 +172,9 @@ OutputLoop:
 		case o := <-output:
 			gotResponses++
 			if o.Error != nil {
-				eAPI.log.Error("Error", zap.Error(o.Error))
 				cancel()
+				eAPI.log.Error("Error", zap.Error(o.Error))
 				return err
-				//continue
 			}
 			eAPI.log.Debug("Process contract Event", zap.Any("ContractEvent", o.CE))
 			p, ok := processed[o.CE.BlockHeight]
@@ -247,28 +249,23 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				return
 			}
 			if inp.Error != nil {
-				select {
-				case <-ctx.Done():
-				case out <- ProcOutput{Error: inp.Error}:
+				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: inp.Error}) {
+					return
 				}
-
 				continue
 			}
 
 			ce, err := processLog(eAPI.log, inp.Log, inp.Header, ccs)
 			if err != nil {
-				select {
-				case <-ctx.Done():
-				case out <- ProcOutput{Error: err}:
+				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+					return
 				}
 				continue
 			}
 			c, ok := ccs[inp.Log.Address]
-			err = eAPI.AM.AfterEventLog(ctx, c, ce)
-			if err != nil {
-				select {
-				case <-ctx.Done():
-				case out <- ProcOutput{Error: err}:
+			if err = eAPI.AM.AfterEventLog(ctx, c, ce); err != nil {
+				if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+					return
 				}
 				continue
 			}
@@ -277,16 +274,28 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 			if isInRange(inp.PreviousBlockTime, hTime) {
 				if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, c.Version, inp.Log.BlockNumber, hTime); err != nil {
 					eAPI.log.Error("error occurred on synchronization ", zap.Error(err))
-					select {
-					case <-ctx.Done():
-					case out <- ProcOutput{Error: err}:
+					if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{Error: err}) {
+						return
 					}
 					continue
 				}
 			}
-			out <- ProcOutput{inp.Order, ce, err}
+			if eAPI.sendIfPossible(ctx.Done(), out, ProcOutput{inp.Order, ce, err}) {
+				return
+			}
 		}
 	}
+}
+
+func (eAPI *EthereumAPI) sendIfPossible(done <-chan struct{}, out chan ProcOutput, po ProcOutput) bool {
+	eAPI.slock.Lock()
+	defer eAPI.slock.Unlock()
+	select {
+	case <-done:
+		return true
+	case out <- po:
+	}
+	return false
 }
 
 func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.Address]contract.ContractsContents) (ce structs.ContractEvent, err error) {

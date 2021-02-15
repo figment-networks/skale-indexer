@@ -25,6 +25,8 @@ type Manager struct {
 	// subset of contracts by names fnv64 hash
 	addressFilter map[uint64]map[common.Address]ContractsContents
 	nvIndex       map[NV]ContractsContents
+
+	globalEvents map[string]abi.Event
 }
 type NV struct {
 	Name    string
@@ -36,6 +38,7 @@ func NewManager() *Manager {
 		contractsTable: make(map[common.Address]ContractsContents),
 		addressFilter:  make(map[uint64]map[common.Address]ContractsContents),
 		nvIndex:        make(map[NV]ContractsContents),
+		globalEvents:   make(map[string]abi.Event),
 	}
 }
 
@@ -45,6 +48,23 @@ type ContractsContents struct {
 	Abi     abi.ABI
 	Bound   *bind.BoundContract
 	Version string
+}
+
+func (m *Manager) AddGlobalEvents(readr io.Reader) error {
+	parsedABI, err := abi.JSON(readr)
+	if err != nil {
+		return err
+	}
+
+	if parsedABI.Events != nil {
+		m.lookupLock.Lock()
+		for k, ev := range parsedABI.Events {
+			m.globalEvents[k] = ev
+		}
+		defer m.lookupLock.Unlock()
+	}
+
+	return nil
 }
 
 func (m *Manager) GetContractsByNames(names []string) (ccs map[common.Address]ContractsContents) {
@@ -134,9 +154,17 @@ func (m *Manager) getContracts(abiF io.Reader, version string) error {
 	return nil
 }
 
+func (m *Manager) attachGlobalEvents(inputABI map[string]abi.Event) {
+	for k, ev := range m.globalEvents {
+		inputABI[k] = ev
+	}
+}
+
 func (m *Manager) LoadContract(name, addr, version string, abiContents abi.ABI) error {
 	cc := ContractsContents{Name: name, Abi: abiContents, Version: version}
 	cc.Addr = common.HexToAddress(addr)
+
+	m.attachGlobalEvents(abiContents.Events)
 
 	m.lookupLock.Lock()
 	m.contractsTable[cc.Addr] = cc
