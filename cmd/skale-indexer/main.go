@@ -129,7 +129,7 @@ func main() {
 		hCli := webapi.NewClientConnector(cli)
 		hCli.AttachToHandler(mux)
 
-		sCli := webapi.NewScrapeConnector(logger.GetLogger(), cli)
+		sCli := webapi.NewScrapeConnector(logger.GetLogger(), cli, cfg.ScrapeLatestTimeout)
 		sCli.AttachToHandler(mux)
 	} else {
 		logger.GetLogger().Info("Indexer is not in scraping mode")

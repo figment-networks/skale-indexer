@@ -1,0 +1,1 @@
+ALTER TYPE BOUNDTYPE ADD VALUE 'none' BEFORE 'validator';

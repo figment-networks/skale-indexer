@@ -44,7 +44,8 @@ type Config struct {
 	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
 	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
 
-	MaxHeightsPerRequest uint64 `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"1000"`
+	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"1000"`
+	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"10s"`
 }
 
 // IdentityString returns the full app version string

@@ -131,18 +131,16 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 		return latest, false, err
 	}
 
-	var lastJobFinished uint64
 	c.r.lock.RLock()
-	p, ok := c.r.Processes[PSig{LatestHeight: latest, TaskID: taskID}]
+	p, ok := c.r.Processes[PSig{TaskID: taskID}]
 	c.r.lock.RUnlock()
 	if ok {
 		if !p.Finished {
 			c.log.Warn("[CLIENT] Last request is still processing", zap.Uint64("height", latest), zap.Duration("since", time.Since(p.Started)))
 			return latest, true, nil
 		}
-
-		lastJobFinished = p.EndHeight
-		delete(c.r.Processes, PSig{LatestHeight: latest, TaskID: taskID})
+		delete(c.r.Processes, PSig{TaskID: taskID})
+		return p.EndHeight, false, nil
 	}
 
 	from, to := &big.Int{}, &big.Int{}
@@ -150,11 +148,7 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 		from = from.SetUint64(c.smallestPossibleHeight)
 		to = to.SetUint64(c.smallestPossibleHeight + c.maxHeightsPerRequest)
 	} else {
-		if lastJobFinished > 0 {
-			from = from.SetUint64(lastJobFinished)
-		} else {
-			from = from.SetUint64(latest)
-		}
+		from = from.SetUint64(latest)
 
 		if height-latest > c.maxHeightsPerRequest {
 			to = to.Add(from, new(big.Int).SetUint64(c.maxHeightsPerRequest))
@@ -164,7 +158,7 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 	}
 
 	c.r.lock.Lock()
-	psig := PSig{latest, taskID}
+	psig := PSig{TaskID: taskID}
 	c.r.Processes[psig] = Process{
 		Started:   time.Now(),
 		EndHeight: to.Uint64(),
@@ -214,8 +208,7 @@ func (c *Client) getRange(ctx context.Context, taskID string, from, to big.Int, 
 }
 
 type PSig struct {
-	LatestHeight uint64
-	TaskID       string
+	TaskID string
 }
 
 func NewRunning() *Running {

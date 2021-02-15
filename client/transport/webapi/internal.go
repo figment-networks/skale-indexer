@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -17,13 +18,14 @@ type ScrapeContractor interface {
 
 // ScrapeConnector is main HTTP connector for manager
 type ScrapeConnector struct {
-	l   *zap.Logger
-	cli ScrapeContractor
+	l                   *zap.Logger
+	cli                 ScrapeContractor
+	scrapeLatestTimeout time.Duration
 }
 
 // NewScrapeConnector is  Connector constructor
-func NewScrapeConnector(l *zap.Logger, sc ScrapeContractor) *ScrapeConnector {
-	return &ScrapeConnector{l, sc}
+func NewScrapeConnector(l *zap.Logger, sc ScrapeContractor, scrapeLatestTimeout time.Duration) *ScrapeConnector {
+	return &ScrapeConnector{l, sc, scrapeLatestTimeout}
 }
 
 // AttachToHandler attaches handlers to http server's mux
@@ -107,8 +109,10 @@ func (sc *ScrapeConnector) GetLatest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	tCtx, cancel := context.WithTimeout(req.Context(), sc.scrapeLatestTimeout)
+	defer cancel()
 	// TODO(lukanus): Check the version
-	lastHeight, isRunning, err := sc.cli.GetLatestData(req.Context(), ldr.TaskID, ldr.LastHeight)
+	lastHeight, isRunning, err := sc.cli.GetLatestData(tCtx, ldr.TaskID, ldr.LastHeight)
 	if err != nil {
 		lDResp.LastHeight = ldr.LastHeight
 		w.WriteHeader(http.StatusInternalServerError)
