@@ -186,21 +186,15 @@ OutputLoop:
 			}
 		}
 	}
-	eAPI.log.Debug("finishing...")
+
 	lastBlock := logs[len(logs)-1]
+	eAPI.log.Debug("Processed", zap.Uint64("last_height", lastBlock.BlockNumber))
 
 	a := processed[lastBlock.BlockNumber]
 	eAPI.blockLRU.Add(taskID, types.Header{
 		Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
 		Time:   uint64(a[0].CE.Time.Unix()),
 	})
-	/*	eAPI.rangeBlockCache.Set(rangeInfo{
-		from: from.Uint64(),
-		to:   to.Uint64()},
-		types.Header{
-			Number: new(big.Int).SetUint64(lastBlock.BlockNumber),
-			Time:   uint64(a[0].CE.Time.Unix()),
-		})*/
 
 	return nil
 }
@@ -305,6 +299,7 @@ func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.
 		logger.Error("[EthTransport] GetLogs list has empty topic list", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
 		return ce, fmt.Errorf("getLogs list has empty topic list")
 	}
+
 	logger.Debug("[EthTransport] GetLogs got contract", zap.String("name", c.Name), zap.Uint64("block", l.BlockNumber), zap.Time("blockTime", time.Unix(int64(h.Time), 0)))
 	event, err := c.Abi.EventByID(l.Topics[0])
 	if err != nil {

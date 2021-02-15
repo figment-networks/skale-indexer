@@ -98,9 +98,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 	bc := m.tr.GetBoundContractCaller(ctx, c.Addr, c.Abi)
 
-	if ce.EventName == "RoleGranted" {
+	if ce.EventName == "RoleGranted" ||
+		ce.EventName == "RoleRevoked" {
 		// BUG(lukanus): save this in correct form
 		/*
+
 			"inputs": [
 				{
 					"indexed": true,
