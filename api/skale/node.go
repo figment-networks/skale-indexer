@@ -165,8 +165,13 @@ func (c *Caller) GetNode(ctx context.Context, bc transport.BoundContractCaller, 
 	if contr == nil {
 		return n, fmt.Errorf("Contract is nil")
 	}
+
 	if err = contr.Call(co, &results, "nodes", nodeID); err != nil {
-		return n, err
+		_, err2 := bc.RawCall(ctx, co, "nodes", nodeID)
+		if err2 == transport.ErrEmptyResponse {
+			return n, err2
+		}
+		return n, fmt.Errorf("error calling delegations  %w ", err)
 	}
 
 	if len(results) == 0 {

@@ -51,7 +51,7 @@ func (c *Caller) GetDelegation(ctx context.Context, bc transport.BoundContractCa
 	if err = contr.Call(co, &results, "delegations", delegationID); err != nil {
 		_, err2 := bc.RawCall(ctx, co, "delegations", delegationID)
 		if err2 == transport.ErrEmptyResponse {
-			return d, nil
+			return d, err2
 		}
 		return d, fmt.Errorf("error calling delegations  %w ", err)
 	}

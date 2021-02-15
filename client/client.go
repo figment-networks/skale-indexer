@@ -154,7 +154,6 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 		to = to.SetUint64(c.smallestPossibleHeight + c.maxHeightsPerRequest)
 	} else {
 		from = from.SetUint64(latest)
-
 		if height-latest > c.maxHeightsPerRequest {
 			to = to.Add(from, new(big.Int).SetUint64(c.maxHeightsPerRequest))
 		} else {

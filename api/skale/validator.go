@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
+	"github.com/figment-networks/skale-indexer/scraper/transport"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -27,7 +28,7 @@ type ValidatorRaw struct {
 	AcceptNewRequests       bool           `json:"acceptNewRequests"`
 }
 
-func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
+func (c *Caller) GetValidator(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
@@ -44,11 +45,14 @@ func (c *Caller) GetValidator(ctx context.Context, bc *bind.BoundContract, block
 			co.Pending = true
 		}
 	}
+	contr := bc.GetContract()
 
-	err = bc.Call(co, &results, "getValidator", validatorID)
-
-	if err != nil {
-		return v, err
+	if err = contr.Call(co, &results, "getValidator", validatorID); err != nil {
+		_, err2 := bc.RawCall(ctx, co, "getValidator", validatorID)
+		if err2 == transport.ErrEmptyResponse {
+			return v, err2
+		}
+		return v, fmt.Errorf("error calling delegations  %w ", err)
 	}
 
 	if len(results) == 0 {
@@ -106,12 +110,12 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 	return isAuthorized, nil
 }
 
-func (c *Caller) GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
+func (c *Caller) GetValidatorWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error) {
 	validator, err := c.GetValidator(ctx, bc, blockNumber, validatorID)
 	if err != nil {
 		return validator, err
 	}
-	validator.Authorized, err = c.IsAuthorizedValidator(ctx, bc, blockNumber, validatorID)
+	validator.Authorized, err = c.IsAuthorizedValidator(ctx, bc.GetContract(), blockNumber, validatorID)
 	if err != nil {
 		return validator, err
 	}

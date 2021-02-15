@@ -26,13 +26,11 @@ import (
 
 var implementedContractNames = []string{"skale_token", "delegation_controller", "validator_service", "nodes", "distributor", "punisher", "skale_manager", "bounty", "bounty_v2"}
 
-var ErrOutOfIndex = errors.New("abi: attempting to unmarshall an empty string while arguments are expected")
-
 type Call interface {
 	// Validator
 	IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (isAuthorized bool, err error)
-	GetValidator(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
-	GetValidatorWithInfo(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
+	GetValidator(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
+	GetValidatorWithInfo(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (v structs.Validator, err error)
 
 	// Nodes
 	GetValidatorNodes(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (nodes []structs.Node, err error)
@@ -116,7 +114,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return errors.New("structure is not a validator, it does not have valiadtorId")
 		}
 
-		v, err := m.c.GetValidatorWithInfo(ctx, bc.GetContract(), ce.BlockHeight, vID)
+		v, err := m.c.GetValidatorWithInfo(ctx, bc, ce.BlockHeight, vID)
 		if err != nil {
 			return fmt.Errorf("error running validatorChanged  %w", err)
 		}
@@ -559,7 +557,6 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		m.l.Error("failed to synchronize validators. contract is not found.")
 		return errors.New("contract is not found for validators for version :" + version)
 	}
-
 	contractForNodes, ok := m.cm.GetContractByNameVersion("nodes", version)
 	if !ok {
 		m.l.Error("failed to synchronize nodes. contract is not found.")
@@ -571,7 +568,6 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		m.l.Error("failed to synchronize delegations. contract is not found.")
 		return errors.New("contract is not found for delegations for version :" + version)
 	}
-
 	outp := make(chan syncOutp, 3)
 	defer close(outp)
 	go m.syncValidatorsAsync(ctx, contractForValidator, currentBlock, outp)
@@ -662,19 +658,17 @@ func (m *Manager) syncDelegationsAsync(ctx context.Context, cV contract.Contract
 func (m *Manager) syncDelegationsAsyncC(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, in, end chan int64, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for i := range in {
-		if err := m.syncDelegations(ctx, cV, *big.NewInt(i), currentBlock); err != nil {
-			m.l.Debug("populating end", zap.Error(err))
+		if finished, err := m.syncDelegations(ctx, cV, *big.NewInt(i), currentBlock); finished || err != nil {
 			select {
 			case end <- 1:
 			default:
 			}
-
 			break
 		}
 	}
 }
 
-func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsContents, dID big.Int, currentBlock uint64) (err error) {
+func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsContents, dID big.Int, currentBlock uint64) (finished bool, err error) {
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
@@ -682,19 +676,21 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, &dID)
 	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
 	if err != nil {
-		if err.Error() != ErrOutOfIndex.Error() {
-			m.l.Error("error occurs on sync GetDelegationWithInfo", zap.Error(err))
+		if err == transport.ErrEmptyResponse {
+			return true, nil
 		}
-		return err
+		m.l.Error("error occurs on sync GetDelegationWithInfo", zap.Error(err))
+		return true, err
 	}
+
 	d.BlockHeight = currentBlock
 	err = m.dataStore.SaveDelegation(ctx, d)
 	if err != nil {
 		m.l.Error("error saving delegation ", zap.Error(err))
-		return err
+		return true, err
 	}
 
-	return nil
+	return false, nil
 }
 
 func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
@@ -706,14 +702,15 @@ func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsConte
 	var vld structs.Validator
 	for err == nil {
 		m.l.Debug("syncValidators", zap.Uint64("id", vID.Uint64()))
-		vld, err = m.c.GetValidatorWithInfo(ctx, bc.GetContract(), currentBlock, vID)
+		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
 		if err != nil {
-			if err.Error() != ErrOutOfIndex.Error() {
-				m.l.Error("error occurs on sync GetValidatorWithInfo", zap.Error(err))
-				return validators, err
+			if err == transport.ErrEmptyResponse {
+				return validators, nil
 			}
-			continue
+			m.l.Error("error occurs on sync GetValidatorWithInfo", zap.Error(err))
+			return validators, err
 		}
+
 		vld.BlockHeight = currentBlock
 		err = m.dataStore.SaveValidator(ctx, vld)
 		if err != nil {
@@ -747,12 +744,13 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))
 		n, err = m.c.GetNodeWithInfo(ctx, bc, currentBlock, nID)
 		if err != nil {
-			if err.Error() != ErrOutOfIndex.Error() {
-				m.l.Error("error occurs on sync GetNodeWithInfo", zap.Error(err))
-				return err
+			if err == transport.ErrEmptyResponse {
+				return nil
 			}
-			continue
+			m.l.Error("error occurs on sync GetNodeWithInfo", zap.Error(err))
+			return err
 		}
+
 		err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
 		if err != nil {
 			m.l.Error("error saving nodes ", zap.Error(err))
