@@ -178,3 +178,19 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	}
 	return validators, nil
 }
+
+// UpdateNodeCountsOfValidator updates node count information of validator
+func (d *Driver) UpdateNodeCountsOfValidator(ctx context.Context, validatorID *big.Int, activeNodesCount uint64, linkedNodesCount uint64) error {
+
+	_, err := d.db.Exec(`UPDATE validators
+						SET
+							linked_nodes = $2,
+							active_nodes = $3
+						WHERE 
+							validator_id = $1`,
+		validatorID.String(),
+		activeNodesCount,
+		linkedNodesCount)
+
+	return err
+}
