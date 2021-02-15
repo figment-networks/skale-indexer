@@ -136,7 +136,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
 									ON CONFLICT (validator_id, block_height, statistic_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateDELEGATED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
