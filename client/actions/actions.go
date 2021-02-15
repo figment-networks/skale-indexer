@@ -636,6 +636,12 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
 				break
 			}
+
+			err = m.dataStore.UpdateNodeCountsOfValidator(ctx, v.ValidatorID)
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
+				break
+			}
 		}
 	}
 
