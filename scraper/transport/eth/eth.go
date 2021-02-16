@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -62,7 +63,7 @@ func (et *EthTransport) GetBlockHeader(ctx context.Context, height *big.Int) (h 
 	return h, err
 }
 
-func (et *EthTransport) GetCurrentBlockHeight(ctx context.Context) (uint64, error) {
+func (et *EthTransport) GetLatestBlockHeight(ctx context.Context) (uint64, error) {
 	blockNumber, err := et.C.BlockNumber(ctx)
 	return blockNumber, err
 }
@@ -112,8 +113,11 @@ func (bcc *BoundContractC) RawCall(ctx context.Context, opts *bind.CallOpts, met
 
 			err2 := json.Unmarshal(b, &a)
 			if err2 == nil {
-				if d, ok := a["data"]; ok && d == "Reverted 0x" {
-					return output, transport.ErrEmptyResponse
+				if d, ok := a["data"]; ok {
+					da, ok := d.(string)
+					if ok && strings.Contains(da, "Reverted 0x") {
+						return output, transport.ErrEmptyResponse
+					}
 				}
 
 			}

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func Test_rangeBlockCache_Set(t *testing.T) {
 	type fields struct {
 		c map[rangeInfo]types.Header
@@ -30,7 +29,7 @@ func Test_rangeBlockCache_Set(t *testing.T) {
 				r: rangeInfo{from: 1, to: 20},
 				h: types.Header{},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 1, to: 20}: types.Header{},
+					{from: 1, to: 20}: types.Header{},
 				},
 			},
 		},
@@ -41,7 +40,7 @@ func Test_rangeBlockCache_Set(t *testing.T) {
 				r: rangeInfo{from: 1, to: 20},
 				h: types.Header{Number: big.NewInt(12), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 12, to: 20}: types.Header{
+					{from: 12, to: 20}: types.Header{
 						Number: big.NewInt(12),
 						Time:   12345,
 					},
@@ -51,84 +50,84 @@ func Test_rangeBlockCache_Set(t *testing.T) {
 		{
 			name: "join left - empty",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 21, to: 40}: types.Header{},
+				{from: 21, to: 40}: types.Header{},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 1, to: 20},
 				h: types.Header{},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 1, to: 40}: types.Header{},
+					{from: 1, to: 40}: types.Header{},
 				},
 			},
 		},
 		{
 			name: "join left - header",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 21, to: 40}: types.Header{},
+				{from: 21, to: 40}: types.Header{},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 1, to: 20},
 				h: types.Header{Number: big.NewInt(12), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 12, to: 40}: types.Header{Number: big.NewInt(12), Time: 12345},
+					{from: 12, to: 40}: types.Header{Number: big.NewInt(12), Time: 12345},
 				},
 			},
 		},
 		{
 			name: "join right - empty",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 1, to: 20}: types.Header{},
+				{from: 1, to: 20}: types.Header{},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 21, to: 40},
 				h: types.Header{},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 1, to: 40}: types.Header{},
+					{from: 1, to: 40}: types.Header{},
 				},
 			},
 		},
 		{
 			name: "join right - header",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 1, to: 20}: types.Header{},
+				{from: 1, to: 20}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 21, to: 40},
 				h: types.Header{Number: big.NewInt(25), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 25, to: 40}: types.Header{Number: big.NewInt(25), Time: 12345},
+					{from: 25, to: 40}: {Number: big.NewInt(25), Time: 12345},
 				},
 			},
 		},
 		{
 			name: "Intersection",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 1, to: 40}: types.Header{},
+				{from: 1, to: 40}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 10, to: 30},
 				h: types.Header{},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 1, to: 40}: types.Header{},
+					{from: 1, to: 40}: {},
 				},
 			},
 		},
 		{
 			name: "Intersection - header",
 			fields: fields{c: map[rangeInfo]types.Header{
-				rangeInfo{from: 1, to: 40}: types.Header{},
+				{from: 1, to: 40}: {},
 			},
 			},
 			args: args{
 				r: rangeInfo{from: 10, to: 30},
 				h: types.Header{Number: big.NewInt(25), Time: 12345},
 				expected: map[rangeInfo]types.Header{
-					rangeInfo{from: 25, to: 40}: types.Header{Number: big.NewInt(25), Time: 12345},
+					{from: 25, to: 40}: {Number: big.NewInt(25), Time: 12345},
 				},
 			},
 		},
