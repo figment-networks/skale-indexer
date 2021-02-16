@@ -591,11 +591,10 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		if o.err != nil {
 			errors = append(errors, o.err)
 		}
-		if o.typ == "validators" {
+		switch o.typ {
+		case "validators":
 			vldrs = o.data.([]structs.Validator)
-		}
-
-		if o.typ == "nodes" {
+		case "nodes":
 			nodesInfo = o.data.(map[uint64]NodeAggregationInfo)
 		}
 
@@ -802,16 +801,14 @@ func (m *Manager) groupNodesInfo(nodes []structs.Node) map[uint64]NodeAggregatio
 	for _, n := range nodes {
 		nInfo, ok := nodeInfoByValidator[n.ValidatorID.Uint64()]
 		if !ok {
-			nInfo = NodeAggregationInfo{LinkedNodeCount: 1}
-			if n.Status == structs.NodeStatusActive {
-				nInfo.ActiveNodeCount = 1
-			}
-		} else {
-			nInfo.LinkedNodeCount++
-			if n.Status == structs.NodeStatusActive {
-				nInfo.ActiveNodeCount++
-			}
+			nInfo = NodeAggregationInfo{}
 		}
+
+		nInfo.LinkedNodeCount += 1
+		if n.Status == structs.NodeStatusActive {
+			nInfo.ActiveNodeCount += 1
+		}
+
 		nodeInfoByValidator[n.ValidatorID.Uint64()] = nInfo
 	}
 
