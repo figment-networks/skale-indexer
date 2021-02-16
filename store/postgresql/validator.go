@@ -178,3 +178,26 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	}
 	return validators, nil
 }
+
+// UpdateNodeCountsOfValidator updates node count information of validator
+func (d *Driver) UpdateNodeCountsOfValidator(ctx context.Context, validatorID *big.Int) error {
+
+	_, err := d.db.Exec(`UPDATE validators
+						SET
+							active_nodes =  (
+							 	SELECT COALESCE((SELECT amount
+								 FROM validator_statistics
+								 WHERE validator_id = $1 AND statistic_type = $2 
+								 ORDER BY block_height DESC LIMIT 1 ), 0)),
+							linked_nodes =  (
+							 	SELECT COALESCE((SELECT amount
+								 FROM validator_statistics
+								 WHERE validator_id = $1 AND statistic_type = $3 
+								 ORDER BY block_height DESC LIMIT 1 ), 0))	 
+						WHERE validator_id = $1`,
+		validatorID.String(),
+		structs.ValidatorStatisticsTypeActiveNodes,
+		structs.ValidatorStatisticsTypeLinkedNodes)
+
+	return err
+}
