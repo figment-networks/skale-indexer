@@ -87,15 +87,10 @@ func (eAPI *EthereumAPI) GetLatestBlockHeight(ctx context.Context) (uint64, erro
 	return eAPI.transport.GetLatestBlockHeight(ctx)
 }
 
-func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) (err error) {
+func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs *contract.Contracts, taskID string, from, to big.Int) (err error) {
 	defer eAPI.log.Sync()
 
-	addr := make([]common.Address, len(ccs))
-	var i int
-	for k := range ccs {
-		addr[i] = k
-		i++
-	}
+	addr := ccs.GetAddresses()
 	logs, err := eAPI.transport.GetLogs(ctx, from, to, addr)
 	if err != nil {
 		return fmt.Errorf("error in GetLogs request: %w", err)
@@ -240,7 +235,6 @@ func (eAPI *EthereumAPI) populateToWorkers(ctx context.Context, logs []types.Log
 		select {
 		case <-ctx.Done():
 			return
-		//	populateCh <- ProcInput{}
 		default:
 		}
 		h, err := eAPI.AM.GetBlockHeader(ctx, *new(big.Int).SetUint64(l.BlockNumber))
@@ -255,7 +249,7 @@ func (eAPI *EthereumAPI) populateToWorkers(ctx context.Context, logs []types.Log
 
 }
 
-func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Address]contract.ContractsContents, wg *sync.WaitGroup, in chan ProcInput, out chan ProcOutput) {
+func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs *contract.Contracts, wg *sync.WaitGroup, in chan ProcInput, out chan ProcOutput) {
 	defer eAPI.log.Sync()
 	defer wg.Done()
 
@@ -281,7 +275,7 @@ func (eAPI *EthereumAPI) processLogAsync(ctx context.Context, ccs map[common.Add
 				}
 				continue
 			}
-			c, ok := ccs[inp.Log.Address]
+			c, ok := ccs.GetByAddress(inp.Log.Address)
 			if err = eAPI.AM.AfterEventLog(ctx, c, ce); err != nil {
 				if eAPI.sendIfPossible(ctx, out, ProcOutput{Error: err}) {
 					return
@@ -315,28 +309,41 @@ func (eAPI *EthereumAPI) sendIfPossible(ctx context.Context, out chan ProcOutput
 	return false
 }
 
-func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs map[common.Address]contract.ContractsContents) (ce structs.ContractEvent, err error) {
-	c, ok := ccs[l.Address]
+func processLog(logger *zap.Logger, l types.Log, h types.Header, ccs *contract.Contracts) (ce structs.ContractEvent, err error) {
+	c, ok := ccs.GetByAddress(l.Address)
+
 	if !ok {
 		logger.Error("[EthTransport] GetLogs contract not found ", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
-		return ce, fmt.Errorf("error in GetLogs, there is no such contract as %s ", l.Address.String())
+		return ce, fmt.Errorf("error in GetLogs, there is no such contract as %s", l.Address.String())
 	}
 	if len(l.Topics) == 0 {
 		logger.Error("[EthTransport] GetLogs list has empty topic list", zap.String("txHash", l.TxHash.String()), zap.String("address", l.Address.String()))
 		return ce, fmt.Errorf("getLogs list has empty topic list")
 	}
-
-	logger.Debug("[EthTransport] GetLogs got contract", zap.String("name", c.Name), zap.Uint64("block", l.BlockNumber), zap.Time("blockTime", time.Unix(int64(h.Time), 0)))
 	event, err := c.Abi.EventByID(l.Topics[0])
 	if err != nil {
-		logger.Error("[EthTransport] GetLogs abi has no such event",
-			zap.String("txHash", l.TxHash.String()),
-			zap.String("address", l.Address.String()),
-			zap.String("name", c.Name),
-			zap.Uint64("request", l.BlockNumber),
-		)
-		return ce, fmt.Errorf("getLogs list has empty topic list %w", err)
+		vers, ok := ccs.GetAllVersions(l.Address)
+		if ok {
+			for _, v := range vers {
+				event, err = v.Abi.EventByID(l.Topics[0])
+				if err == nil {
+					c = v
+					break
+				}
+			}
+		}
+		if err != nil {
+			logger.Error("[EthTransport] GetLogs abi has no such event",
+				zap.String("txHash", l.TxHash.String()),
+				zap.String("address", l.Address.String()),
+				zap.String("name", c.Name),
+				zap.Uint64("request", l.BlockNumber),
+			)
+			return ce, fmt.Errorf("getLogs list has empty topic list %w", err)
+		}
 	}
+
+	logger.Debug("[EthTransport] GetLogs got contract", zap.String("name", c.Name), zap.Uint64("block", l.BlockNumber), zap.Time("blockTime", time.Unix(int64(h.Time), 0)))
 	mapped := make(map[string]interface{}, len(event.Inputs))
 	if len(l.Data) > 0 {
 		err = event.Inputs.UnpackIntoMap(mapped, l.Data)

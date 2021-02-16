@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
 	"github.com/figment-networks/skale-indexer/store"
@@ -14,7 +13,7 @@ import (
 )
 
 type EthereumConnector interface {
-	ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, taskID string, from, to big.Int) error
+	ParseLogs(ctx context.Context, ccs *contract.Contracts, taskID string, from, to big.Int) error
 	GetLatestBlockHeight(ctx context.Context) (uint64, error)
 }
 
@@ -24,7 +23,7 @@ type Client struct {
 
 	ethConn EthereumConnector
 
-	ccs map[common.Address]contract.ContractsContents
+	ccs *contract.Contracts
 
 	smallestPossibleHeight uint64
 	maxHeightsPerRequest   uint64
@@ -32,7 +31,7 @@ type Client struct {
 	r *Running
 }
 
-func NewClient(log *zap.Logger, storeEng store.DataStore, ethConn EthereumConnector, ccs map[common.Address]contract.ContractsContents, smallestPossibleHeight, maxHeightsPerRequest uint64) *Client {
+func NewClient(log *zap.Logger, storeEng store.DataStore, ethConn EthereumConnector, ccs *contract.Contracts, smallestPossibleHeight, maxHeightsPerRequest uint64) *Client {
 	return &Client{
 		storeEng:               storeEng,
 		ethConn:                ethConn,

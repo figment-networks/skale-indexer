@@ -39,7 +39,7 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc transport.BoundContra
 	}
 
 	if err = contr.Call(co, &results, "getValidatorNodeIndexes", validatorID); err != nil {
-		return nil, fmt.Errorf("error calling delegations function %w", err)
+		return nil, fmt.Errorf("error calling getValidatorNodeIndexes function %w", err)
 	}
 
 	if len(results) == 0 {
@@ -171,7 +171,7 @@ func (c *Caller) GetNode(ctx context.Context, bc transport.BoundContractCaller, 
 		if err2 == transport.ErrEmptyResponse {
 			return n, err2
 		}
-		return n, fmt.Errorf("error calling delegations  %w ", err)
+		return n, fmt.Errorf("error calling nodes  %w ", err)
 	}
 
 	if len(results) == 0 {
