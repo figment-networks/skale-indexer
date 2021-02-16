@@ -250,15 +250,26 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			// TODO: change err message from line 203
 			return errors.New("structure is not a node")
 		}
-		n.BlockHeight = ce.BlockHeight
-		if err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{}); err != nil {
+
+		nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
+		if err != nil {
+			return fmt.Errorf("error getting validator nodes %w", err)
+		}
+
+		for _, node := range nodes {
+			node.BlockHeight = ce.BlockHeight
+		}
+
+		if err = m.dataStore.SaveNodes(ctx, nodes, common.Address{}); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
+
 		vs := structs.ValidatorStatisticsParams{
 			ValidatorID: n.ValidatorID.String(),
 			BlockHeight: ce.BlockHeight,
 			BlockTime:   ce.Time,
 		}
+
 		err = m.dataStore.CalculateActiveNodes(ctx, vs)
 		if err != nil {
 			return fmt.Errorf("error calculating active nodes %w", err)
@@ -577,12 +588,16 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 	var count = 3
 	var errors []error
 	var vldrs []structs.Validator
+	var nodesInfo map[uint64]NodeAggregationInfo
 	for o := range outp {
 		if o.err != nil {
 			errors = append(errors, o.err)
 		}
-		if o.typ == "validators" {
+		switch o.typ {
+		case "validators":
 			vldrs = o.data.([]structs.Validator)
+		case "nodes":
+			nodesInfo = o.data.(map[uint64]NodeAggregationInfo)
 		}
 
 		count--
@@ -608,11 +623,26 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
 			m.l.Error(err.Error())
 		}
-		if err := m.dataStore.CalculateActiveNodes(ctx, vs); err != nil {
-			m.l.Error(err.Error())
-		}
-		if err := m.dataStore.CalculateLinkedNodes(ctx, vs); err != nil {
-			m.l.Error(err.Error())
+
+		nInfo, ok := nodesInfo[v.ValidatorID.Uint64()]
+		if ok {
+			err := m.dataStore.SaveValidatorStatistic(ctx, v.ValidatorID, currentBlock, blockTime, structs.ValidatorStatisticsTypeActiveNodes, big.NewInt(int64(nInfo.ActiveNodeCount)))
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeActiveNodes ", zap.Error(err))
+				return err
+			}
+
+			err = m.dataStore.SaveValidatorStatistic(ctx, v.ValidatorID, currentBlock, blockTime, structs.ValidatorStatisticsTypeLinkedNodes, big.NewInt(int64(nInfo.LinkedNodeCount)))
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
+				break
+			}
+
+			err = m.dataStore.UpdateNodeCountsOfValidator(ctx, v.ValidatorID)
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
+				break
+			}
 		}
 	}
 
@@ -734,18 +764,19 @@ func (m *Manager) syncValidatorsAsync(ctx context.Context, cV contract.Contracts
 	}
 }
 
-func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, currentBlock uint64) (err error) {
+func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, currentBlock uint64) (nodes []structs.Node, err error) {
 	m.l.Info("synchronization for nodes starts", zap.Uint64("block height", currentBlock))
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	nID := big.NewInt(1)
 	var n structs.Node
+	nodes = []structs.Node{}
 	for err == nil {
 		m.l.Debug("syncNodes", zap.Uint64("id", nID.Uint64()))
 		n, err = m.c.GetNodeWithInfo(ctx, bc, currentBlock, nID)
 		if err != nil {
 			if err == transport.ErrEmptyResponse {
-				return nil
+				return nodes, nil
 			}
 			m.l.Error("error occurs on sync GetNodeWithInfo", zap.Error(err))
 			return err
@@ -754,19 +785,46 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 		err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
 		if err != nil {
 			m.l.Error("error saving nodes ", zap.Error(err))
-			return err
+			return nodes, err
 		}
+		nodes = append(nodes, n)
 		nID.Add(nID, big.NewInt(1))
 	}
 
 	m.l.Info("synchronization for nodes successful.")
-	return nil
+	return nodes, nil
+}
+
+type NodeAggregationInfo struct {
+	ActiveNodeCount uint64
+	LinkedNodeCount uint64
+}
+
+func (m *Manager) groupNodesInfo(nodes []structs.Node) map[uint64]NodeAggregationInfo {
+	nodeInfoByValidator := map[uint64]NodeAggregationInfo{}
+	for _, n := range nodes {
+		nInfo, ok := nodeInfoByValidator[n.ValidatorID.Uint64()]
+		if !ok {
+			nInfo = NodeAggregationInfo{}
+		}
+
+		nInfo.LinkedNodeCount += 1
+		if n.Status == structs.NodeStatusActive {
+			nInfo.ActiveNodeCount += 1
+		}
+
+		nodeInfoByValidator[n.ValidatorID.Uint64()] = nInfo
+	}
+
+	return nodeInfoByValidator
 }
 
 func (m *Manager) syncNodesAsync(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, outp chan syncOutp) {
-	err := m.syncNodes(ctx, cV, currentBlock)
+	nodes, err := m.syncNodes(ctx, cV, currentBlock)
+	nodeInfoByValidator := m.groupNodesInfo(nodes)
 	outp <- syncOutp{
-		typ: "nodes",
-		err: err,
+		typ:  "nodes",
+		err:  err,
+		data: nodeInfoByValidator,
 	}
 }

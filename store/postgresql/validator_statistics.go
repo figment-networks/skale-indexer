@@ -47,6 +47,12 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 		args = append(args, params.Type)
 		i++
 	}
+	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
+		wherec = append(wherec, ` time BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
+		args = append(args, params.TimeFrom)
+		args = append(args, params.TimeTo)
+		i += 2
+	}
 	if len(args) > 0 {
 		q += ` WHERE `
 	}
@@ -87,8 +93,8 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 		`SELECT id, created_at, validator_id, amount, block_height, time, statistic_type
 			FROM validator_statistics
 			WHERE
-				validator_id = $1 AND statistic_type = $2
-			ORDER BY block_height DESC`, params.ValidatorID, params.Type)
+				validator_id = $1 AND statistic_type = $2 AND time BETWEEN $3 AND $4 
+			ORDER BY block_height DESC`, params.ValidatorID, params.Type, params.TimeFrom, params.TimeTo)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +136,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 										WHERE  t1.state IN ($5, $6) GROUP BY t1.validator_id
 									ON CONFLICT (validator_id, block_height, statistic_type)
 									DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateACCEPTED, structs.DelegationStateUNDELEGATION_REQUESTED)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeTotalStake, structs.DelegationStateDELEGATED, structs.DelegationStateUNDELEGATION_REQUESTED)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -169,11 +175,11 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
 				(SELECT $1, $2, $3, $4, count(*) AS amount
 					FROM nodes
-					WHERE validator_id = $1 AND status = $5 AND address != $6
+					WHERE validator_id = $1 AND status = $5
 					GROUP BY validator_id LIMIT 1)
 			ON CONFLICT (validator_id, block_height, statistic_type)
 			DO UPDATE SET amount = EXCLUDED.amount `,
-		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String(), zero)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeActiveNodes, structs.NodeStatusActive.String())
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -210,11 +216,11 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 	_, err = tx.ExecContext(ctx, `INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
 									(SELECT  $1, $2, $3, $4, count(*) AS amount
 									FROM nodes
-									WHERE validator_id = $1 AND address != $5
+									WHERE validator_id = $1
 									GROUP BY validator_id LIMIT 1)
 								ON CONFLICT (validator_id, block_height, statistic_type)
 								DO UPDATE SET amount = EXCLUDED.amount`,
-		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeLinkedNodes, zero)
+		params.ValidatorID, params.BlockHeight, params.BlockTime, structs.ValidatorStatisticsTypeLinkedNodes)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
