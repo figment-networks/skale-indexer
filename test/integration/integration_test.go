@@ -139,7 +139,7 @@ func TestCallWithBlockNumber(t *testing.T) {
 			ac, _ := cm.GetContract(tt.args.contract)
 			bc := tr.GetBoundContractCaller(ctx, ac.Addr, ac.Abi)
 
-			a, err := caller.GetDelegation(ctx, bc.GetContract(), uint64(10814408), big.NewInt(2316))
+			a, err := caller.GetDelegation(ctx, bc, uint64(10814408), big.NewInt(2316))
 			require.NoError(t, err)
 			require.Equal(t, a.DelegationID, big.NewInt(2316))
 			ds, err := caller.GetDelegationState(ctx, bc.GetContract(), uint64(10814408), big.NewInt(2316))

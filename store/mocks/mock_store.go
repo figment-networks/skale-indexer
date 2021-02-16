@@ -311,3 +311,17 @@ func (mr *MockDataStoreMockRecorder) SaveValidatorStatistic(arg0, arg1, arg2, ar
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistic), arg0, arg1, arg2, arg3, arg4, arg5)
 }
+
+// UpdateNodeCountsOfValidator mocks base method
+func (m *MockDataStore) UpdateNodeCountsOfValidator(arg0 context.Context, arg1 *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateNodeCountsOfValidator", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateNodeCountsOfValidator indicates an expected call of UpdateNodeCountsOfValidator
+func (mr *MockDataStoreMockRecorder) UpdateNodeCountsOfValidator(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateNodeCountsOfValidator", reflect.TypeOf((*MockDataStore)(nil).UpdateNodeCountsOfValidator), arg0, arg1)
+}
