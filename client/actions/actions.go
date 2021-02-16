@@ -779,7 +779,7 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 				return nodes, nil
 			}
 			m.l.Error("error occurs on sync GetNodeWithInfo", zap.Error(err))
-			return err
+			return nodes, err
 		}
 
 		err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
