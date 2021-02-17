@@ -3,6 +3,7 @@ package actions
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -70,18 +71,15 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		return errors[0]
 	}
 
+	contractCallerForDelegations := m.tr.GetBoundContractCaller(ctx, contractForDelegations.Addr, contractForDelegations.Abi)
 	m.l.Info("synchronization - storing validator changes", zap.Uint64("block", currentBlock), zap.Time("blocTime", blockTime))
 	for _, v := range vldrs {
 		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, blockTime); err != nil {
 			m.l.Error(err.Error())
 		}
-		vs := structs.ValidatorStatisticsParams{
-			ValidatorID: v.ValidatorID.String(),
-			BlockHeight: currentBlock,
-			BlockTime:   blockTime,
-		}
-		if err := m.dataStore.CalculateTotalStake(ctx, vs); err != nil {
-			m.l.Error(err.Error())
+
+		if err := m.getValidatorDelegationValues(ctx, contractCallerForDelegations, currentBlock, blockTime, v.ValidatorID); err != nil {
+			return fmt.Errorf("error getting total stake %w", err)
 		}
 
 		nInfo, ok := nodesInfo[v.ValidatorID.Uint64()]
@@ -98,7 +96,7 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 				break
 			}
 
-			err = m.dataStore.UpdateNodeCountsOfValidator(ctx, v.ValidatorID)
+			err = m.dataStore.UpdateCountsOfValidator(ctx, v.ValidatorID)
 			if err != nil {
 				m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
 				break
@@ -162,24 +160,35 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
-
-	d, err = m.c.GetDelegationWithInfo(ctx, bc, currentBlock, &dID)
-	m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
-	if err != nil {
-		if err == transport.ErrEmptyResponse {
-			return true, nil
+	delI, ok := m.caches.Delegation.Get(dID)
+	if !ok {
+		d, err = m.c.GetDelegation(ctx, bc, currentBlock, &dID)
+		m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
+		if err != nil {
+			if err == transport.ErrEmptyResponse {
+				return true, nil
+			}
+			m.l.Error("error occurs on sync GetDelegation", zap.Error(err))
+			return true, err
 		}
-		m.l.Error("error occurs on sync GetDelegationWithInfo", zap.Error(err))
+	} else {
+		d = delI.(structs.Delegation)
+	}
+
+	d.State, err = m.c.GetDelegationState(ctx, bc.GetContract(), currentBlock, &dID)
+	if err != nil {
+		m.l.Error("error occurs on sync GetDelegationState", zap.Error(err))
 		return true, err
 	}
 
 	d.BlockHeight = currentBlock
-	err = m.dataStore.SaveDelegation(ctx, d)
-	if err != nil {
+
+	if err = m.dataStore.SaveDelegation(ctx, d); err != nil {
 		m.l.Error("error saving delegation ", zap.Error(err))
 		return true, err
 	}
 
+	m.caches.Delegation.Add(dID, d)
 	return false, nil
 }
 

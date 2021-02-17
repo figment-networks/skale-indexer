@@ -111,11 +111,11 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 	case "validator_service":
 		vIDI, ok := ce.Params["validatorId"]
 		if !ok {
-			return errors.New("structure is not a validator, it does not have valiadtorId")
+			return errors.New("structure is not a validator, it does not have validatorID")
 		}
 		vID, ok := vIDI.(*big.Int)
 		if !ok {
-			return errors.New("structure is not a validator, it does not have valiadtorId")
+			return errors.New("structure is not a validator, it does not have validatorID")
 		}
 
 		v, err := m.c.GetValidatorWithInfo(ctx, bc, ce.BlockHeight, vID)
@@ -141,8 +141,13 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
 
+			var linkedNodes, activeNodes uint64
 			for _, node := range nodes {
 				node.BlockHeight = ce.BlockHeight
+				if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
+					activeNodes++
+				}
+				linkedNodes++
 			}
 
 			removedNodeAddr := common.Address{}
@@ -161,18 +166,22 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error storing validator nodes %w", err)
 			}
 
-			vsp := structs.ValidatorStatisticsParams{
-				ValidatorID: vID.String(),
-				BlockHeight: ce.BlockHeight,
-				BlockTime:   ce.Time,
+			err = m.dataStore.SaveValidatorStatistic(ctx, vID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeActiveNodes, new(big.Int).SetUint64(activeNodes))
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeActiveNodes ", zap.Error(err))
+				return err
 			}
 
-			if err := m.dataStore.CalculateActiveNodes(ctx, vsp); err != nil {
-				return fmt.Errorf("error calculating active nodes %w", err)
+			err = m.dataStore.SaveValidatorStatistic(ctx, vID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeLinkedNodes, new(big.Int).SetUint64(linkedNodes))
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
+				break
 			}
 
-			if err := m.dataStore.CalculateLinkedNodes(ctx, vsp); err != nil {
-				return fmt.Errorf("error calculating linked nodes %w", err)
+			err = m.dataStore.UpdateCountsOfValidator(ctx, vID)
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
+				break
 			}
 
 		} else if ce.EventName == "ValidatorRegistered" {
@@ -258,28 +267,37 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error getting validator nodes %w", err)
 		}
 
+		var linkedNodes, activeNodes uint64
 		for _, node := range nodes {
 			node.BlockHeight = ce.BlockHeight
+			if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
+				activeNodes++
+			}
+			linkedNodes++
 		}
 
 		if err = m.dataStore.SaveNodes(ctx, nodes, common.Address{}); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
 
-		vs := structs.ValidatorStatisticsParams{
-			ValidatorID: n.ValidatorID.String(),
-			BlockHeight: ce.BlockHeight,
-			BlockTime:   ce.Time,
+		err = m.dataStore.SaveValidatorStatistic(ctx, n.ValidatorID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeActiveNodes, new(big.Int).SetUint64(activeNodes))
+		if err != nil {
+			m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeActiveNodes ", zap.Error(err))
+			return err
 		}
 
-		err = m.dataStore.CalculateActiveNodes(ctx, vs)
+		err = m.dataStore.SaveValidatorStatistic(ctx, n.ValidatorID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeLinkedNodes, new(big.Int).SetUint64(linkedNodes))
 		if err != nil {
-			return fmt.Errorf("error calculating active nodes %w", err)
+			m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
+			break
 		}
-		err = m.dataStore.CalculateLinkedNodes(ctx, vs)
+
+		err = m.dataStore.UpdateCountsOfValidator(ctx, n.ValidatorID)
 		if err != nil {
-			return fmt.Errorf("error calculating linked nodes %w", err)
+			m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
+			break
 		}
+
 		ce.BoundType = "node"
 		ce.BoundID = append(ce.BoundID, *nID)
 
@@ -396,7 +414,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		ce.BoundID = append(ce.BoundID, *vID)
 
 	case "delegation_controller":
-
 		dIDI, ok := ce.Params["delegationId"]
 		if !ok {
 			return errors.New("structure is not a delegation, it does not have delegationId")
@@ -414,7 +431,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		d.BlockHeight = ce.BlockHeight
 
 		m.caches.Delegation.Add(dID, d)
-
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
@@ -426,12 +442,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing account %w", err)
 		}
 
-		if err := m.dataStore.CalculateTotalStake(ctx, structs.ValidatorStatisticsParams{
-			ValidatorID: d.ValidatorID.String(),
-			BlockHeight: ce.BlockHeight,
-			BlockTime:   ce.Time,
-		}); err != nil {
-			return fmt.Errorf("error calculating total stake %w", err)
+		if err := m.getValidatorDelegationValues(ctx, bc, ce.BlockHeight, ce.Time, d.ValidatorID); err != nil {
+			return fmt.Errorf("error getting total stake %w", err)
 		}
 
 		sysEvt := structs.SystemEvent{
@@ -558,7 +570,7 @@ func boolToBigInt(a bool) *big.Int {
 	return big.NewInt(0)
 }
 
-func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) error {
+func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, blockTime time.Time, validatorID *big.Int) error {
 
 	delegationsIDs, err := m.c.GetValidatorDelegationsIDs(ctx, bc, blockNumber, validatorID)
 	if err != nil {
@@ -582,13 +594,22 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 				if err != nil {
 					return err
 				}
-				m.caches.Delegation.Get(dID)
+				m.caches.Delegation.Add(dID, del)
 			} else {
 				del = delI.(structs.Delegation)
 			}
 			ts = ts.Add(ts, del.Amount)
 		}
+	}
 
+	err = m.dataStore.SaveValidatorStatistic(ctx, validatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeTotalStake, ts)
+	if err != nil {
+		return fmt.Errorf("error calling SaveValidatorStatistic (ValidatorStatisticsTypeTotalStake) %w", err)
+	}
+
+	err = m.dataStore.UpdateCountsOfValidator(ctx, validatorID)
+	if err != nil {
+		return fmt.Errorf("error calling UpdateCountsOfValidator %w", err)
 	}
 
 	return nil
