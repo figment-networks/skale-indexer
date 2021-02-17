@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -41,6 +42,7 @@ type SkaleStore interface {
 	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
+
 	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
 	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error

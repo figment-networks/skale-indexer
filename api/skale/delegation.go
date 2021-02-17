@@ -236,6 +236,79 @@ func (c *Caller) GetValidatorDelegations(ctx context.Context, bc transport.Bound
 	return delegations, nil
 }
 
+func (c *Caller) GetValidatorDelegationsIDs(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegationsIDs []*big.Int, err error) {
+
+	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+	caller := bc.GetContract()
+
+	co := &bind.CallOpts{
+		Context: ctxT,
+		Pending: true,
+	}
+
+	if c.NodeType == ENTArchive {
+		if blockNumber > 0 { // (lukanus): 0 = latest
+			co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+		} else {
+			co.Pending = true
+		}
+	}
+
+	results := []interface{}{}
+
+	err = caller.Call(co, &results, "getDelegationsByValidatorLength", validatorID)
+
+	if err != nil {
+		return nil, fmt.Errorf("error calling delegations function %w", err)
+	}
+
+	if len(results) == 0 {
+		return nil, errors.New("empty result")
+	}
+
+	count, ok := results[0].(*big.Int)
+	if !ok {
+		return nil, errors.New("count is not *big.Int type ")
+	}
+
+	for i := uint64(0); i < count.Uint64(); i++ {
+
+		ctxTA, cancelA := context.WithTimeout(ctx, time.Second*30)
+		co := &bind.CallOpts{
+			Context: ctxTA,
+		}
+
+		if c.NodeType == ENTArchive {
+			if blockNumber > 0 { // (lukanus): 0 = latest
+				co.BlockNumber = new(big.Int).SetUint64(blockNumber)
+			} else {
+				co.Pending = true
+			}
+		}
+
+		resultsA := []interface{}{}
+
+		err = caller.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
+		cancelA()
+		if err != nil {
+			return nil, fmt.Errorf("error calling delegationsByValidator function %w", err)
+		}
+
+		if len(resultsA) == 0 {
+			return nil, errors.New("empty result")
+		}
+
+		id, ok := resultsA[0].(*big.Int)
+		if !ok {
+			return nil, errors.New("delegation id is not a bigint")
+		}
+		delegationsIDs = append(delegationsIDs, new(big.Int).Set(id))
+	}
+
+	return delegationsIDs, nil
+}
+
 func (c *Caller) GetHolderDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error) {
 
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
