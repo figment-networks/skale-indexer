@@ -75,7 +75,7 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 	m.l.Info("synchronization - storing validator changes", zap.Uint64("block", currentBlock), zap.Time("blocTime", blockTime))
 	for _, v := range vldrs {
 		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, blockTime); err != nil {
-			m.l.Error(err.Error())
+			return fmt.Errorf("error saveValidatorStatChanges %w", err)
 		}
 
 		if err := m.getValidatorDelegationValues(ctx, contractCallerForDelegations, currentBlock, blockTime, v.ValidatorID); err != nil {
@@ -93,13 +93,13 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 			err = m.dataStore.SaveValidatorStatistic(ctx, v.ValidatorID, currentBlock, blockTime, structs.ValidatorStatisticsTypeLinkedNodes, big.NewInt(int64(nInfo.LinkedNodeCount)))
 			if err != nil {
 				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
-				break
+				return err
 			}
 
 			err = m.dataStore.UpdateCountsOfValidator(ctx, v.ValidatorID)
 			if err != nil {
 				m.l.Error("error saving SaveValidatorStatistic for UpdateNodeCountsOfValidator ", zap.Error(err))
-				break
+				return err
 			}
 		}
 	}
@@ -160,7 +160,10 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
-	delI, ok := m.caches.Delegation.Get(dID)
+
+	m.caches.DelegationLock.RLock()
+	delI, ok := m.caches.Delegation.Get(&dID)
+	m.caches.DelegationLock.RUnlock()
 	if !ok {
 		d, err = m.c.GetDelegation(ctx, bc, currentBlock, &dID)
 		m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
@@ -188,7 +191,9 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 		return true, err
 	}
 
-	m.caches.Delegation.Add(dID, d)
+	m.caches.DelegationLock.Lock()
+	m.caches.Delegation.Add(&dID, d)
+	m.caches.DelegationLock.Unlock()
 	return false, nil
 }
 
@@ -204,6 +209,7 @@ func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsConte
 		vld, err = m.c.GetValidatorWithInfo(ctx, bc, currentBlock, vID)
 		if err != nil {
 			if err == transport.ErrEmptyResponse {
+				m.l.Info("synchronization for validators successful.")
 				return validators, nil
 			}
 			m.l.Error("error occurs on sync GetValidatorWithInfo", zap.Error(err))

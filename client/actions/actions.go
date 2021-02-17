@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -56,8 +57,10 @@ type BCGetter interface {
 }
 
 type Caches struct {
-	Account    *lru.Cache
-	Delegation *lru.Cache
+	Account        *lru.Cache
+	AccountLock    sync.RWMutex
+	Delegation     *lru.Cache
+	DelegationLock sync.RWMutex
 }
 
 func NewCaches() *Caches {
@@ -302,7 +305,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		ce.BoundID = append(ce.BoundID, *nID)
 
 	case "punisher":
-
 		switch ce.EventName {
 		case "slash":
 			vIDI, ok := ce.Params["validatorId"]
@@ -430,7 +432,9 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		d.TransactionHash = ce.TransactionHash
 		d.BlockHeight = ce.BlockHeight
 
+		m.caches.DelegationLock.Lock()
 		m.caches.Delegation.Add(dID, d)
+		m.caches.DelegationLock.Unlock()
 		if err := m.dataStore.SaveDelegation(ctx, d); err != nil {
 			return fmt.Errorf("error storing delegation %w", err)
 		}
@@ -511,11 +515,16 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				return fmt.Errorf("error decoding event ERC20 %w", err)
 			}
 			for _, ad := range ce.BoundAddress {
-				if _, ok := m.caches.Account.Get(ad); !ok {
+				m.caches.AccountLock.RLock()
+				_, ok := m.caches.Account.Get(ad)
+				m.caches.AccountLock.RUnlock()
+				if !ok {
 					if err := m.dataStore.SaveAccount(ctx, structs.Account{Address: ad}); err != nil {
 						return err
 					}
+					m.caches.AccountLock.Lock()
 					m.caches.Account.Add(ad, structs.Account{Address: ad})
+					m.caches.AccountLock.Unlock()
 				}
 			}
 		}
@@ -573,7 +582,11 @@ func boolToBigInt(a bool) *big.Int {
 func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, blockTime time.Time, validatorID *big.Int) error {
 
 	delegationsIDs, err := m.c.GetValidatorDelegationsIDs(ctx, bc, blockNumber, validatorID)
+
 	if err != nil {
+		if err == transport.ErrEmptyResponse {
+			return nil
+		}
 		return fmt.Errorf("error calling GetValidatorDelegationsIDs %w", err)
 	}
 
@@ -587,14 +600,18 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 
 		// Total Stake
 		if ds == structs.DelegationStateDELEGATED || ds == structs.DelegationStateUNDELEGATION_REQUESTED {
+			m.caches.DelegationLock.RLock()
 			delI, ok := m.caches.Delegation.Get(dID)
+			m.caches.DelegationLock.RUnlock()
 			var del structs.Delegation
 			if !ok {
 				del, err = m.c.GetDelegation(ctx, bc, blockNumber, dID)
 				if err != nil {
 					return err
 				}
+				m.caches.DelegationLock.Lock()
 				m.caches.Delegation.Add(dID, del)
+				m.caches.DelegationLock.Unlock()
 			} else {
 				del = delI.(structs.Delegation)
 			}

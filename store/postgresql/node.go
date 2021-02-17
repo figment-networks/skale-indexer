@@ -3,11 +3,12 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -24,8 +25,8 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 	for _, n := range nodes {
 		_, err = tx.ExecContext(ctx, `INSERT INTO nodes
 			("node_id", "address", "name",  "ip", "public_ip", "port", "start_block", "next_reward_date", "last_reward_date", "finish_time", "status", "validator_id", "block_height")
-			SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 
-				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $1 AND n2.block_height > $13 LIMIT 1) 
+			SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+				WHERE NOT EXISTS (SELECT 1 FROM nodes n2 WHERE n2.node_id = $1 AND n2.block_height > $13 ORDER BY n2.block_height DESC LIMIT 1 )
 			ON CONFLICT (node_id)
 			DO UPDATE SET
 				name = EXCLUDED.name,
@@ -64,9 +65,9 @@ func (d *Driver) SaveNodes(ctx context.Context, nodes []structs.Node, removedNod
 
 	// update removed node
 	if removedNodeAddress.Hash().Big().String() != string(zero) && len(nodes) > 0 {
-		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1 
-				WHERE validator_id = $2 AND address = $3 AND node_id 
-					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $3 AND n2.validator_id = $2)`,
+		_, err = tx.ExecContext(ctx, `UPDATE nodes SET address = $1
+				WHERE validator_id = $2 AND address = $3 AND node_id
+					  NOT IN (SELECT n2.node_id FROM nodes n2 WHERE n2.address != $3 AND n2.validator_id = $2 ORDER BY n2.block_height)`,
 			zero,
 			nodes[0].ValidatorID.Int64(),
 			removedNodeAddress.Hash().Big().String())

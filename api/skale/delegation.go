@@ -289,12 +289,23 @@ func (c *Caller) GetValidatorDelegationsIDs(ctx context.Context, bc transport.Bo
 
 		resultsA := []interface{}{}
 
-		err = caller.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
-		cancelA()
-		if err != nil {
-			return nil, fmt.Errorf("error calling delegationsByValidator function %w", err)
+		contr := bc.GetContract()
+		if contr == nil {
+			cancelA()
+			return delegationsIDs, fmt.Errorf("Contract is nil")
 		}
 
+		if err = contr.Call(co, &resultsA, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i)); err != nil {
+			_, err2 := bc.RawCall(ctx, co, "delegationsByValidator", validatorID, new(big.Int).SetUint64(i))
+			if err2 == transport.ErrEmptyResponse {
+				cancelA()
+				return delegationsIDs, err2
+			}
+			cancelA()
+			return delegationsIDs, fmt.Errorf("error calling delegationsByValidator  %w ", err)
+		}
+
+		cancelA()
 		if len(resultsA) == 0 {
 			return nil, errors.New("empty result")
 		}

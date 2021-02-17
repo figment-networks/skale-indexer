@@ -144,7 +144,7 @@ func (c *Client) GetLatestData(ctx context.Context, taskID string, latest uint64
 			return latest, true, nil
 		}
 		delete(c.r.Processes, PSig{TaskID: taskID})
-		return p.EndHeight, false, nil
+		return p.EndHeight, false, p.Error
 	}
 
 	from, to := &big.Int{}, &big.Int{}

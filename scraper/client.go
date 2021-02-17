@@ -20,7 +20,7 @@ import (
 
 const (
 	workerCount            = 5
-	backCheckSlidingWindow = 1000
+	backCheckSlidingWindow = 100
 	cacheSize              = 1000
 )
 
