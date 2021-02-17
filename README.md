@@ -1,10 +1,10 @@
 # SKALE INDEXER
 
-This repository contains SKALE indexer code that is responsible for tracking SKALE network ethereum calls.
+This repository contains SKALE indexer code that is responsible for tracking SKALE network Ethereum calls.
 
 ## Requirements
     - Configured and installed go (to compile)
-    - Ethereum node access. Should be the archival node
+    - Ethereum node access (archive preferred for full functionality)
 
 ## Actions
 
@@ -22,16 +22,19 @@ To generate both swagger documentation and test mocks simply run:
 ```
 
 ### Running
-To run this project you just need to run the compiled binary supplying either config.json file or environment variables.
+To run this project you just need to run the compiled binary supplying either the config.json file or environment variables.
 
 ```bash
     ./indexer
 ```
 
 Default parameters are available in `.env.default` file in this repository.
+
 Keep in mind that you need to have SKALE abi files for the indexer to run (`ABI_DIR`) . The easiest way to get it is clone `github.com/skalenetwork/skale-network` repository, and point indexer to `skale-network/releases/mainnet/skale-manager`. It will digest all abi files from entire directory.
 
-This service is prepared to work with archival node of ethereum. It needs it to fetch previous states of smart contract. It's also possible to make it working with regular ethereum node. For that you must set env variable `ETHEREUM_NODE_TYPE` to "recent" to get only the latest states. At that mode the state may not be consistent, but you'll be able to get information about latest state.
+This service is designed to work with Ethereum archive nodes, as it needs it to fetch the previous states of the smart contracts. 
+
+It's also possible to configure the indexer to work with a regular Ethereum node. For that you must set env variable `ETHEREUM_NODE_TYPE` to "recent" to get only the latest states. With this mode the state may not be consistent, but you'll be able to get information about latest state only.
 
 It if possible to run this service in read only mode. to enable that you just need to set `ENABLE_SCRAPER=true`
 
