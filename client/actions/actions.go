@@ -235,7 +235,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		ce.BoundType = "validator"
 		ce.BoundID = append(ce.BoundID, *vID)
 	case "nodes":
-
 		nIDI, ok := ce.Params["nodeIndex"]
 		if !ok {
 			return errors.New("structure is not a node, it does not have nodeIndex")
@@ -248,7 +247,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		n, err := m.c.GetNode(ctx, bc, ce.BlockHeight, nID)
 		if err != nil {
 			// TODO: change err message from line 203
-			return errors.New("structure is not a node")
+			//return errors.New("structure is not a node")
+			return fmt.Errorf("error in nodes: %w", err)
 		}
 
 		nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)

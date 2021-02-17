@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -22,9 +23,7 @@ type Manager struct {
 	contractsTable map[common.Address]ContractsContents
 
 	filterLock sync.RWMutex
-	// subset of contracts by names fnv64 hash
-	addressFilter map[uint64]map[common.Address]ContractsContents
-	nvIndex       map[NV]ContractsContents
+	nvIndex    map[NV]ContractsContents
 
 	globalEvents map[string]abi.Event
 }
@@ -36,10 +35,46 @@ type NV struct {
 func NewManager() *Manager {
 	return &Manager{
 		contractsTable: make(map[common.Address]ContractsContents),
-		addressFilter:  make(map[uint64]map[common.Address]ContractsContents),
 		nvIndex:        make(map[NV]ContractsContents),
 		globalEvents:   make(map[string]abi.Event),
 	}
+}
+
+type Contracts struct {
+	ccs map[common.Address][]ContractsContents
+}
+
+func NewContracts() *Contracts {
+	return &Contracts{ccs: make(map[common.Address][]ContractsContents)}
+}
+
+func (c *Contracts) GetByAddress(a common.Address) (cc ContractsContents, ok bool) {
+	s, ok := c.ccs[a]
+	if !ok {
+		return cc, false
+	}
+
+	return s[0], true
+}
+
+func (c *Contracts) GetAddresses() (addrs []common.Address) {
+	for _, a := range c.ccs {
+		addrs = append(addrs, a[0].Addr)
+	}
+	return addrs
+}
+
+func (c *Contracts) GetAllVersions(a common.Address) (cc []ContractsContents, ok bool) {
+	s, ok := c.ccs[a]
+	if !ok {
+		return cc, false
+	}
+
+	return s, true
+}
+
+func (c *Contracts) SetAllVersions(a common.Address, cc []ContractsContents) {
+	c.ccs[a] = cc
 }
 
 type ContractsContents struct {
@@ -67,33 +102,59 @@ func (m *Manager) AddGlobalEvents(readr io.Reader) error {
 	return nil
 }
 
-func (m *Manager) GetContractsByNames(names []string) (ccs map[common.Address]ContractsContents) {
-	hash := fnv.New64a()
-	for _, n := range names {
-		hash.Write([]byte(n))
-	}
-	hSum := hash.Sum64()
+func (m *Manager) GetContractsByNames(names []string) *Contracts {
 
-	m.filterLock.RLock()
-	addr, ok := m.addressFilter[hSum]
-	m.filterLock.RUnlock()
-	if ok {
-		return addr
-	}
-
-	ccs = make(map[common.Address]ContractsContents)
+	ccs := NewContracts()
 	for _, n := range names {
-		for _, c := range m.contractsTable {
-			if c.Name == n {
-				cs := c
-				ccs[c.Addr] = cs
+		contr := []ContractsContents{}
+		for nv, c := range m.nvIndex {
+			if nv.Name == n {
+				contr = append(contr, c)
 			}
 		}
-	}
+		if len(contr) > 0 {
+			sort.Slice(contr, func(i, j int) bool {
+				vi := strings.Split(contr[i].Version, ".")
+				vj := strings.Split(contr[j].Version, ".")
+				v1i, err := strconv.Atoi(vi[0])
+				if err != nil {
+					return false
+				}
+				v1j, err := strconv.Atoi(vj[0])
+				if err != nil {
+					return false
+				}
+				if v1i != v1j {
+					return v1i > v1j
+				}
 
-	m.filterLock.Lock()
-	m.addressFilter[hSum] = ccs
-	m.filterLock.Unlock()
+				v2i, err := strconv.Atoi(vi[1])
+				if err != nil {
+					return false
+				}
+				v2j, err := strconv.Atoi(vj[1])
+				if err != nil {
+					return false
+				}
+				if v2i != v2j {
+					return v2i > v2j
+				}
+
+				v3i, err := strconv.Atoi(vi[2])
+				if err != nil {
+					return false
+				}
+				v3j, err := strconv.Atoi(vj[2])
+				if err != nil {
+					return false
+				}
+
+				return v3i > v3j
+			})
+			ccs.SetAllVersions(contr[0].Addr, contr)
+		}
+
+	}
 
 	return ccs
 }

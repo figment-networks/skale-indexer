@@ -52,7 +52,7 @@ func (c *Caller) GetValidator(ctx context.Context, bc transport.BoundContractCal
 		if err2 == transport.ErrEmptyResponse {
 			return v, err2
 		}
-		return v, fmt.Errorf("error calling delegations  %w ", err)
+		return v, fmt.Errorf("error calling getValidator  %w ", err)
 	}
 
 	if len(results) == 0 {
