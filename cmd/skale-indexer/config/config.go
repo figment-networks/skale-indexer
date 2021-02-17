@@ -36,8 +36,6 @@ type Config struct {
 	SkaleABIDir   string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
 	AdditionalABI string `json:"additional_abi" envconfig:"ADDITIONAL_ABI"`
 
-	LowerThresholdForBackward uint64 `json:"lower_threshold_for_backward" envconfig:"LOWER_THRESHOLD_FOR_BACKWARD" default:"0"`
-
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
@@ -47,8 +45,8 @@ type Config struct {
 	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
 	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
 
-	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"1000"`
-	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"10s"`
+	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"100"`
+	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"30s"`
 }
 
 // IdentityString returns the full app version string

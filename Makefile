@@ -37,7 +37,10 @@ build-migration:
 pack-release:
 	$(info preparing release)
 	@mkdir -p ./release
+	@make build-migration
+	@mv ./migration ./release/migration
 	@make build
+	@cp -R ./cmd/skale-indexer-migration/migrations ./release/
 	@zip -r indexer ./release
 	@rm -rf ./release
 
@@ -49,7 +52,6 @@ generate-types:
 	else \
 		cd ./install/skale-network && git pull; \
 	fi
-
 
 	abigen --combined-json ./install/skale-network/releases/mainnet/skale-manager/1.5.0/abi.json --out a.go --pkg api --lang go
 
