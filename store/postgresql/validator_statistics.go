@@ -93,7 +93,7 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 		`SELECT id, created_at, validator_id, amount, block_height, time, statistic_type
 			FROM validator_statistics
 			WHERE
-				validator_id = $1 AND statistic_type = $2 AND time BETWEEN $3 AND $4 
+				validator_id = $1 AND statistic_type = $2 AND time BETWEEN $3 AND $4
 			ORDER BY block_height DESC`, params.ValidatorID, params.Type, params.TimeFrom, params.TimeTo)
 	if err != nil {
 		return nil, err
@@ -120,6 +120,7 @@ func (d *Driver) GetValidatorStatisticsTimeline(ctx context.Context, params stru
 	return validatorStatistics, nil
 }
 
+/*
 func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -149,7 +150,7 @@ func (d *Driver) CalculateTotalStake(ctx context.Context, params structs.Validat
 						SET staked = (
 							 	SELECT COALESCE((SELECT amount
 								 FROM validator_statistics
-								 WHERE validator_id = $1 AND statistic_type = $2 
+								 WHERE validator_id = $1 AND statistic_type = $2
 								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $1`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeTotalStake)
@@ -192,7 +193,7 @@ func (d *Driver) CalculateActiveNodes(ctx context.Context, params structs.Valida
 						SET active_nodes =  (
 							 	SELECT COALESCE((SELECT amount
 								 FROM validator_statistics
-								 WHERE validator_id = $1 AND statistic_type = $2 
+								 WHERE validator_id = $1 AND statistic_type = $2
 								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $1`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeActiveNodes)
@@ -234,7 +235,7 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 							linked_nodes =  (
 							 	SELECT COALESCE((SELECT amount
 								 FROM validator_statistics
-								 WHERE validator_id = $1 AND statistic_type = $2 
+								 WHERE validator_id = $1 AND statistic_type = $2
 								 ORDER BY block_height DESC LIMIT 1 ), 0))
 						WHERE validator_id = $1`,
 		params.ValidatorID, structs.ValidatorStatisticsTypeLinkedNodes)
@@ -247,3 +248,4 @@ func (d *Driver) CalculateLinkedNodes(ctx context.Context, params structs.Valida
 
 	return tx.Commit()
 }
+*/

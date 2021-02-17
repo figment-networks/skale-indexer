@@ -20,7 +20,7 @@ import (
 
 const (
 	workerCount            = 5
-	backCheckSlidingWindow = 1000
+	backCheckSlidingWindow = 100
 	cacheSize              = 1000
 )
 
@@ -120,7 +120,16 @@ func (eAPI *EthereumAPI) ParseLogs(ctx context.Context, ccs *contract.Contracts,
 		hTime := time.Unix(int64(h.Time), 0)
 		a := time.Unix(int64(lastLoggedBlockTime.Time), 0)
 		if isInRange(a, hTime) {
-			if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, "1.7.2", h.Number.Uint64(), hTime); err != nil { // latest version?
+			version := "1.7.2"
+			if len(addr) > 0 {
+				if ver, ok := ccs.GetAllVersions(addr[0]); ok {
+					if len(ver) > 0 {
+						version = ver[0].Version
+					}
+				}
+			}
+
+			if err = eAPI.AM.SyncForBeginningOfEpoch(ctx, version, h.Number.Uint64(), hTime); err != nil { // latest version?
 				return err
 			}
 			eAPI.blockLRU.Add(taskID, *h)
