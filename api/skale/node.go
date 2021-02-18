@@ -60,7 +60,6 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc transport.BoundContra
 		if err != nil {
 			return nil, fmt.Errorf("error calling GetNode function %w", err)
 		}
-		nodes = append(nodes, n)
 
 		nrd, err := c.GetNodeNextRewardDate(ctx, bc, blockNumber, id)
 		if err != nil {
@@ -73,6 +72,7 @@ func (c *Caller) GetValidatorNodes(ctx context.Context, bc transport.BoundContra
 			return nil, fmt.Errorf("error calling GetNodeAddress function %w", err)
 		}
 		n.Address = adr
+		nodes = append(nodes, n)
 	}
 
 	return nodes, nil
@@ -234,17 +234,18 @@ func (c *Caller) GetNodeWithInfo(ctx context.Context, bc transport.BoundContract
 	if err != nil {
 		return n, err
 	}
-	nrd, err := c.GetNodeNextRewardDate(ctx, bc, blockNumber, nodeID)
-	if err != nil {
-		return n, err
-	}
-	n.NextRewardDate = nrd
 
 	adr, err := c.GetNodeAddress(ctx, bc, blockNumber, nodeID)
 	if err != nil {
 		return n, err
 	}
 	n.Address = adr
+
+	nrd, err := c.GetNodeNextRewardDate(ctx, bc, blockNumber, nodeID)
+	if err != nil {
+		return n, err
+	}
+	n.NextRewardDate = nrd
 
 	return n, nil
 }

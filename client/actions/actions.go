@@ -446,12 +446,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing account %w", err)
 		}
 
-		if ce.EventName != "DelegationProposed" && ce.EventName != "DelegationAccepted" && ce.EventName != "UndelegationRequested" && ce.EventName != "DelegationRequestCanceledByUser" {
-			if err := m.getValidatorDelegationValues(ctx, bc, ce.BlockHeight, ce.Time, d.ValidatorID); err != nil {
-				return fmt.Errorf("error getting total stake %w", err)
-			}
-		}
-
 		sysEvt := structs.SystemEvent{
 			Height: ce.BlockHeight,
 			Time:   ce.Time,

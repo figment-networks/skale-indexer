@@ -75,18 +75,12 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		return errors[0]
 	}
 
-	//contractCallerForDelegations := m.tr.GetBoundContractCaller(ctx, contractForDelegations.Addr, contractForDelegations.Abi)
 	m.l.Info("synchronization - storing validator changes", zap.Uint64("block", currentBlock), zap.Time("blocTime", blockTime))
 	for _, v := range vldrs {
 		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, blockTime); err != nil {
 			m.l.Error("error saving saveValidatorStatChanges ", zap.Error(err))
 			return fmt.Errorf("error saveValidatorStatChanges %w", err)
 		}
-		/*
-			if err := m.getValidatorDelegationValues(ctx, contractCallerForDelegations, currentBlock, blockTime, v.ValidatorID); err != nil {
-				m.l.Error("error getValidatorDelegationValues  ", zap.Error(err))
-				return fmt.Errorf("error getting total stake %w", err)
-			}*/
 
 		nInfo, ok := nodesInfo[v.ValidatorID.Uint64()]
 		if ok {
@@ -325,12 +319,21 @@ func (m *Manager) syncNodes(ctx context.Context, cV contract.ContractsContents, 
 	return nodes, nil
 }
 
+func (m *Manager) syncNodesAsync(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, outp chan syncOutp) {
+	nodes, err := m.syncNodes(ctx, cV, currentBlock)
+	outp <- syncOutp{
+		typ:  "nodes",
+		err:  err,
+		data: groupNodesInfo(nodes),
+	}
+}
+
 type NodeAggregationInfo struct {
 	ActiveNodeCount uint64
 	LinkedNodeCount uint64
 }
 
-func (m *Manager) groupNodesInfo(nodes []structs.Node) map[uint64]NodeAggregationInfo {
+func groupNodesInfo(nodes []structs.Node) map[uint64]NodeAggregationInfo {
 	nodeInfoByValidator := map[uint64]NodeAggregationInfo{}
 	for _, n := range nodes {
 		nInfo, ok := nodeInfoByValidator[n.ValidatorID.Uint64()]
@@ -338,23 +341,13 @@ func (m *Manager) groupNodesInfo(nodes []structs.Node) map[uint64]NodeAggregatio
 			nInfo = NodeAggregationInfo{}
 		}
 
-		nInfo.LinkedNodeCount += 1
+		nInfo.LinkedNodeCount++
 		if n.Status == structs.NodeStatusActive {
-			nInfo.ActiveNodeCount += 1
+			nInfo.ActiveNodeCount++
 		}
 
 		nodeInfoByValidator[n.ValidatorID.Uint64()] = nInfo
 	}
 
 	return nodeInfoByValidator
-}
-
-func (m *Manager) syncNodesAsync(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, outp chan syncOutp) {
-	nodes, err := m.syncNodes(ctx, cV, currentBlock)
-	nodeInfoByValidator := m.groupNodesInfo(nodes)
-	outp <- syncOutp{
-		typ:  "nodes",
-		err:  err,
-		data: nodeInfoByValidator,
-	}
 }
