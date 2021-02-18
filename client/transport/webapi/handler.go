@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
-	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
-	"go.uber.org/zap"
 )
 
 //go:generate swagger generate spec --scan-models -o swagger.json
@@ -55,11 +52,15 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 	switch req.Method {
 	case http.MethodGet:
 		allowCORSHeaders(w)
-		m, err := pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
@@ -162,13 +163,16 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	allowCORSHeaders(w)
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/nodes/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/node/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
-
 		params.NodeID = req.URL.Query().Get("id")
 		params.ValidatorID = req.URL.Query().Get("validator_id")
 		params.Status = req.URL.Query().Get("status")
@@ -233,6 +237,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 			FinishTime:     n.FinishTime,
 			ValidatorID:    n.ValidatorID,
 			Status:         n.Status.String(),
+			Address:        n.Address,
 		})
 	}
 
@@ -245,11 +250,15 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 
 	params := ValidatorParams{}
@@ -265,8 +274,12 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
 			}
-			timeFrom, _ = m["from"]
-			timeTo, _ = m["to"]
+			if f, ok := m["from"]; ok {
+				timeFrom = f
+			}
+			if t, ok := m["to"]; ok {
+				timeTo = t
+			}
 		}
 		var errFrom, errTo error
 		if !(timeFrom == "" && timeTo == "") {
@@ -321,8 +334,6 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			ActiveNodes:             vld.ActiveNodes,
 			LinkedNodes:             vld.LinkedNodes,
 			Staked:                  vld.Staked.String(),
-			Pending:                 vld.Pending,
-			Rewards:                 vld.Rewards,
 		})
 	}
 
@@ -338,20 +349,32 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 
 	params := ValidatorStatisticsParams{}
 	switch req.Method {
 	case http.MethodGet:
+		from := req.URL.Query().Get("from")
+		to := req.URL.Query().Get("to")
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
 		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
+			if f, ok := m["from"]; ok {
+				from = f
+			}
+			if t, ok := m["to"]; ok {
+				to = t
+			}
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
 			}
@@ -361,6 +384,17 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if _, ok := m["timeline"]; ok {
 				params.Timeline = true
 			}
+		}
+
+		timeFrom, errFrom := time.Parse(structs.Layout, from)
+		timeTo, errTo := time.Parse(structs.Layout, to)
+		if errFrom == nil && errTo == nil {
+			params.TimeFrom = timeFrom
+			params.TimeTo = timeTo
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+			return
 		}
 
 		if params.Timeline && params.ValidatorID == "" {
@@ -385,6 +419,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	vParams := structs.ValidatorStatisticsParams{
 		ValidatorID: params.ValidatorID,
+		TimeFrom:    params.TimeFrom,
+		TimeTo:      params.TimeTo,
 	}
 
 	if params.Type != "" || params.Timeline {
@@ -411,12 +447,18 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	var vlds []ValidatorStatistic
 	for _, v := range res {
-		vlds = append(vlds, ValidatorStatistic{
+		vld := ValidatorStatistic{
 			Type:        v.Type.String(),
 			ValidatorID: v.ValidatorID,
 			BlockHeight: v.BlockHeight,
+			BlockTime:   v.Time,
 			Amount:      v.Amount.String(),
-		})
+		}
+		if v.Type == structs.ValidatorStatisticsTypeValidatorAddress || v.Type == structs.ValidatorStatisticsTypeRequestedAddress {
+			vld.Amount = common.ToHex(v.Amount.Bytes())
+		}
+
+		vlds = append(vlds, vld)
 	}
 
 	enc := json.NewEncoder(w)
@@ -434,11 +476,15 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	params := structs.AccountParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		params.Type = req.URL.Query().Get("type")
 		params.Address = req.URL.Query().Get("address")
@@ -493,27 +539,6 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-/**
- * Delegations endpoint
- *
- * Method: GET, POST
- * Params:
- *   see DelegationParams
- *   optional:
- *     @id: the index of delegation in SKALE deployed smart contract
- *     @validator_id: the index of validator in SKALE deployed smart contract
- *     @from: the inclusive beginning of the time range for delegation created time
- *     @to: the inclusive ending of the time range for delegation created time
- *     @timeline: returns whether the latest or delegation changes timeline
- *
- * Error:
- *     http code: 400, 405, 500
- *     response: see apiError struct
- *
- * Success:
- *     http code: 200
- *     response: see Delegation struct
-**/
 func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
@@ -521,16 +546,21 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	params := DelegationParams{}
 	switch req.Method {
 	case http.MethodGet:
-		m, err := pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(newApiError(err, http.StatusBadRequest))
-			return
+		m := map[string]string{}
+		var err error
+		if strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
 		}
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
+		holder := req.URL.Query().Get("holder")
 		params.Timeline = (req.URL.Query().Get("timeline") != "")
 		if m != nil {
 			if f, ok := m["from"]; ok {
@@ -545,12 +575,16 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			if d, ok := m["id"]; ok {
 				dID = d
 			}
+			if h, ok := m["holder"]; ok {
+				holder = h
+			}
 			if _, ok := m["timeline"]; ok {
 				params.Timeline = true
 			}
 		}
 		params.ValidatorID = vID
 		params.DelegationID = dID
+		params.Holder = holder
 
 		var errFrom, errTo error
 		if from != "" && to != "" {
@@ -581,6 +615,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
+		Holder:       params.Holder,
 		TimeFrom:     params.TimeFrom,
 		TimeTo:       params.TimeTo,
 	}
@@ -615,6 +650,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			Created:         dlg.Created,
 			Finished:        dlg.Finished,
 			Info:            dlg.Info,
+			State:           dlg.State.String(),
 		})
 	}
 
@@ -630,11 +666,15 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	allowCORSHeaders(w)
 
-	m, err := pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(newApiError(err, http.StatusBadRequest))
-		return
+	m := map[string]string{}
+	var err error
+	if strings.Index(req.URL.Path[1:], "/") > 0 {
+		m, err = pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(err, http.StatusBadRequest))
+			return
+		}
 	}
 	params := SystemEventParams{}
 	switch req.Method {
@@ -893,8 +933,8 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//   '500':
 	//     schema:
 	//       "$ref": "#/definitions/ApiError"
-	mux.HandleFunc("/node/", c.GetNode)
-	mux.HandleFunc("/node", c.GetNode)
+	mux.HandleFunc("/nodes/", c.GetNode)
+	mux.HandleFunc("/nodes", c.GetNode)
 
 	// swagger:operation GET /validators Validator getValidators
 	//
@@ -1012,6 +1052,23 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: boolean
 	//     required: false
 	//     description: returns whether the latest or statistics changes timeline
+	//   - in: query
+	//     name: from
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: true
+	//     description: the inclusive beginning of the time range for block time
+	//   - in: query
+	//     name: to
+	//     x-go-type:
+	//       import:
+	//         package: "time"
+	//     type: string
+	//     required: true
+	//     description: the inclusive ending of the time range for block time
+	//
 	//
 	// Responses:
 	//   default:
@@ -1088,6 +1145,11 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the index of validator in SKALE deployed smart contract
+	//   - in: query
+	//     name: holder
+	//     type: string
+	//     description: holder address
+	//     required: false
 	//   - in: query
 	//     name: timeline
 	//     type: boolean
@@ -1240,63 +1302,6 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/accounts", c.GetAccount)
 
 	mux.HandleFunc("/system_events/", c.GetSystemEvents)
-}
-
-type ScrapeContractor interface {
-	ParseLogs(ctx context.Context, ccs map[common.Address]contract.ContractsContents, from, to big.Int) error
-}
-
-// ScrapeConnector is main HTTP connector for manager
-type ScrapeConnector struct {
-	l   *zap.Logger
-	cli ScrapeContractor
-	ccs map[common.Address]contract.ContractsContents
-}
-
-// NewScrapeConnector is  Connector constructor
-func NewScrapeConnector(l *zap.Logger, sc ScrapeContractor, ccs map[common.Address]contract.ContractsContents) *ScrapeConnector {
-	return &ScrapeConnector{l, sc, ccs}
-}
-
-// AttachToHandler attaches handlers to http server's mux
-func (sc *ScrapeConnector) AttachToHandler(mux *http.ServeMux) {
-	mux.HandleFunc("/getLogs", sc.GetLogs)
-}
-
-/*
- * Gets logs from node endpoint
- */
-func (sc *ScrapeConnector) GetLogs(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	if req.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
-		return
-	}
-
-	f := req.URL.Query().Get("from")
-	from, ok := new(big.Int).SetString(f, 10)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"from parameters are incorrect"}`))
-		return
-	}
-
-	t := req.URL.Query().Get("to")
-	to, ok2 := new(big.Int).SetString(t, 10)
-	if !ok2 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":" to parameters are incorrect"}`))
-		return
-	}
-
-	if err := sc.cli.ParseLogs(req.Context(), sc.ccs, *from, *to); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(err, http.StatusInternalServerError))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func pathParams(path, key string) (map[string]string, error) {

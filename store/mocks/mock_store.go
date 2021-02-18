@@ -6,10 +6,12 @@ package mocks
 
 import (
 	context "context"
+	common "github.com/ethereum/go-ethereum/common"
 	structs "github.com/figment-networks/skale-indexer/scraper/structs"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"
+	time "time"
 )
 
 // MockDataStore is a mock of DataStore interface
@@ -33,48 +35,6 @@ func NewMockDataStore(ctrl *gomock.Controller) *MockDataStore {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockDataStore) EXPECT() *MockDataStoreMockRecorder {
 	return m.recorder
-}
-
-// CalculateActiveNodes mocks base method
-func (m *MockDataStore) CalculateActiveNodes(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CalculateActiveNodes", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CalculateActiveNodes indicates an expected call of CalculateActiveNodes
-func (mr *MockDataStoreMockRecorder) CalculateActiveNodes(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateActiveNodes", reflect.TypeOf((*MockDataStore)(nil).CalculateActiveNodes), arg0, arg1)
-}
-
-// CalculateLinkedNodes mocks base method
-func (m *MockDataStore) CalculateLinkedNodes(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CalculateLinkedNodes", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CalculateLinkedNodes indicates an expected call of CalculateLinkedNodes
-func (mr *MockDataStoreMockRecorder) CalculateLinkedNodes(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateLinkedNodes", reflect.TypeOf((*MockDataStore)(nil).CalculateLinkedNodes), arg0, arg1)
-}
-
-// CalculateTotalStake mocks base method
-func (m *MockDataStore) CalculateTotalStake(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CalculateTotalStake", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CalculateTotalStake indicates an expected call of CalculateTotalStake
-func (mr *MockDataStoreMockRecorder) CalculateTotalStake(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateTotalStake", reflect.TypeOf((*MockDataStore)(nil).CalculateTotalStake), arg0, arg1)
 }
 
 // GetAccounts mocks base method
@@ -254,18 +214,18 @@ func (mr *MockDataStoreMockRecorder) SaveDelegation(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDelegation", reflect.TypeOf((*MockDataStore)(nil).SaveDelegation), arg0, arg1)
 }
 
-// SaveNode mocks base method
-func (m *MockDataStore) SaveNode(arg0 context.Context, arg1 structs.Node) error {
+// SaveNodes mocks base method
+func (m *MockDataStore) SaveNodes(arg0 context.Context, arg1 []structs.Node, arg2 common.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveNode", arg0, arg1)
+	ret := m.ctrl.Call(m, "SaveNodes", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveNode indicates an expected call of SaveNode
-func (mr *MockDataStoreMockRecorder) SaveNode(arg0, arg1 interface{}) *gomock.Call {
+// SaveNodes indicates an expected call of SaveNodes
+func (mr *MockDataStoreMockRecorder) SaveNodes(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNode", reflect.TypeOf((*MockDataStore)(nil).SaveNode), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNodes", reflect.TypeOf((*MockDataStore)(nil).SaveNodes), arg0, arg1, arg2)
 }
 
 // SaveSystemEvent mocks base method
@@ -297,15 +257,29 @@ func (mr *MockDataStoreMockRecorder) SaveValidator(arg0, arg1 interface{}) *gomo
 }
 
 // SaveValidatorStatistic mocks base method
-func (m *MockDataStore) SaveValidatorStatistic(arg0 context.Context, arg1 *big.Int, arg2 uint64, arg3 structs.StatisticTypeVS, arg4 *big.Int) error {
+func (m *MockDataStore) SaveValidatorStatistic(arg0 context.Context, arg1 *big.Int, arg2 uint64, arg3 time.Time, arg4 structs.StatisticTypeVS, arg5 *big.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveValidatorStatistic", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "SaveValidatorStatistic", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveValidatorStatistic indicates an expected call of SaveValidatorStatistic
-func (mr *MockDataStoreMockRecorder) SaveValidatorStatistic(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockDataStoreMockRecorder) SaveValidatorStatistic(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistic), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveValidatorStatistic", reflect.TypeOf((*MockDataStore)(nil).SaveValidatorStatistic), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+// UpdateCountsOfValidator mocks base method
+func (m *MockDataStore) UpdateCountsOfValidator(arg0 context.Context, arg1 *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCountsOfValidator", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCountsOfValidator indicates an expected call of UpdateCountsOfValidator
+func (mr *MockDataStoreMockRecorder) UpdateCountsOfValidator(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCountsOfValidator", reflect.TypeOf((*MockDataStore)(nil).UpdateCountsOfValidator), arg0, arg1)
 }

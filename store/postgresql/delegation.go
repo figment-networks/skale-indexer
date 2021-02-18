@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 // SaveDelegation saves delegation
 func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
+
 	_, err := d.db.Exec(`INSERT INTO delegations (
 				"delegation_id",
 				"holder",
@@ -52,6 +54,7 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 		dl.Finished.String(),
 		dl.Info,
 		dl.State)
+
 	return err
 }
 
@@ -74,6 +77,11 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Holder != "" {
+		whereC = append(whereC, ` holder =  $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -156,6 +164,11 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	if params.ValidatorID != "" {
 		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
+		i++
+	}
+	if params.Holder != "" {
+		whereC = append(whereC, ` holder =  $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {

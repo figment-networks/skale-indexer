@@ -119,10 +119,12 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 
 		beforeValue string
 		afterValue  string
+
+		change string
 	)
 	for rows.Next() {
 		e := structs.SystemEvent{}
-		if err = rows.Scan(&e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &e.Change); err != nil {
+		if err = rows.Scan(&e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &change); err != nil {
 			return nil, err
 		}
 
@@ -147,6 +149,10 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 
 		p.SetString(string(recipientID), 10)
 		e.RecipientID.SetBytes(p.Bytes())
+
+		f := new(big.Float)
+		f.SetString(change)
+		e.Change = *f
 
 		systemEvents = append(systemEvents, e)
 	}

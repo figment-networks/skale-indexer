@@ -23,21 +23,32 @@ const (
 )
 
 type Config struct {
-	DatabaseURL string `json:"database_url" envconfig:"DATABASE_URL" required:"true"`
-	AppEnv      string `json:"app_env" envconfig:"APP_ENV" default:"development"`
+	DatabaseURL   string `json:"database_url" envconfig:"DATABASE_URL" required:"true"`
+	AppEnv        string `json:"app_env" envconfig:"APP_ENV" default:"development"`
+	EnableScraper bool   `json:"enable_scraper" envconfig:"ENABLE_SCRAPER" default:"false"`
 
 	Address  string `json:"address" envconfig:"ADDRESS" default:"0.0.0.0"`
 	Port     string `json:"port" envconfig:"PORT" default:"3000"`
 	HTTPPort string `json:"http_port" envconfig:"HTTP_PORT" default:"8087"`
 
 	EthereumAddress string `json:"ethereum_address" envconfig:"ETHEREUM_ADDRESS" default:"http://0.0.0.0:8545"`
-	SkaleABIDir     string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+
+	SkaleABIDir   string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
+	AdditionalABI string `json:"additional_abi" envconfig:"ADDITIONAL_ABI"`
+
+	RequestsPerSecond float64 `json:"requests_per_second" envconfig:"REQUESTS_PER_SECOND" default:"100000"`
 
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
 
 	EthereumNodeType string `json:"ethereum_node_type" envconfig:"ETHEREUM_NODE_TYPE" default:"archive"`
+
+	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
+	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
+
+	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"100"`
+	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"30s"`
 }
 
 // IdentityString returns the full app version string

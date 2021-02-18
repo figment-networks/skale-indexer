@@ -655,7 +655,7 @@ func TestHandler(t *testing.T) {
 
 			mockDB := storeMocks.NewMockDataStore(mockCtrl)
 			zl := zaptest.NewLogger(t)
-			contractor := *client.NewClient(zl, mockDB)
+			contractor := *client.NewClient(zl, mockDB, nil, nil, 1, 1)
 			connector := NewClientConnector(&contractor)
 
 			if tt.expectedParams != nil {

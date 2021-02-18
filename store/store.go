@@ -3,6 +3,9 @@ package store
 import (
 	"context"
 	"math/big"
+	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -22,7 +25,7 @@ type DataStore interface {
 }
 
 type SkaleStore interface {
-	SaveNode(ctx context.Context, node structs.Node) error
+	SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error
 	GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error)
 
 	SaveValidator(ctx context.Context, validator structs.Validator) error
@@ -35,13 +38,11 @@ type SkaleStore interface {
 	SaveAccount(ctx context.Context, account structs.Account) error
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 
-	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
-
+	SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error)
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
-	CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error
-	CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
-	CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error
+
+	UpdateCountsOfValidator(ctx context.Context, validatorID *big.Int) error
 }
 
 type ContractEventStore interface {
@@ -72,8 +73,8 @@ func (s *Store) GetAccounts(ctx context.Context, params structs.AccountParams) (
 	return s.driver.GetAccounts(ctx, params)
 }
 
-func (s *Store) SaveNode(ctx context.Context, node structs.Node) error {
-	return s.driver.SaveNode(ctx, node)
+func (s *Store) SaveNodes(ctx context.Context, nodes []structs.Node, removedNodeAddress common.Address) error {
+	return s.driver.SaveNodes(ctx, nodes, removedNodeAddress)
 }
 
 func (s *Store) GetNodes(ctx context.Context, params structs.NodeParams) (nodes []structs.Node, err error) {
@@ -108,20 +109,13 @@ func (s *Store) GetValidatorStatisticsTimeline(ctx context.Context, params struc
 	return s.driver.GetValidatorStatisticsTimeline(ctx, params)
 }
 
-func (s *Store) CalculateTotalStake(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	return s.driver.CalculateTotalStake(ctx, params)
+func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
+	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
 }
 
-func (s *Store) CalculateActiveNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	return s.driver.CalculateActiveNodes(ctx, params)
-}
-
-func (s *Store) CalculateLinkedNodes(ctx context.Context, params structs.ValidatorStatisticsParams) error {
-	return s.driver.CalculateLinkedNodes(ctx, params)
-}
-
-func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
-	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, statisticsType, amount)
+// Update Params
+func (s *Store) UpdateCountsOfValidator(ctx context.Context, validatorID *big.Int) error {
+	return s.driver.UpdateCountsOfValidator(ctx, validatorID)
 }
 
 // Contract events

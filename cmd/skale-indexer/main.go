@@ -6,8 +6,11 @@ import (
 	"database/sql"
 	"flag"
 	"log"
+	"math/big"
 	"net/http"
+	"os"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/figment-networks/indexing-engine/metrics"
 	"github.com/figment-networks/indexing-engine/metrics/prometheusmetrics"
 
@@ -91,35 +94,67 @@ func main() {
 	pgsqlDriver := postgresql.NewDriver(ctx, db, logger.GetLogger())
 	storeDB := store.New(pgsqlDriver)
 
-	tr := eth.NewEthTransport(cfg.EthereumAddress)
-	if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
-		logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
-		return
-	}
-	defer tr.Close(ctx)
-
-	cm := contract.NewManager()
-	if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
-		logger.Fatal("Error dialing", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
-		return
-	}
-
-	caller := &skale.Caller{}
-	if cfg.EthereumNodeType == "recent" {
-		caller.NodeType = skale.ENTRecent
-	}
-
-	am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
-	eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, am)
 	mux := http.NewServeMux()
 
-	cli := client.NewClient(logger.GetLogger(), storeDB)
-	hCli := webapi.NewClientConnector(cli)
-	hCli.AttachToHandler(mux)
+	if cfg.EnableScraper {
+		logger.GetLogger().Info("Indexer is in scraping mode")
+		caller := skale.NewCaller(skale.ENTArchive, cfg.RequestsPerSecond)
+		nodeTypeMessage := "Ethereum node is in archive mode"
+		if cfg.EthereumNodeType == "recent" {
+			caller.NodeType = skale.ENTRecent
+			nodeTypeMessage = "Ethereum node is in recent mode"
+		}
+		logger.GetLogger().Info(nodeTypeMessage)
 
-	ccs := cm.GetContractsByNames(am.GetImplementedContractNames())
-	sCli := webapi.NewScrapeConnector(logger.GetLogger(), eAPI, ccs)
-	sCli.AttachToHandler(mux)
+		cm := contract.NewManager()
+
+		if cfg.AdditionalABI != "" {
+			f, err := os.Open(cfg.AdditionalABI)
+			if err != nil {
+				logger.Fatal("Error opening default events file", zap.Error(err))
+				return
+			}
+
+			if err = cm.AddGlobalEvents(f); err != nil {
+				f.Close()
+				logger.Fatal("Error loading default events ", zap.Error(err))
+				return
+			}
+			f.Close()
+		}
+
+		if err := cm.LoadContractsFromDir(cfg.SkaleABIDir); err != nil {
+			logger.Fatal("Error getting contracts", zap.String("directory", cfg.SkaleABIDir), zap.Error(err))
+			return
+		}
+		logger.GetLogger().Info("Loaded contracts", zap.String("dir", cfg.SkaleABIDir))
+
+		tr := eth.NewEthTransport(cfg.EthereumAddress)
+		if err := tr.Dial(ctx); err != nil { // TODO(lukanus): check if this has recovery
+			logger.Fatal("Error dialing ethereum", zap.String("ethereum_address", cfg.EthereumAddress), zap.Error(err))
+			return
+		}
+		defer tr.Close(ctx)
+		am := actions.NewManager(caller, storeDB, tr, cm, logger.GetLogger())
+		eAPI := scraper.NewEthereumAPI(logger.GetLogger(), tr, types.Header{Number: new(big.Int).SetUint64(cfg.EthereumSmallestBlockNumber), Time: cfg.EthereumSmallestTime}, am)
+
+		cli := client.NewClient(logger.GetLogger(),
+			storeDB, eAPI,
+			cm.GetContractsByNames(am.GetImplementedContractNames()),
+			cfg.EthereumSmallestBlockNumber,
+			cfg.MaxHeightsPerRequest)
+		hCli := webapi.NewClientConnector(cli)
+		hCli.AttachToHandler(mux)
+
+		sCli := webapi.NewScrapeConnector(logger.GetLogger(), cli, cfg.ScrapeLatestTimeout)
+		sCli.AttachToHandler(mux)
+	} else {
+		logger.GetLogger().Info("Indexer is not in scraping mode")
+
+		cli := client.NewClient(logger.GetLogger(), storeDB, nil, nil, cfg.EthereumSmallestBlockNumber, cfg.MaxHeightsPerRequest)
+		hCli := webapi.NewClientConnector(cli)
+		hCli.AttachToHandler(mux)
+	}
 
 	mux.Handle("/metrics", metrics.Handler())
 
@@ -133,7 +168,6 @@ func main() {
 	if err := s.ListenAndServe(); err != nil {
 		logger.GetLogger().Error("[HTTP] failed to listen", zap.Error(err))
 	}
-
 }
 
 func initConfig(path string) (*config.Config, error) {
