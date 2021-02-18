@@ -218,7 +218,10 @@ OutputLoop:
 }
 
 func isInRange(prvTime, crnTime time.Time) bool {
-	return (crnTime.Year() > prvTime.Year()) || (crnTime.Month() > prvTime.Month())
+	prv := prvTime.UTC()
+	crnt := crnTime.UTC()
+
+	return (crnt.Year() > prv.Year()) || (crnt.Month() > prv.Month())
 }
 
 type ProcInput struct {
