@@ -185,7 +185,6 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	}
 
 	d.BlockHeight = currentBlock
-
 	if err = m.dataStore.SaveDelegation(ctx, d); err != nil {
 		m.l.Error("error saving delegation ", zap.Error(err))
 		return true, err

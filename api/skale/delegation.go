@@ -311,6 +311,10 @@ func (c *Caller) GetValidatorDelegationsIDs(ctx context.Context, bc transport.Bo
 		return nil, errors.New("count is not *big.Int type ")
 	}
 
+	if count.Uint64() == 0 {
+		return delegationsIDs, err
+	}
+
 	vdC, ok := c.validatorDelegationsCache[validatorID.Uint64()]
 	if ok {
 		if count.Uint64() == vdC.Length {
