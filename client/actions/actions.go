@@ -49,7 +49,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
-	GetValidatorDelegationsIDs(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegationsIDs []*big.Int, err error)
+	GetValidatorDelegationsIDs(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegationsIDs []uint64, err error)
 }
 
 type BCGetter interface {
@@ -593,29 +593,37 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 	ts := new(big.Int)
 	contr := bc.GetContract()
 	for _, dID := range delegationsIDs {
-		ds, err := m.c.GetDelegationState(ctx, contr, blockNumber, dID)
-		if err != nil {
-			return err
+
+		m.caches.DelegationLock.RLock()
+		delI, ok := m.caches.Delegation.Get(dID)
+		m.caches.DelegationLock.RUnlock()
+		var del structs.Delegation
+		if !ok {
+			del, err = m.c.GetDelegation(ctx, bc, blockNumber, new(big.Int).SetUint64(dID))
+			if err != nil {
+				return err
+			}
+			m.caches.DelegationLock.Lock()
+			m.caches.Delegation.Add(dID, del)
+			m.caches.DelegationLock.Unlock()
+		} else {
+			del = delI.(structs.Delegation)
 		}
 
-		// Total Stake
-		if ds == structs.DelegationStateDELEGATED || ds == structs.DelegationStateUNDELEGATION_REQUESTED {
-			m.caches.DelegationLock.RLock()
-			delI, ok := m.caches.Delegation.Get(dID)
-			m.caches.DelegationLock.RUnlock()
-			var del structs.Delegation
-			if !ok {
-				del, err = m.c.GetDelegation(ctx, bc, blockNumber, dID)
-				if err != nil {
-					return err
-				}
-				m.caches.DelegationLock.Lock()
-				m.caches.Delegation.Add(dID, del)
-				m.caches.DelegationLock.Unlock()
-			} else {
-				del = delI.(structs.Delegation)
+		if del.State != structs.DelegationStateCOMPLETED && del.State != structs.DelegationStateCANCELED && del.State != structs.DelegationStateREJECTED {
+			ds, err := m.c.GetDelegationState(ctx, contr, blockNumber, new(big.Int).SetUint64(dID))
+			if err != nil {
+				return err
 			}
-			ts = ts.Add(ts, del.Amount)
+			del.State = ds
+			m.caches.DelegationLock.Lock()
+			m.caches.Delegation.Add(dID, del)
+			m.caches.DelegationLock.Unlock()
+
+			// Total Stake
+			if ds == structs.DelegationStateDELEGATED || ds == structs.DelegationStateUNDELEGATION_REQUESTED {
+				ts = ts.Add(ts, del.Amount)
+			}
 		}
 	}
 

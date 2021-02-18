@@ -84,6 +84,11 @@ func (bcc *BoundContractC) GetContract() *bind.BoundContract {
 	return bind.NewBoundContract(bcc.address, bcc.abi, bcc.ET.C, nil, nil)
 }
 
+func (bcc *BoundContractC) AbiUnpack(method string, data []byte) (res []interface{}, err error) {
+	res, err = bcc.abi.Unpack(method, data)
+	return res, err
+}
+
 func (bcc *BoundContractC) RawCall(ctx context.Context, opts *bind.CallOpts, method string, params ...interface{}) (output []byte, err error) {
 
 	// Pack the input, call and unpack the results
@@ -123,5 +128,6 @@ func (bcc *BoundContractC) RawCall(ctx context.Context, opts *bind.CallOpts, met
 			}
 		}
 	}
+
 	return output, err
 }

@@ -16,6 +16,7 @@ var ErrEmptyResponse = errors.New("Returned Empty Response (Reverted 0x)")
 type BoundContractCaller interface {
 	GetContract() *bind.BoundContract
 	RawCall(ctx context.Context, opts *bind.CallOpts, method string, params ...interface{}) (output []byte, err error)
+	AbiUnpack(method string, data []byte) (res []interface{}, err error)
 }
 
 type EthereumTransport interface {

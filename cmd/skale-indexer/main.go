@@ -98,7 +98,7 @@ func main() {
 
 	if cfg.EnableScraper {
 		logger.GetLogger().Info("Indexer is in scraping mode")
-		caller := &skale.Caller{}
+		caller := skale.NewCaller(skale.ENTArchive, cfg.RequestsPerSecond)
 		nodeTypeMessage := "Ethereum node is in archive mode"
 		if cfg.EthereumNodeType == "recent" {
 			caller.NodeType = skale.ENTRecent
