@@ -24,9 +24,9 @@ type ValidatorDelegationsCache struct {
 	Delegations []uint64
 }
 
-func NewCaller(NodeType EthereumNodeType) *Caller {
+func NewCaller(NodeType EthereumNodeType, requestsPerSecond float64) *Caller {
 
-	rateLimiter := rate.NewLimiter(rate.Limit(1000), 1000)
+	rateLimiter := rate.NewLimiter(rate.Limit(requestsPerSecond), int(requestsPerSecond))
 	return &Caller{
 		NodeType:                  NodeType,
 		rateLimiter:               rateLimiter,
