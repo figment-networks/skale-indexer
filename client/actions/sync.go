@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -14,6 +13,11 @@ import (
 	"github.com/figment-networks/skale-indexer/scraper/transport/eth/contract"
 	"go.uber.org/zap"
 )
+
+type DelegationCalculations struct {
+	Err        error
+	TotalStake map[uint64]*big.Int
+}
 
 type syncOutp struct {
 	typ  string
@@ -44,7 +48,7 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 	defer close(outp)
 	go m.syncValidatorsAsync(ctx, contractForValidator, currentBlock, outp)
 	go m.syncNodesAsync(ctx, contractForNodes, currentBlock, outp)
-	go m.syncDelegationsAsync(ctx, contractForDelegations, currentBlock, outp)
+	go m.syncDelegationsAsync(ctx, contractForDelegations, currentBlock, blockTime, outp)
 
 	var count = 3
 	var errors []error
@@ -71,16 +75,18 @@ func (m *Manager) SyncForBeginningOfEpoch(ctx context.Context, version string, c
 		return errors[0]
 	}
 
-	contractCallerForDelegations := m.tr.GetBoundContractCaller(ctx, contractForDelegations.Addr, contractForDelegations.Abi)
+	//contractCallerForDelegations := m.tr.GetBoundContractCaller(ctx, contractForDelegations.Addr, contractForDelegations.Abi)
 	m.l.Info("synchronization - storing validator changes", zap.Uint64("block", currentBlock), zap.Time("blocTime", blockTime))
 	for _, v := range vldrs {
 		if err := m.saveValidatorStatChanges(ctx, v, currentBlock, blockTime); err != nil {
+			m.l.Error("error saving saveValidatorStatChanges ", zap.Error(err))
 			return fmt.Errorf("error saveValidatorStatChanges %w", err)
 		}
-
-		if err := m.getValidatorDelegationValues(ctx, contractCallerForDelegations, currentBlock, blockTime, v.ValidatorID); err != nil {
-			return fmt.Errorf("error getting total stake %w", err)
-		}
+		/*
+			if err := m.getValidatorDelegationValues(ctx, contractCallerForDelegations, currentBlock, blockTime, v.ValidatorID); err != nil {
+				m.l.Error("error getValidatorDelegationValues  ", zap.Error(err))
+				return fmt.Errorf("error getting total stake %w", err)
+			}*/
 
 		nInfo, ok := nodesInfo[v.ValidatorID.Uint64()]
 		if ok {
@@ -122,44 +128,86 @@ func populate(ch, end chan int64) {
 	}
 }
 
-func (m *Manager) syncDelegationsAsync(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, outp chan syncOutp) {
+func mergeCalcs(a, b DelegationCalculations) DelegationCalculations {
+	for k, bVal := range b.TotalStake {
+		if a.TotalStake == nil {
+			a.TotalStake = make(map[uint64]*big.Int)
+		}
+		aVal, ok := a.TotalStake[k]
+		if !ok {
+			aVal = new(big.Int)
+		}
+		a.TotalStake[k] = aVal.Add(aVal, bVal)
+	}
+	return a
+}
+
+func (m *Manager) syncDelegationsAsync(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, currentBlockTime time.Time, outp chan syncOutp) {
 	m.l.Info("synchronization for delegations starts", zap.Uint64("block height", currentBlock))
-	wg := &sync.WaitGroup{}
+
 	ch := make(chan int64)
 	end := make(chan int64)
 	defer close(end)
+
+	dCalcs := make(chan DelegationCalculations)
+	var delegationCalculations DelegationCalculations
+
 	for i := 0; i < 40; i++ {
-		wg.Add(1)
-		go m.syncDelegationsAsyncC(ctx, cV, currentBlock, ch, end, wg)
+		go m.syncDelegationsAsyncC(ctx, cV, currentBlock, ch, end, dCalcs)
 	}
 	go populate(ch, end)
-	wg.Wait()
-
 	m.l.Info("sending delegations")
+	for i := 0; i < 40; i++ {
+		calc := <-dCalcs
+		delegationCalculations = mergeCalcs(delegationCalculations, calc)
+	}
+	var err error
+	for validatorID, v := range delegationCalculations.TotalStake {
+		err = m.dataStore.SaveValidatorStatistic(ctx, new(big.Int).SetUint64(validatorID), currentBlock, currentBlockTime, structs.ValidatorStatisticsTypeTotalStake, v)
+		if err != nil {
+			break
+		}
+
+		err = m.dataStore.UpdateCountsOfValidator(ctx, new(big.Int).SetUint64(validatorID))
+		if err != nil {
+			break
+		}
+	}
+
 	outp <- syncOutp{
 		typ: "delegations",
+		err: err,
 	}
 
 	m.l.Info("synchronization for delegations successful.")
 }
 
-func (m *Manager) syncDelegationsAsyncC(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, in, end chan int64, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (m *Manager) syncDelegationsAsyncC(ctx context.Context, cV contract.ContractsContents, currentBlock uint64, in, end chan int64, dCalcs chan DelegationCalculations) {
+
+	var dCalc DelegationCalculations
 	for i := range in {
-		if finished, err := m.syncDelegations(ctx, cV, *big.NewInt(i), currentBlock); finished || err != nil {
+		finished, delegCalc, err := m.syncDelegations(ctx, cV, *big.NewInt(i), currentBlock)
+		if finished || err != nil {
 			select {
 			case end <- 1:
 			default:
 			}
 			break
 		}
+		dCalc = mergeCalcs(dCalc, delegCalc)
 	}
+
+	dCalcs <- dCalc
 }
 
-func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsContents, dID big.Int, currentBlock uint64) (finished bool, err error) {
+func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsContents, dID big.Int, currentBlock uint64) (finished bool, dCalc DelegationCalculations, err error) {
 
 	bc := m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi)
 	var d structs.Delegation
+
+	dCalc = DelegationCalculations{
+		TotalStake: make(map[uint64]*big.Int),
+	}
 
 	m.caches.DelegationLock.RLock()
 	delI, ok := m.caches.Delegation.Get(&dID)
@@ -169,10 +217,10 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 		m.l.Debug("syncDelegations", zap.Uint64("id", dID.Uint64()), zap.Error(err))
 		if err != nil {
 			if err == transport.ErrEmptyResponse {
-				return true, nil
+				return true, dCalc, nil
 			}
 			m.l.Error("error occurs on sync GetDelegation", zap.Error(err))
-			return true, err
+			return true, dCalc, err
 		}
 	} else {
 		d = delI.(structs.Delegation)
@@ -181,19 +229,27 @@ func (m *Manager) syncDelegations(ctx context.Context, cV contract.ContractsCont
 	d.State, err = m.c.GetDelegationState(ctx, bc.GetContract(), currentBlock, &dID)
 	if err != nil {
 		m.l.Error("error occurs on sync GetDelegationState", zap.Error(err))
-		return true, err
+		return true, dCalc, err
+	}
+
+	if d.State == structs.DelegationStateDELEGATED || d.State == structs.DelegationStateUNDELEGATION_REQUESTED {
+		calc, ok := dCalc.TotalStake[d.ValidatorID.Uint64()]
+		if !ok {
+			calc = new(big.Int)
+		}
+		dCalc.TotalStake[d.ValidatorID.Uint64()] = calc.Add(calc, d.Amount)
 	}
 
 	d.BlockHeight = currentBlock
 	if err = m.dataStore.SaveDelegation(ctx, d); err != nil {
 		m.l.Error("error saving delegation ", zap.Error(err))
-		return true, err
+		return true, dCalc, err
 	}
 
 	m.caches.DelegationLock.Lock()
 	m.caches.Delegation.Add(&dID, d)
 	m.caches.DelegationLock.Unlock()
-	return false, nil
+	return false, dCalc, nil
 }
 
 func (m *Manager) syncValidators(ctx context.Context, cV contract.ContractsContents, currentBlock uint64) (validators []structs.Validator, err error) {
