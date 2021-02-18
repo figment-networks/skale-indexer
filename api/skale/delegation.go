@@ -29,6 +29,10 @@ type DelegationRaw struct {
 }
 
 func (c *Caller) GetDelegation(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, delegationID *big.Int) (d structs.Delegation, err error) {
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return d, err
+	}
+
 	results := []interface{}{}
 
 	co := &bind.CallOpts{
@@ -48,9 +52,6 @@ func (c *Caller) GetDelegation(ctx context.Context, bc transport.BoundContractCa
 		return d, fmt.Errorf("Contract is nil")
 	}
 
-	if err := c.rateLimiter.Wait(ctx); err != nil {
-		return d, err
-	}
 	n := time.Now()
 	if err = contr.Call(co, &results, "delegations", delegationID); err != nil {
 		_, err2 := bc.RawCall(ctx, co, "delegations", delegationID)
@@ -90,6 +91,11 @@ func (c *Caller) GetDelegation(ctx context.Context, bc transport.BoundContractCa
 }
 
 func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error) {
+
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return ds, err
+	}
+
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -106,10 +112,6 @@ func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract,
 	}
 
 	results := []interface{}{}
-
-	if err := c.rateLimiter.Wait(ctx); err != nil {
-		return ds, err
-	}
 
 	n := time.Now()
 	err = bc.Call(co, &results, "getState", delegationID)
@@ -128,6 +130,10 @@ func (c *Caller) GetDelegationState(ctx context.Context, bc *bind.BoundContract,
 }
 
 func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, holderAddress common.Address) (amount *big.Int, err error) {
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, err
+	}
+
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -145,9 +151,6 @@ func (c *Caller) GetPendingDelegationsTokens(ctx context.Context, bc *bind.Bound
 
 	results := []interface{}{}
 
-	if err := c.rateLimiter.Wait(ctx); err != nil {
-		return nil, err
-	}
 	n := time.Now()
 	if err = bc.Call(co, &results, "getLockedInPendingDelegations", holderAddress); err != nil {
 		rawRequestDuration.WithLabels("getLockedInPendingDelegations", "err").Observe(time.Since(n).Seconds())
