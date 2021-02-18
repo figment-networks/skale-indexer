@@ -47,7 +47,7 @@ type Config struct {
 	EthereumSmallestBlockNumber uint64 `json:"smallest_block_number" envconfig:"ETHEREUM_SMALLEST_BLOCK_NUMBER"`
 	EthereumSmallestTime        uint64 `json:"smallest_block_time" envconfig:"ETHEREUM_SMALLEST_BLOCK_TIME"`
 
-	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"100"`
+	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"10"`
 	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"30s"`
 }
 
