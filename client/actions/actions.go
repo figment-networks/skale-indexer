@@ -667,6 +667,16 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 func (m *Manager) asyncStatuses(ctx context.Context, contr *bind.BoundContract, blockNumber uint64, in chan IdAmount, out chan StateError) {
 	for i := range in {
 		ds, err := m.c.GetDelegationState(ctx, contr, blockNumber, new(big.Int).SetUint64(i.Id))
+
+		m.caches.DelegationLock.Lock()
+		delI, ok := m.caches.Delegation.Get(i.Id)
+		if ok {
+			del := delI.(structs.Delegation)
+			del.State = ds
+			m.caches.Delegation.Add(i.Id, del)
+		}
+		m.caches.DelegationLock.Unlock()
+
 		out <- StateError{ds, err, new(big.Int).Set(i.Amount)}
 	}
 }
