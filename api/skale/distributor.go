@@ -13,6 +13,10 @@ import (
 
 func (c *Caller) GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, validatorID *big.Int) (earned, endMonth *big.Int, err error) {
 
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, nil, err
+	}
+
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -29,11 +33,14 @@ func (c *Caller) GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContrac
 	}
 
 	results := []interface{}{}
-	err = bc.Call(co, &results, "getEarnedFeeAmountOf", validatorID)
 
+	n := time.Now()
+	err = bc.Call(co, &results, "getEarnedFeeAmountOf", validatorID)
 	if err != nil {
+		rawRequestDuration.WithLabels("getEarnedFeeAmountOf", "err").Observe(time.Since(n).Seconds())
 		return earned, endMonth, fmt.Errorf("error calling getValidator function %w", err)
 	}
+	rawRequestDuration.WithLabels("getEarnedFeeAmountOf", "ok").Observe(time.Since(n).Seconds())
 
 	if len(results) < 2 {
 		return earned, endMonth, errors.New("empty result")
@@ -54,6 +61,10 @@ func (c *Caller) GetEarnedFeeAmountOf(ctx context.Context, bc *bind.BoundContrac
 
 func (c *Caller) GetAndUpdateEarnedBountyAmountOf(ctx context.Context, bc *bind.BoundContract, validatorID *big.Int, wallet common.Address, blockNumber uint64) (earned, endMonth *big.Int, err error) {
 
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return nil, nil, err
+	}
+
 	ctxT, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
@@ -70,11 +81,14 @@ func (c *Caller) GetAndUpdateEarnedBountyAmountOf(ctx context.Context, bc *bind.
 	}
 
 	results := []interface{}{}
-	err = bc.Call(co, &results, "getAndUpdateEarnedBountyAmountOf", wallet, validatorID)
 
+	n := time.Now()
+	err = bc.Call(co, &results, "getAndUpdateEarnedBountyAmountOf", wallet, validatorID)
 	if err != nil {
+		rawRequestDuration.WithLabels("getAndUpdateEarnedBountyAmountOf", "err").Observe(time.Since(n).Seconds())
 		return earned, endMonth, fmt.Errorf("error calling getValidator function %w", err)
 	}
+	rawRequestDuration.WithLabels("getAndUpdateEarnedBountyAmountOf", "ok").Observe(time.Since(n).Seconds())
 
 	if len(results) < 2 {
 		return earned, endMonth, errors.New("empty result")

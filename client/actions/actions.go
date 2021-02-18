@@ -49,7 +49,7 @@ type Call interface {
 	GetDelegationState(ctx context.Context, bc *bind.BoundContract, blockNumber uint64, delegationID *big.Int) (ds structs.DelegationState, err error)
 	GetValidatorDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegations []structs.Delegation, err error)
 	GetHolderDelegations(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, holder common.Address) (delegations []structs.Delegation, err error)
-	GetValidatorDelegationsIDs(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegationsIDs []*big.Int, err error)
+	GetValidatorDelegationsIDs(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, validatorID *big.Int) (delegationsIDs []uint64, err error)
 }
 
 type BCGetter interface {
@@ -446,10 +446,6 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error storing account %w", err)
 		}
 
-		if err := m.getValidatorDelegationValues(ctx, bc, ce.BlockHeight, ce.Time, d.ValidatorID); err != nil {
-			return fmt.Errorf("error getting total stake %w", err)
-		}
-
 		sysEvt := structs.SystemEvent{
 			Height: ce.BlockHeight,
 			Time:   ce.Time,
@@ -579,6 +575,17 @@ func boolToBigInt(a bool) *big.Int {
 	return big.NewInt(0)
 }
 
+type StateError struct {
+	State  structs.DelegationState
+	Err    error
+	Amount *big.Int
+}
+
+type IdAmount struct {
+	Id     uint64
+	Amount *big.Int
+}
+
 func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport.BoundContractCaller, blockNumber uint64, blockTime time.Time, validatorID *big.Int) error {
 
 	delegationsIDs, err := m.c.GetValidatorDelegationsIDs(ctx, bc, blockNumber, validatorID)
@@ -590,33 +597,54 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 		return fmt.Errorf("error calling GetValidatorDelegationsIDs %w", err)
 	}
 
-	ts := new(big.Int)
 	contr := bc.GetContract()
+
+	ids := make(chan IdAmount)
+	defer close(ids)
+	out := make(chan StateError, len(delegationsIDs))
+	defer close(out)
+	for i := 0; i < 10; i++ {
+		go m.asyncStatuses(ctx, contr, blockNumber, ids, out)
+	}
+
+	var sent uint64
 	for _, dID := range delegationsIDs {
-		ds, err := m.c.GetDelegationState(ctx, contr, blockNumber, dID)
-		if err != nil {
-			return err
+
+		m.caches.DelegationLock.RLock()
+		delI, ok := m.caches.Delegation.Get(dID)
+		m.caches.DelegationLock.RUnlock()
+		var del structs.Delegation
+		if !ok {
+			del, err = m.c.GetDelegation(ctx, bc, blockNumber, new(big.Int).SetUint64(dID))
+			if err != nil {
+				return err
+			}
+			m.caches.DelegationLock.Lock()
+			m.caches.Delegation.Add(dID, del)
+			m.caches.DelegationLock.Unlock()
+		} else {
+			del = delI.(structs.Delegation)
 		}
 
-		// Total Stake
-		if ds == structs.DelegationStateDELEGATED || ds == structs.DelegationStateUNDELEGATION_REQUESTED {
-			m.caches.DelegationLock.RLock()
-			delI, ok := m.caches.Delegation.Get(dID)
-			m.caches.DelegationLock.RUnlock()
-			var del structs.Delegation
-			if !ok {
-				del, err = m.c.GetDelegation(ctx, bc, blockNumber, dID)
-				if err != nil {
-					return err
-				}
-				m.caches.DelegationLock.Lock()
-				m.caches.Delegation.Add(dID, del)
-				m.caches.DelegationLock.Unlock()
-			} else {
-				del = delI.(structs.Delegation)
-			}
-			ts = ts.Add(ts, del.Amount)
+		if del.State != structs.DelegationStateCOMPLETED && del.State != structs.DelegationStateCANCELED && del.State != structs.DelegationStateREJECTED {
+			sent++
+			ids <- IdAmount{dID, new(big.Int).Set(del.Amount)}
 		}
+	}
+
+	ts := new(big.Int)
+	for i := uint64(0); i < sent; i++ {
+		ds := <-out
+		if ds.Err != nil {
+			err = ds.Err
+		}
+		//Total Stake
+		if ds.State == structs.DelegationStateDELEGATED || ds.State == structs.DelegationStateUNDELEGATION_REQUESTED {
+			ts = ts.Add(ts, ds.Amount)
+		}
+	}
+	if err != nil {
+		return err
 	}
 
 	err = m.dataStore.SaveValidatorStatistic(ctx, validatorID, blockNumber, blockTime, structs.ValidatorStatisticsTypeTotalStake, ts)
@@ -630,4 +658,21 @@ func (m *Manager) getValidatorDelegationValues(ctx context.Context, bc transport
 	}
 
 	return nil
+}
+
+func (m *Manager) asyncStatuses(ctx context.Context, contr *bind.BoundContract, blockNumber uint64, in chan IdAmount, out chan StateError) {
+	for i := range in {
+		ds, err := m.c.GetDelegationState(ctx, contr, blockNumber, new(big.Int).SetUint64(i.Id))
+
+		m.caches.DelegationLock.Lock()
+		delI, ok := m.caches.Delegation.Get(i.Id)
+		if ok {
+			del := delI.(structs.Delegation)
+			del.State = ds
+			m.caches.Delegation.Add(i.Id, del)
+		}
+		m.caches.DelegationLock.Unlock()
+
+		out <- StateError{ds, err, new(big.Int).Set(i.Amount)}
+	}
 }

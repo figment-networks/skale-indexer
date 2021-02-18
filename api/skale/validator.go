@@ -47,13 +47,18 @@ func (c *Caller) GetValidator(ctx context.Context, bc transport.BoundContractCal
 	}
 	contr := bc.GetContract()
 
+	now := time.Now()
 	if err = contr.Call(co, &results, "getValidator", validatorID); err != nil {
+
 		_, err2 := bc.RawCall(ctx, co, "getValidator", validatorID)
 		if err2 == transport.ErrEmptyResponse {
+			rawRequestDuration.WithLabels("getValidator", "empty").Observe(time.Since(now).Seconds())
 			return v, err2
 		}
+		rawRequestDuration.WithLabels("getValidator", "err").Observe(time.Since(now).Seconds())
 		return v, fmt.Errorf("error calling getValidator  %w ", err)
 	}
+	rawRequestDuration.WithLabels("getValidator", "ok").Observe(time.Since(now).Seconds())
 
 	if len(results) == 0 {
 		return v, errors.New("empty result")
@@ -91,15 +96,13 @@ func (c *Caller) IsAuthorizedValidator(ctx context.Context, bc *bind.BoundContra
 			co.Pending = true
 		}
 	}
-
-	err = bc.Call(&bind.CallOpts{
-		Pending: false,
-		Context: ctxT,
-	}, &results, "isAuthorizedValidator", validatorID)
-
-	if err != nil {
+	now := time.Now()
+	if err = bc.Call(co, &results, "isAuthorizedValidator", validatorID); err != nil {
+		rawRequestDuration.WithLabels("isAuthorizedValidator", "error").Observe(time.Since(now).Seconds())
 		return false, fmt.Errorf("error calling getValidator function %w", err)
 	}
+
+	rawRequestDuration.WithLabels("getValidator", "ok").Observe(time.Since(now).Seconds())
 
 	var ok bool
 	isAuthorized, ok = results[0].(bool)

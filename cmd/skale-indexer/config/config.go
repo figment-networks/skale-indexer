@@ -36,6 +36,8 @@ type Config struct {
 	SkaleABIDir   string `json:"abi_dir" envconfig:"ABI_DIR" default:"./abi"`
 	AdditionalABI string `json:"additional_abi" envconfig:"ADDITIONAL_ABI"`
 
+	RequestsPerSecond float64 `json:"requests_per_second" envconfig:"REQUESTS_PER_SECOND" default:"100000"`
+
 	// Rollbar
 	RollbarAccessToken string `json:"rollbar_access_token" envconfig:"ROLLBAR_ACCESS_TOKEN"`
 	RollbarServerRoot  string `json:"rollbar_server_root" envconfig:"ROLLBAR_SERVER_ROOT" default:"github.com/figment-networks/skale-indexer"`
