@@ -40,6 +40,8 @@ pack-release:
 	@make build-migration
 	@mv ./migration ./release/migration
 	@make build
+	@cp ./indexer ./release/indexer
+	@cp ./.additional.abi.json ./release/.additional.abi.json
 	@cp -R ./cmd/skale-indexer-migration/migrations ./release/
 	@zip -r indexer ./release
 	@rm -rf ./release
