@@ -174,8 +174,12 @@ func initConfig(path string) (*config.Config, error) {
 	cfg := &config.Config{}
 	if path != "" {
 		if err := config.FromFile(path, cfg); err != nil {
-			return nil, err
+			return cfg, err
 		}
+	}
+
+	if cfg.DatabaseURL != "" {
+		return cfg, nil
 	}
 
 	if err := config.FromEnv(cfg); err != nil {
