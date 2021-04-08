@@ -105,11 +105,18 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		args = append(args, params.ValidatorID)
 		i++
 	}
+
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` registration_time BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
 		args = append(args, params.TimeTo)
 		i += 2
+	}
+
+	if params.Authorized > 0 {
+		whereC = append(whereC, ` authorized = $`+strconv.Itoa(i))
+		args = append(args, params.Authorized == structs.StateTrue)
+		i++
 	}
 
 	if len(args) > 0 {
@@ -124,6 +131,13 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 		}
 	} else {
 		q += ` validator_id ASC `
+	}
+
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
 	}
 
 	var rows *sql.Rows

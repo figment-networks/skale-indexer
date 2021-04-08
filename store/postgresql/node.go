@@ -119,8 +119,14 @@ func (d *Driver) GetNodes(ctx context.Context, params structs.NodeParams) (nodes
 		q += strings.Join(wherec, " AND ")
 	}
 
-	q += ` ORDER BY node_id`
+	q += ` ORDER BY node_id `
 
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 	rows, err := d.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

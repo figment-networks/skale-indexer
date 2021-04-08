@@ -57,7 +57,14 @@ func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.Vali
 		q += ` WHERE `
 	}
 	q += strings.Join(wherec, " AND ")
-	q += ` ORDER BY validator_id ASC, statistic_type, block_height DESC`
+	q += ` ORDER BY validator_id ASC, statistic_type, block_height DESC `
+
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)

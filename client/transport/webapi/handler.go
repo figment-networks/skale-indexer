@@ -81,6 +81,20 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 			}
 		}
 
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 		timeFrom, errFrom := time.Parse(structs.Layout, from)
 		timeTo, errTo := time.Parse(structs.Layout, to)
 		if errFrom == nil && errTo == nil {
@@ -177,6 +191,21 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		params.ValidatorID = req.URL.Query().Get("validator_id")
 		params.Status = req.URL.Query().Get("status")
 
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
 		if m != nil {
 			if nodeId, ok := m["id"]; ok {
 				params.NodeID = nodeId
@@ -264,12 +293,35 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	params := ValidatorParams{}
 	switch req.Method {
 	case http.MethodGet:
-		var timeFrom, timeTo string
-
 		params.ValidatorID = req.URL.Query().Get("id")
-		timeFrom = req.URL.Query().Get("from")
-		timeTo = req.URL.Query().Get("to")
+		timeFrom := req.URL.Query().Get("from")
+		timeTo := req.URL.Query().Get("to")
 
+		authorized := req.URL.Query().Get("authorized")
+		if authorized != "" {
+			auth, err := strconv.ParseUint(authorized, 10, 64)
+			if err != nil || auth > 2 {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing authorized"), http.StatusBadRequest))
+				return
+			}
+			params.Authorized = uint8(auth)
+		}
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
@@ -386,6 +438,21 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			}
 		}
 
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
 		timeFrom, errFrom := time.Parse(structs.Layout, from)
 		timeTo, errTo := time.Parse(structs.Layout, to)
 		if errFrom == nil && errTo == nil {
@@ -489,6 +556,21 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 		params.Type = req.URL.Query().Get("type")
 		params.Address = req.URL.Query().Get("address")
 
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
 		if m != nil {
 			if t, ok := m["type"]; ok {
 				params.Type = t
@@ -556,6 +638,22 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
 		from := req.URL.Query().Get("from")
 		to := req.URL.Query().Get("to")
 		vID := req.URL.Query().Get("validator_id")
@@ -696,10 +794,9 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if after != "" {
-			var err error
 			if params.After, err = strconv.ParseUint(after, 10, 64); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(errors.New("Error parsing after parameter"), http.StatusBadRequest))
+				w.Write(newApiError(errors.New("error parsing 'after' parameter"), http.StatusBadRequest))
 				return
 			}
 		}
@@ -727,13 +824,13 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		w.Write(newApiError(errors.New("error during server query"), http.StatusInternalServerError))
 		return
 	}
 
 	var sEvts []SystemEvent
 	for _, evt := range res {
-		sevt, _ := structs.SysEvtTypes[evt.Kind]
+		sevt := structs.SysEvtTypes[evt.Kind]
 		sEvts = append(sEvts, SystemEvent{
 			Height:      evt.Height,
 			Time:        evt.Time,
@@ -1302,6 +1399,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/accounts", c.GetAccount)
 
 	mux.HandleFunc("/system_events/", c.GetSystemEvents)
+	mux.HandleFunc("/system_events", c.GetSystemEvents)
 }
 
 func pathParams(path, key string) (map[string]string, error) {

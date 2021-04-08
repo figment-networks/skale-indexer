@@ -6,19 +6,34 @@ import (
 
 const Layout = time.RFC3339
 
+type ThreeState uint8
+
+const (
+	StateNotSet ThreeState = iota
+	StateTrue
+	StateFalse
+)
+
 type EventParams struct {
 	Id       uint64
 	Type     string
 	TimeFrom time.Time
 	TimeTo   time.Time
+
+	Limit  uint64
+	Offset uint64
 }
 
 type DelegationParams struct {
 	ValidatorID  string
 	DelegationID string
 	Holder       string
+	State        []string
 	TimeFrom     time.Time
 	TimeTo       time.Time
+
+	Limit  uint64
+	Offset uint64
 }
 
 type NodeParams struct {
@@ -26,19 +41,29 @@ type NodeParams struct {
 	ValidatorID string
 	Status      string
 	Address     string
+
+	Limit  uint64
+	Offset uint64
 }
 
 type AccountParams struct {
 	Type    string
 	Address string
+
+	Limit  uint64
+	Offset uint64
 }
 
 type ValidatorParams struct {
 	ValidatorID    string
 	OrderBy        string
 	OrderDirection string
+	Authorized     ThreeState
 	TimeFrom       time.Time
 	TimeTo         time.Time
+
+	Limit  uint64
+	Offset uint64
 }
 
 type ValidatorStatisticsParams struct {
@@ -48,6 +73,9 @@ type ValidatorStatisticsParams struct {
 	BlockTime   time.Time
 	TimeFrom    time.Time
 	TimeTo      time.Time
+
+	Limit  uint64
+	Offset uint64
 }
 
 type SystemEventParams struct {

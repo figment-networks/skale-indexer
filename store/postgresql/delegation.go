@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/lib/pq"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -91,12 +93,24 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		i += 2
 	}
 
+	if len(params.State) > 0 {
+		whereC = append(whereC, "state @> $"+strconv.Itoa(i))
+		args = append(args, pq.Array(params.State))
+		i++
+	}
+
 	if len(whereC) > 0 {
 		q += " WHERE "
 	}
 	q += strings.Join(whereC, " AND ")
 	q += `ORDER BY block_height DESC`
 
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
@@ -171,6 +185,13 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
+
+	if len(params.State) > 0 {
+		whereC = append(whereC, "state @> $"+strconv.Itoa(i))
+		args = append(args, pq.Array(params.State))
+		i++
+	}
+
 	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
@@ -181,7 +202,14 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		q += " WHERE "
 	}
 	q += strings.Join(whereC, " AND ")
-	q += `ORDER BY delegation_id DESC, block_height DESC`
+	q += ` ORDER BY delegation_id DESC, block_height DESC`
+
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

@@ -16,8 +16,6 @@ CREATE TABLE IF NOT EXISTS delegations
     state                   SMALLINT                 NOT NULL,
     PRIMARY KEY (id)
 );
-
--- TODO: unique constraints?
 -- Indexes
 CREATE INDEX idx_del_h ON delegations (holder);
 CREATE INDEX idx_del_v_id_bl_height ON delegations (validator_id, block_height);

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 	"github.com/lib/pq"
@@ -91,8 +92,14 @@ func (d *Driver) GetContractEvents(ctx context.Context, params structs.EventPara
 		}
 	}
 
-	q += ` ORDER BY time DESC`
+	q += ` ORDER BY time DESC `
 
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 	var rows *sql.Rows
 	if params.Id > 0 {
 		rows, err = d.db.QueryContext(ctx, q, params.TimeFrom, params.TimeTo, params.Id)
