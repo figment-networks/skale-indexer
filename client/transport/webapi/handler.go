@@ -54,7 +54,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		allowCORSHeaders(w)
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -181,7 +181,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/node/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -285,7 +285,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -410,7 +410,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -554,7 +554,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -641,7 +641,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -799,7 +799,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -1013,6 +1013,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     required: false
 	//     description: node status
 	//     example: Active
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1100,6 +1112,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the inclusive ending of the time range for registration time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1198,6 +1222,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: true
 	//     description: the inclusive ending of the time range for block time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	//
 	// Responses:
@@ -1281,6 +1317,11 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     description: holder address
 	//     required: false
 	//   - in: query
+	//     name: state
+	//     type: string
+	//     description: list of states to filter in format '[type_1,type_2,type3]'
+	//     required: false
+	//   - in: query
 	//     name: timeline
 	//     type: boolean
 	//     required: false
@@ -1301,6 +1342,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the inclusive ending of the time range for delegation created time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1378,6 +1431,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     description:  account address
 	//     required: false
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:

@@ -125,7 +125,7 @@ type DelegationParams struct {
 	//
 	// required: false
 	Offset uint64 `json:"offset"`
-	// Holder - holder address
+	// State - states to filter by
 	//
 	// required: false
 	State []string `json:"state"`
