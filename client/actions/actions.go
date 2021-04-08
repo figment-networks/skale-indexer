@@ -265,7 +265,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error in nodes: %w", err)
 		}
 
-		if ce.EventName == "ExitInitialized" || ce.EventName == "ExitCompleted" {
+		isExitEvent := ce.EventName == "ExitInitialized" || ce.EventName == "ExitCompleted"
+		if isExitEvent {
 			err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
 			if err != nil {
 				m.l.Error("error saving exiting/exited node", zap.Error(err))
@@ -297,10 +298,12 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return err
 		}
 
-		err = m.dataStore.SaveValidatorStatistic(ctx, n.ValidatorID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeLinkedNodes, new(big.Int).SetUint64(linkedNodes))
-		if err != nil {
-			m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
-			break
+		if !isExitEvent {
+			err = m.dataStore.SaveValidatorStatistic(ctx, n.ValidatorID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeLinkedNodes, new(big.Int).SetUint64(linkedNodes))
+			if err != nil {
+				m.l.Error("error saving SaveValidatorStatistic for ValidatorStatisticsTypeLinkedNodes ", zap.Error(err))
+				break
+			}
 		}
 
 		err = m.dataStore.UpdateCountsOfValidator(ctx, n.ValidatorID)
