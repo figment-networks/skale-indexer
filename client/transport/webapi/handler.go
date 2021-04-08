@@ -143,6 +143,8 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		Type:     params.Type,
 		TimeFrom: params.TimeFrom,
 		TimeTo:   params.TimeTo,
+		Offset:   params.Offset,
+		Limit:    params.Limit,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -234,6 +236,8 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	nParams := structs.NodeParams{
 		NodeID:      params.NodeID,
 		ValidatorID: params.ValidatorID,
+		Offset:      params.Offset,
+		Limit:       params.Limit,
 	}
 	if params.Status != "" {
 		var ok bool
@@ -363,6 +367,9 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		ValidatorID: params.ValidatorID,
 		TimeFrom:    params.TimeFrom,
 		TimeTo:      params.TimeTo,
+		Authorized:  structs.ThreeState(params.Authorized),
+		Offset:      params.Offset,
+		Limit:       params.Limit,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -488,6 +495,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		ValidatorID: params.ValidatorID,
 		TimeFrom:    params.TimeFrom,
 		TimeTo:      params.TimeTo,
+		Limit:       params.Limit,
+		Offset:      params.Offset,
 	}
 
 	if params.Type != "" || params.Timeline {
@@ -597,6 +606,8 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	res, err := c.cli.GetAccounts(req.Context(), structs.AccountParams{
 		Address: params.Address,
 		Type:    params.Type,
+		Limit:   params.Limit,
+		Offset:  params.Offset,
 	})
 
 	if err != nil {
@@ -637,6 +648,13 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 				w.Write(newApiError(err, http.StatusBadRequest))
 				return
 			}
+		}
+
+		state := req.URL.Query().Get("state")
+		if state != "" {
+			state = strings.TrimPrefix(state, "[")
+			state = strings.TrimSuffix(state, "]")
+			params.State = strings.Split(state, ",")
 		}
 
 		limit := req.URL.Query().Get("limit")
@@ -710,12 +728,27 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// DelegationState
+	var dss []structs.DelegationState
+	for _, st := range params.State {
+		ds := structs.DelegationStateFromString(st)
+		if ds == structs.DelegationStateUNKNOWN {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("wrong delegation state literal"), http.StatusBadRequest))
+			return
+		}
+		dss = append(dss, ds)
+	}
+
 	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
+		State:        dss,
 		Holder:       params.Holder,
 		TimeFrom:     params.TimeFrom,
 		TimeTo:       params.TimeTo,
+		Offset:       params.Offset,
+		Limit:        params.Limit,
 	}
 
 	var (

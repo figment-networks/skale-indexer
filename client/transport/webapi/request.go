@@ -125,6 +125,10 @@ type DelegationParams struct {
 	//
 	// required: false
 	Offset uint64 `json:"offset"`
+	// Holder - holder address
+	//
+	// required: false
+	State []string `json:"state"`
 }
 
 // ValidatorParams a set of fields to be used for validators search

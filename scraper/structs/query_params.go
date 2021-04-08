@@ -28,7 +28,7 @@ type DelegationParams struct {
 	ValidatorID  string
 	DelegationID string
 	Holder       string
-	State        []string
+	State        []DelegationState
 	TimeFrom     time.Time
 	TimeTo       time.Time
 
