@@ -265,6 +265,14 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error in nodes: %w", err)
 		}
 
+		if ce.EventName == "ExitCompleted" {
+			err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
+			if err != nil {
+				m.l.Error("error saving exiting/exited node", zap.Error(err))
+				return err
+			}
+		}
+
 		nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
 		if err != nil {
 			return fmt.Errorf("error getting validator nodes %w", err)
