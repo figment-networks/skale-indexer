@@ -265,7 +265,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			return fmt.Errorf("error in nodes: %w", err)
 		}
 
-		isExitEvent := ce.EventName == "ExitInitialized" || ce.EventName == "ExitCompleted"
+		isExitEvent := ce.EventName == "ExitCompleted"
 		if isExitEvent {
 			err = m.dataStore.SaveNodes(ctx, []structs.Node{n}, common.Address{})
 			if err != nil {
