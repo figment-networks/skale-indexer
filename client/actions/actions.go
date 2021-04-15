@@ -141,7 +141,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 			activeNodesOfValidator, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID)
 			if err != nil {
-				return fmt.Errorf("error getting validator nodes %w", err)
+				return fmt.Errorf("error getting active validator nodes %w", err)
 			}
 
 			nodes, err := m.syncNodes(ctx, cV, ce.BlockHeight)
@@ -278,7 +278,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 		activeNodesOfValidator, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
 		if err != nil {
-			return fmt.Errorf("error getting validator nodes %w", err)
+			return fmt.Errorf("error getting active validator nodes %w", err)
 		}
 
 		cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
@@ -298,7 +298,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 		}
 
 		if err = m.dataStore.SaveNodes(ctx, activeNodesOfValidator, common.Address{}); err != nil {
-			return fmt.Errorf("error storing nodes %w", err)
+			return fmt.Errorf("error storing active nodes %w", err)
 		}
 
 		err = m.dataStore.SaveValidatorStatistic(ctx, n.ValidatorID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeActiveNodes, new(big.Int).SetUint64(activeNodes))
