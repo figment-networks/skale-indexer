@@ -139,18 +139,21 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			if !ok {
 				return errors.New("Node contract is not found for version :" + c.Version)
 			}
-			nodes, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID)
+			activeNodesOfValidator, err := m.c.GetValidatorNodes(ctx, m.tr.GetBoundContractCaller(ctx, cV.Addr, cV.Abi), ce.BlockHeight, vID)
 			if err != nil {
 				return fmt.Errorf("error getting validator nodes %w", err)
 			}
 
+			nodes, err := m.syncNodes(ctx, cV, ce.BlockHeight)
 			var linkedNodes, activeNodes uint64
 			for _, node := range nodes {
-				node.BlockHeight = ce.BlockHeight
-				if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
-					activeNodes++
+				if node.ValidatorID.Cmp(vID) == 0 {
+					node.BlockHeight = ce.BlockHeight
+					if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
+						activeNodes++
+					}
+					linkedNodes++
 				}
-				linkedNodes++
 			}
 
 			removedNodeAddr := common.Address{}
@@ -165,8 +168,8 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 				}
 			}
 
-			if err := m.dataStore.SaveNodes(ctx, nodes, removedNodeAddr); err != nil {
-				return fmt.Errorf("error storing validator nodes %w", err)
+			if err := m.dataStore.SaveNodes(ctx, activeNodesOfValidator, removedNodeAddr); err != nil {
+				return fmt.Errorf("error storing active validator nodes %w", err)
 			}
 
 			err = m.dataStore.SaveValidatorStatistic(ctx, vID, ce.BlockHeight, ce.Time, structs.ValidatorStatisticsTypeActiveNodes, new(big.Int).SetUint64(activeNodes))
@@ -273,21 +276,28 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 			}
 		}
 
-		nodes, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
+		activeNodesOfValidator, err := m.c.GetValidatorNodes(ctx, bc, ce.BlockHeight, n.ValidatorID)
 		if err != nil {
 			return fmt.Errorf("error getting validator nodes %w", err)
 		}
 
+		cV, ok := m.cm.GetContractByNameVersion("nodes", c.Version)
+		if !ok {
+			return errors.New("Node contract is not found for version :" + c.Version)
+		}
+		nodes, err := m.syncNodes(ctx, cV, ce.BlockHeight)
 		var linkedNodes, activeNodes uint64
 		for _, node := range nodes {
-			node.BlockHeight = ce.BlockHeight
-			if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
-				activeNodes++
+			if node.ValidatorID.Cmp(n.ValidatorID) == 0 {
+				node.BlockHeight = ce.BlockHeight
+				if node.Status == structs.NodeStatusActive || node.Status == structs.NodeStatusLeaving {
+					activeNodes++
+				}
+				linkedNodes++
 			}
-			linkedNodes++
 		}
 
-		if err = m.dataStore.SaveNodes(ctx, nodes, common.Address{}); err != nil {
+		if err = m.dataStore.SaveNodes(ctx, activeNodesOfValidator, common.Address{}); err != nil {
 			return fmt.Errorf("error storing nodes %w", err)
 		}
 
