@@ -127,6 +127,21 @@ func (mr *MockDataStoreMockRecorder) GetSystemEvents(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSystemEvents", reflect.TypeOf((*MockDataStore)(nil).GetSystemEvents), arg0, arg1)
 }
 
+// GetTypesSummaryDelegations mocks base method
+func (m *MockDataStore) GetTypesSummaryDelegations(arg0 context.Context, arg1 structs.DelegationParams) ([]structs.DelegationSummary, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTypesSummaryDelegations", arg0, arg1)
+	ret0, _ := ret[0].([]structs.DelegationSummary)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTypesSummaryDelegations indicates an expected call of GetTypesSummaryDelegations
+func (mr *MockDataStoreMockRecorder) GetTypesSummaryDelegations(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTypesSummaryDelegations", reflect.TypeOf((*MockDataStore)(nil).GetTypesSummaryDelegations), arg0, arg1)
+}
+
 // GetValidatorStatistics mocks base method
 func (m *MockDataStore) GetValidatorStatistics(arg0 context.Context, arg1 structs.ValidatorStatisticsParams) ([]structs.ValidatorStatistics, error) {
 	m.ctrl.T.Helper()
