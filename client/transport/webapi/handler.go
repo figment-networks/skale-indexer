@@ -21,12 +21,15 @@ type ClientContractor interface {
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
+
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 
 	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error)
+
+	GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -256,7 +259,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var nodes []Node
+	nodes := []Node{}
 	for _, n := range res {
 		nodes = append(nodes, Node{
 			NodeID:         n.NodeID,
@@ -377,7 +380,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var vlds []Validator
+	vlds := []Validator{}
 	for _, vld := range res {
 		vlds = append(vlds, Validator{
 			ValidatorID:             vld.ValidatorID,
@@ -426,7 +429,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		to := req.URL.Query().Get("to")
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -440,8 +443,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if typ, ok := m["type"]; ok {
 				params.Type = typ
 			}
-			if _, ok := m["timeline"]; ok {
-				params.Timeline = true
+			if tim, ok := m["timeline"]; ok {
+				params.Timeline, _ = strconv.ParseBool(tim)
 			}
 		}
 
@@ -521,7 +524,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	var vlds []ValidatorStatistic
+	vlds := []ValidatorStatistic{}
 	for _, v := range res {
 		vld := ValidatorStatistic{
 			Type:        v.Type.String(),
@@ -616,7 +619,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var accs []Account
+	accs := []Account{}
 	for _, a := range res {
 		accs = append(accs, Account{
 			Address: a.Address,
@@ -672,18 +675,14 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		from := req.URL.Query().Get("from")
-		to := req.URL.Query().Get("to")
+		at := req.URL.Query().Get("time_at")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
 		holder := req.URL.Query().Get("holder")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
 		if m != nil {
-			if f, ok := m["from"]; ok {
-				from = f
-			}
-			if t, ok := m["to"]; ok {
-				to = t
+			if t, ok := m["time_at"]; ok {
+				at = t
 			}
 			if v, ok := m["validator_id"]; ok {
 				vID = v
@@ -703,9 +702,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		params.Holder = holder
 
 		var errFrom, errTo error
-		if from != "" && to != "" {
-			params.TimeFrom, errFrom = time.Parse(structs.Layout, from)
-			params.TimeTo, errTo = time.Parse(structs.Layout, to)
+		if at != "" {
+			params.TimeAt, errFrom = time.Parse(structs.Layout, at)
 		}
 		if errFrom != nil || errTo != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -745,10 +743,11 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		DelegationID: params.DelegationID,
 		State:        dss,
 		Holder:       params.Holder,
-		TimeFrom:     params.TimeFrom,
-		TimeTo:       params.TimeTo,
-		Offset:       params.Offset,
-		Limit:        params.Limit,
+		//		TimeFrom:     params.TimeFrom,
+		//		TimeTo:       params.TimeTo,
+		TimeAt: params.TimeAt,
+		Offset: params.Offset,
+		Limit:  params.Limit,
 	}
 
 	var (
@@ -767,7 +766,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var dlgs []Delegation
+	dlgs := []Delegation{}
 	for _, dlg := range res {
 		dlgs = append(dlgs, Delegation{
 			DelegationID:    dlg.DelegationID,
@@ -861,7 +860,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var sEvts []SystemEvent
+	sEvts := []SystemEvent{}
 	for _, evt := range res {
 		sevt := structs.SysEvtTypes[evt.Kind]
 		sEvts = append(sEvts, SystemEvent{
@@ -882,6 +881,99 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	enc := json.NewEncoder(w)
 	w.WriteHeader(http.StatusOK)
 	if err := enc.Encode(sEvts); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
+}
+
+func (c *Connector) GetSummary(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
+
+	params := DelegationParams{}
+	switch req.Method {
+	case http.MethodGet:
+		m := map[string]string{}
+		var err error
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/summary/", "", -1), "validator_id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
+		}
+
+		at := req.URL.Query().Get("time_at")
+		vID := req.URL.Query().Get("validator_id")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
+		if m != nil {
+			if f, ok := m["time_at"]; ok {
+				at = f
+			}
+			if v, ok := m["validator_id"]; ok {
+				vID = v
+			}
+		}
+		params.ValidatorID = vID
+
+		if at != "" {
+			params.TimeAt, err = time.Parse(structs.Layout, at)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+				return
+			}
+		}
+
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	dParams := structs.DelegationParams{
+		ValidatorID:  params.ValidatorID,
+		DelegationID: params.DelegationID,
+		TimeAt:       params.TimeAt,
+		Offset:       params.Offset,
+		Limit:        params.Limit,
+	}
+
+	var (
+		res []structs.DelegationSummary
+		err error
+	)
+
+	res, err = c.cli.GetTypesSummaryDelegations(req.Context(), dParams)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	summ := Summary{}
+	for _, dlg := range res {
+		summ.Delegations = append(summ.Delegations, DelegationSummary{
+			Count:  dlg.Count,
+			Amount: dlg.Amount,
+			State:  dlg.State.String(),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	if err := enc.Encode(summ); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(err, http.StatusInternalServerError))
 	}
@@ -1498,6 +1590,9 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 
 	mux.HandleFunc("/system_events/", c.GetSystemEvents)
 	mux.HandleFunc("/system_events", c.GetSystemEvents)
+
+	mux.HandleFunc("/summary/", c.GetSummary)
+	mux.HandleFunc("/summary", c.GetSummary)
 }
 
 func pathParams(path, key string) (map[string]string, error) {

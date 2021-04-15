@@ -265,3 +265,15 @@ func newApiError(err error, code int) []byte {
 	})
 	return resp
 }
+
+// SystemEvent event information for reporting some activities in chain
+// swagger:model
+type Summary struct {
+	Delegations []DelegationSummary `json:"delegation_summary"`
+}
+
+type DelegationSummary struct {
+	Count  *big.Int `json:"count"`
+	Amount *big.Int `json:"amount"`
+	State  string   `json:"state"`
+}

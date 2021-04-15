@@ -100,18 +100,12 @@ type DelegationParams struct {
 	//
 	// format: hexadecimal
 	Holder string `json:"holder"`
-	// TimeFrom - the inclusive beginning of the time range for delegation created time
-	//
-	// supposed to be sent with time to
-	// time format: RFC3339
-	// example: 2020-09-22T12:42:31Z
-	TimeFrom time.Time `json:"from"`
-	// TimeTo - the inclusive ending of the time range for delegation created time
+	// TimeAt - point time for that the validation statuses will be returned
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
 	// example: 2021-09-22T12:42:31Z
-	TimeTo time.Time `json:"to"`
+	TimeAt time.Time `json:"at"`
 	// Timeline - returns whether the latest or delegation changes timeline
 	//
 	// case false to fetch recent info for filtered delegations

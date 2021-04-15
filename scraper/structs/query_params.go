@@ -29,8 +29,10 @@ type DelegationParams struct {
 	DelegationID string
 	Holder       string
 	State        []DelegationState
-	TimeFrom     time.Time
-	TimeTo       time.Time
+	TimeAt       time.Time
+
+	TimeFrom time.Time
+	TimeTo   time.Time
 
 	Limit  uint64
 	Offset uint64

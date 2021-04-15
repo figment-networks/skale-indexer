@@ -81,3 +81,9 @@ func DelegationStateFromString(s string) DelegationState {
 		return DelegationStateUNKNOWN
 	}
 }
+
+type DelegationSummary struct {
+	Count  *big.Int        `json:"count"`
+	Amount *big.Int        `json:"amount"`
+	State  DelegationState `json:"state"`
+}
