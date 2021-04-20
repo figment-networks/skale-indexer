@@ -15,17 +15,11 @@ func (d *Driver) SaveValidatorStatistic(ctx context.Context, validatorID *big.In
 	// (lukanus): Update value in validator_statistics unless the value already exists
 	_, err = d.db.ExecContext(ctx, `
 	INSERT INTO validator_statistics (validator_id, block_height, time, statistic_type, amount)
-		( SELECT $1, $2, $3, $4, $5	WHERE
-			NOT EXISTS (
-					SELECT 1 FROM validator_statistics
-					WHERE validator_id = $1 AND statistic_type = $4 AND block_height < $2 AND amount = $5
-					ORDER BY block_height DESC LIMIT 1
-					)
-		)
+		( SELECT $1, $2, $3, $4, $5	WHERE $5 NOT IN ( SELECT amount FROM validator_statistics WHERE validator_id = $1 AND statistic_type = $4 AND block_height < $2 ORDER BY block_height DESC LIMIT 1))
 		ON CONFLICT (validator_id, block_height, statistic_type)
 		DO UPDATE SET amount = EXCLUDED.amount;`,
 		validatorID.String(), blockHeight, blockTime, statisticsType, amount.String())
-	return nil
+	return err
 }
 
 func (d *Driver) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {

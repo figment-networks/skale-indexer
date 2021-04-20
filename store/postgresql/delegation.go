@@ -81,7 +81,7 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	}
 
 	if !params.TimeAt.IsZero() {
-		whereC = append(whereC, `$`+strconv.Itoa(i)+` BETWEEN created AND until`)
+		whereC = append(whereC, ` $`+strconv.Itoa(i)+` BETWEEN created AND until`)
 		args = append(args, params.TimeAt)
 		i += 1
 	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -184,13 +184,13 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 	}
 
 	if len(params.State) > 0 {
-		whereC = append(whereC, "state @> $"+strconv.Itoa(i))
+		whereC = append(whereC, " state @> $"+strconv.Itoa(i))
 		args = append(args, pq.Array(params.State))
 		i++
 	}
 
 	if !params.TimeAt.IsZero() {
-		whereC = append(whereC, `$`+strconv.Itoa(i)+` BETWEEN created AND until`)
+		whereC = append(whereC, ` $`+strconv.Itoa(i)+` BETWEEN created AND until`)
 		args = append(args, params.TimeAt)
 		i += 1
 	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
@@ -309,12 +309,12 @@ func (d *Driver) GetTypesSummaryDelegations(ctx context.Context, params structs.
 		}
 
 		h := new(big.Int)
-
 		h.SetString(count, 10)
 		dlg.Count = h
 
-		h.SetString(amount, 10)
-		dlg.Amount = h
+		h2 := new(big.Int)
+		h2.SetString(amount, 10)
+		dlg.Amount = h2
 
 		delegations = append(delegations, dlg)
 	}
