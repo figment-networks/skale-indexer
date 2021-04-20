@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
@@ -534,7 +534,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			Amount:      v.Amount.String(),
 		}
 		if v.Type == structs.ValidatorStatisticsTypeValidatorAddress || v.Type == structs.ValidatorStatisticsTypeRequestedAddress {
-			vld.Amount = common.ToHex(v.Amount.Bytes())
+			vld.Amount = hexutil.Encode(v.Amount.Bytes())
 		}
 
 		vlds = append(vlds, vld)
