@@ -962,7 +962,10 @@ func (c *Connector) GetSummary(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	summ := Summary{}
+	summ := Summary{
+		Delegations: []DelegationSummary{},
+	}
+
 	for _, dlg := range res {
 		summ.Delegations = append(summ.Delegations, DelegationSummary{
 			Count:  dlg.Count,
