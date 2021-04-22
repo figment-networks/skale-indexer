@@ -42,11 +42,6 @@ func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
 
-func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-
 // GetContractEvents
 func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) {
 
@@ -984,7 +979,6 @@ func (c *Connector) GetSummary(w http.ResponseWriter, req *http.Request) {
 
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
-	mux.HandleFunc("/health", c.HealthCheck)
 
 	// swagger:operation GET /events Event getContractEvents
 	//
