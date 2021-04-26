@@ -30,6 +30,14 @@ type EventParams struct {
 	// time format: RFC3339
 	// example: 2021-09-22T12:42:31Z
 	TimeTo time.Time `json:"to"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
 }
 
 // NodeParams a set of fields to be used for nodes search
@@ -47,6 +55,14 @@ type NodeParams struct {
 	//
 	// example: Active
 	Status string `json:"status"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
 }
 
 // AccountParams a set of fields to be used for accounts search
@@ -59,6 +75,14 @@ type AccountParams struct {
 	//
 	// format: hexadecimal
 	Address string `json:"address"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
 }
 
 // DelegationParams a set of fields to be used for accounts search
@@ -76,23 +100,29 @@ type DelegationParams struct {
 	//
 	// format: hexadecimal
 	Holder string `json:"holder"`
-	// TimeFrom - the inclusive beginning of the time range for delegation created time
-	//
-	// supposed to be sent with time to
-	// time format: RFC3339
-	// example: 2020-09-22T12:42:31Z
-	TimeFrom time.Time `json:"from"`
-	// TimeTo - the inclusive ending of the time range for delegation created time
+	// TimeAt - point time for that the validation statuses will be returned
 	//
 	// supposed to be sent with time to
 	// time format: RFC3339
 	// example: 2021-09-22T12:42:31Z
-	TimeTo time.Time `json:"to"`
+	TimeAt time.Time `json:"at"`
 	// Timeline - returns whether the latest or delegation changes timeline
 	//
 	// case false to fetch recent info for filtered delegations
 	// case true to fetch whole delegations for the filter
 	Timeline bool `json:"timeline"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
+	// State - states to filter by
+	//
+	// required: false
+	State []string `json:"state"`
 }
 
 // ValidatorParams a set of fields to be used for validators search
@@ -114,6 +144,18 @@ type ValidatorParams struct {
 	// time format: RFC3339
 	// example: 2021-09-22T12:42:31Z
 	TimeTo time.Time `json:"to"`
+	// Authorized - get 1 = only authorized, 2 = only not authorized
+	//
+	// example: 1
+	Authorized uint8 `json:"authorized"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
 }
 
 // ValidatorStatisticsParams a set of fields to be used for validator statistics search
@@ -146,6 +188,14 @@ type ValidatorStatisticsParams struct {
 	// case false to fetch recent info for filtered statistics
 	// case true to fetch whole statistics for the filter
 	Timeline bool `json:"timeline"`
+	// Limit - Limit of the records per page
+	//
+	// required: false
+	Limit uint64 `json:"limit"`
+	// Offset - Offset of the records in pages
+	//
+	// required: false
+	Offset uint64 `json:"offset"`
 }
 
 // SystemEventParams a set of fields to be used for system events

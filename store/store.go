@@ -42,6 +42,8 @@ type SkaleStore interface {
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 
+	GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error)
+
 	UpdateCountsOfValidator(ctx context.Context, validatorID *big.Int) error
 }
 
@@ -111,6 +113,10 @@ func (s *Store) GetValidatorStatisticsTimeline(ctx context.Context, params struc
 
 func (s *Store) SaveValidatorStatistic(ctx context.Context, validatorID *big.Int, blockHeight uint64, blockTime time.Time, statisticsType structs.StatisticTypeVS, amount *big.Int) (err error) {
 	return s.driver.SaveValidatorStatistic(ctx, validatorID, blockHeight, blockTime, statisticsType, amount)
+}
+
+func (s *Store) GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error) {
+	return s.driver.GetTypesSummaryDelegations(ctx, params)
 }
 
 // Update Params

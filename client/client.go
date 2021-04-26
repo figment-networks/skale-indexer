@@ -43,6 +43,14 @@ func NewClient(log *zap.Logger, storeEng store.DataStore, ethConn EthereumConnec
 	}
 }
 
+func (c *Client) GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error) {
+	ev, err := c.storeEng.GetTypesSummaryDelegations(ctx, params)
+	if err != nil {
+		c.log.Error("[CLIENT] Error in GetTypesSummaryDelegations", zap.Any("params", params), zap.Error(err))
+	}
+	return ev, err
+}
+
 func (c *Client) GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error) {
 	ev, err := c.storeEng.GetContractEvents(ctx, params)
 	if err != nil {

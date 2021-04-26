@@ -60,3 +60,30 @@ func (k DelegationState) String() string {
 		return "UNKNOWN"
 	}
 }
+
+func DelegationStateFromString(s string) DelegationState {
+	switch s {
+	case "PROPOSED":
+		return DelegationStatePROPOSED
+	case "ACCEPTED":
+		return DelegationStateACCEPTED
+	case "CANCELED":
+		return DelegationStateCANCELED
+	case "REJECTED":
+		return DelegationStateREJECTED
+	case "DELEGATED":
+		return DelegationStateDELEGATED
+	case "UNDELEGATION_REQUESTED":
+		return DelegationStateUNDELEGATION_REQUESTED
+	case "COMPLETED":
+		return DelegationStateCOMPLETED
+	default:
+		return DelegationStateUNKNOWN
+	}
+}
+
+type DelegationSummary struct {
+	Count  *big.Int        `json:"count"`
+	Amount *big.Int        `json:"amount"`
+	State  DelegationState `json:"state"`
+}

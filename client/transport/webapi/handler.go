@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
 
@@ -21,12 +21,15 @@ type ClientContractor interface {
 	GetValidators(ctx context.Context, params structs.ValidatorParams) (validators []structs.Validator, err error)
 	GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
 	GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error)
+
 	GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetValidatorStatisticsTimeline(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error)
 	GetAccounts(ctx context.Context, params structs.AccountParams) (accounts []structs.Account, err error)
 
 	GetContractEvents(ctx context.Context, params structs.EventParams) (contractEvents []structs.ContractEvent, err error)
 	GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error)
+
+	GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error)
 }
 
 // Connector is main HTTP connector for manager
@@ -39,11 +42,6 @@ func NewClientConnector(cli ClientContractor) *Connector {
 	return &Connector{cli}
 }
 
-func (c *Connector) HealthCheck(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-
 // GetContractEvents
 func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) {
 
@@ -54,7 +52,7 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		allowCORSHeaders(w)
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/events/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -81,6 +79,20 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 			}
 		}
 
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 		timeFrom, errFrom := time.Parse(structs.Layout, from)
 		timeTo, errTo := time.Parse(structs.Layout, to)
 		if errFrom == nil && errTo == nil {
@@ -129,6 +141,8 @@ func (c *Connector) GetContractEvents(w http.ResponseWriter, req *http.Request) 
 		Type:     params.Type,
 		TimeFrom: params.TimeFrom,
 		TimeTo:   params.TimeTo,
+		Offset:   params.Offset,
+		Limit:    params.Limit,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -165,7 +179,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/node/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -176,6 +190,21 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		params.NodeID = req.URL.Query().Get("id")
 		params.ValidatorID = req.URL.Query().Get("validator_id")
 		params.Status = req.URL.Query().Get("status")
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 
 		if m != nil {
 			if nodeId, ok := m["id"]; ok {
@@ -205,6 +234,8 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 	nParams := structs.NodeParams{
 		NodeID:      params.NodeID,
 		ValidatorID: params.ValidatorID,
+		Offset:      params.Offset,
+		Limit:       params.Limit,
 	}
 	if params.Status != "" {
 		var ok bool
@@ -223,7 +254,7 @@ func (c *Connector) GetNode(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var nodes []Node
+	nodes := []Node{}
 	for _, n := range res {
 		nodes = append(nodes, Node{
 			NodeID:         n.NodeID,
@@ -252,7 +283,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -264,12 +295,35 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 	params := ValidatorParams{}
 	switch req.Method {
 	case http.MethodGet:
-		var timeFrom, timeTo string
-
 		params.ValidatorID = req.URL.Query().Get("id")
-		timeFrom = req.URL.Query().Get("from")
-		timeTo = req.URL.Query().Get("to")
+		timeFrom := req.URL.Query().Get("from")
+		timeTo := req.URL.Query().Get("to")
 
+		authorized := req.URL.Query().Get("authorized")
+		if authorized != "" {
+			auth, err := strconv.ParseUint(authorized, 10, 64)
+			if err != nil || auth > 2 {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing authorized"), http.StatusBadRequest))
+				return
+			}
+			params.Authorized = uint8(auth)
+		}
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 		if m != nil {
 			if id, ok := m["id"]; ok {
 				params.ValidatorID = id
@@ -311,6 +365,9 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		ValidatorID: params.ValidatorID,
 		TimeFrom:    params.TimeFrom,
 		TimeTo:      params.TimeTo,
+		Authorized:  structs.ThreeState(params.Authorized),
+		Offset:      params.Offset,
+		Limit:       params.Limit,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -318,7 +375,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var vlds []Validator
+	vlds := []Validator{}
 	for _, vld := range res {
 		vlds = append(vlds, Validator{
 			ValidatorID:             vld.ValidatorID,
@@ -351,7 +408,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/validators/statistics/", "", -1), "id")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -367,7 +424,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		to := req.URL.Query().Get("to")
 		params.ValidatorID = req.URL.Query().Get("id")
 		params.Type = req.URL.Query().Get("type")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
 		if m != nil {
 			if f, ok := m["from"]; ok {
 				from = f
@@ -381,8 +438,23 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			if typ, ok := m["type"]; ok {
 				params.Type = typ
 			}
-			if _, ok := m["timeline"]; ok {
-				params.Timeline = true
+			if tim, ok := m["timeline"]; ok {
+				params.Timeline, _ = strconv.ParseBool(tim)
+			}
+		}
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
 			}
 		}
 
@@ -421,6 +493,8 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		ValidatorID: params.ValidatorID,
 		TimeFrom:    params.TimeFrom,
 		TimeTo:      params.TimeTo,
+		Limit:       params.Limit,
+		Offset:      params.Offset,
 	}
 
 	if params.Type != "" || params.Timeline {
@@ -445,7 +519,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	var vlds []ValidatorStatistic
+	vlds := []ValidatorStatistic{}
 	for _, v := range res {
 		vld := ValidatorStatistic{
 			Type:        v.Type.String(),
@@ -455,7 +529,7 @@ func (c *Connector) GetValidatorStatistics(w http.ResponseWriter, req *http.Requ
 			Amount:      v.Amount.String(),
 		}
 		if v.Type == structs.ValidatorStatisticsTypeValidatorAddress || v.Type == structs.ValidatorStatisticsTypeRequestedAddress {
-			vld.Amount = common.ToHex(v.Amount.Bytes())
+			vld.Amount = hexutil.Encode(v.Amount.Bytes())
 		}
 
 		vlds = append(vlds, vld)
@@ -478,7 +552,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/accounts/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -488,6 +562,21 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 		}
 		params.Type = req.URL.Query().Get("type")
 		params.Address = req.URL.Query().Get("address")
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
 
 		if m != nil {
 			if t, ok := m["type"]; ok {
@@ -515,6 +604,8 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 	res, err := c.cli.GetAccounts(req.Context(), structs.AccountParams{
 		Address: params.Address,
 		Type:    params.Type,
+		Limit:   params.Limit,
+		Offset:  params.Offset,
 	})
 
 	if err != nil {
@@ -523,7 +614,7 @@ func (c *Connector) GetAccount(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var accs []Account
+	accs := []Account{}
 	for _, a := range res {
 		accs = append(accs, Account{
 			Address: a.Address,
@@ -548,7 +639,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		m := map[string]string{}
 		var err error
-		if strings.Index(req.URL.Path[1:], "/") > 0 {
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 			m, err = pathParams(strings.Replace(req.URL.Path, "/delegations/", "", -1), "id")
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -556,18 +647,37 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		from := req.URL.Query().Get("from")
-		to := req.URL.Query().Get("to")
+
+		state := req.URL.Query().Get("state")
+		if state != "" {
+			state = strings.TrimPrefix(state, "[")
+			state = strings.TrimSuffix(state, "]")
+			params.State = strings.Split(state, ",")
+		}
+
+		limit := req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
+		at := req.URL.Query().Get("time_at")
 		vID := req.URL.Query().Get("validator_id")
 		dID := req.URL.Query().Get("id")
 		holder := req.URL.Query().Get("holder")
-		params.Timeline = (req.URL.Query().Get("timeline") != "")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
 		if m != nil {
-			if f, ok := m["from"]; ok {
-				from = f
-			}
-			if t, ok := m["to"]; ok {
-				to = t
+			if t, ok := m["time_at"]; ok {
+				at = t
 			}
 			if v, ok := m["validator_id"]; ok {
 				vID = v
@@ -587,9 +697,8 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		params.Holder = holder
 
 		var errFrom, errTo error
-		if from != "" && to != "" {
-			params.TimeFrom, errFrom = time.Parse(structs.Layout, from)
-			params.TimeTo, errTo = time.Parse(structs.Layout, to)
+		if at != "" {
+			params.TimeAt, errFrom = time.Parse(structs.Layout, at)
 		}
 		if errFrom != nil || errTo != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -612,12 +721,28 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// DelegationState
+	var dss []structs.DelegationState
+	for _, st := range params.State {
+		ds := structs.DelegationStateFromString(st)
+		if ds == structs.DelegationStateUNKNOWN {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(newApiError(errors.New("wrong delegation state literal"), http.StatusBadRequest))
+			return
+		}
+		dss = append(dss, ds)
+	}
+
 	dParams := structs.DelegationParams{
 		ValidatorID:  params.ValidatorID,
 		DelegationID: params.DelegationID,
+		State:        dss,
 		Holder:       params.Holder,
-		TimeFrom:     params.TimeFrom,
-		TimeTo:       params.TimeTo,
+		//		TimeFrom:     params.TimeFrom,
+		//		TimeTo:       params.TimeTo,
+		TimeAt: params.TimeAt,
+		Offset: params.Offset,
+		Limit:  params.Limit,
 	}
 
 	var (
@@ -636,7 +761,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var dlgs []Delegation
+	dlgs := []Delegation{}
 	for _, dlg := range res {
 		dlgs = append(dlgs, Delegation{
 			DelegationID:    dlg.DelegationID,
@@ -668,7 +793,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 
 	m := map[string]string{}
 	var err error
-	if strings.Index(req.URL.Path[1:], "/") > 0 {
+	if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
 		m, err = pathParams(strings.Replace(req.URL.Path, "/system_events/", "", -1), "address")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -696,10 +821,9 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if after != "" {
-			var err error
 			if params.After, err = strconv.ParseUint(after, 10, 64); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(newApiError(errors.New("Error parsing after parameter"), http.StatusBadRequest))
+				w.Write(newApiError(errors.New("error parsing 'after' parameter"), http.StatusBadRequest))
 				return
 			}
 		}
@@ -727,13 +851,13 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(newApiError(errors.New("Error during server query"), http.StatusInternalServerError))
+		w.Write(newApiError(errors.New("error during server query"), http.StatusInternalServerError))
 		return
 	}
 
-	var sEvts []SystemEvent
+	sEvts := []SystemEvent{}
 	for _, evt := range res {
-		sevt, _ := structs.SysEvtTypes[evt.Kind]
+		sevt := structs.SysEvtTypes[evt.Kind]
 		sEvts = append(sEvts, SystemEvent{
 			Height:      evt.Height,
 			Time:        evt.Time,
@@ -757,9 +881,104 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (c *Connector) GetSummary(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	allowCORSHeaders(w)
+
+	params := DelegationParams{}
+	switch req.Method {
+	case http.MethodGet:
+		m := map[string]string{}
+		var err error
+		if req.URL != nil && len(req.URL.Path) > 0 && strings.Index(req.URL.Path[1:], "/") > 0 {
+			m, err = pathParams(strings.Replace(req.URL.Path, "/summary/", "", -1), "validator_id")
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(err, http.StatusBadRequest))
+				return
+			}
+		}
+
+		at := req.URL.Query().Get("time_at")
+		vID := req.URL.Query().Get("validator_id")
+		params.Timeline, _ = strconv.ParseBool(req.URL.Query().Get("timeline"))
+		if m != nil {
+			if f, ok := m["time_at"]; ok {
+				at = f
+			}
+			if v, ok := m["validator_id"]; ok {
+				vID = v
+			}
+		}
+		params.ValidatorID = vID
+
+		if at != "" {
+			params.TimeAt, err = time.Parse(structs.Layout, at)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(structs.ErrMissingParameter, http.StatusBadRequest))
+				return
+			}
+		}
+
+	case http.MethodPost:
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&params); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(newApiError(structs.ErrMissingParameter, http.StatusInternalServerError))
+			return
+		}
+	case http.MethodOptions:
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write(newApiError(structs.ErrNotAllowedMethod, http.StatusMethodNotAllowed))
+		return
+	}
+
+	dParams := structs.DelegationParams{
+		ValidatorID:  params.ValidatorID,
+		DelegationID: params.DelegationID,
+		TimeAt:       params.TimeAt,
+		Offset:       params.Offset,
+		Limit:        params.Limit,
+	}
+
+	var (
+		res []structs.DelegationSummary
+		err error
+	)
+
+	res, err = c.cli.GetTypesSummaryDelegations(req.Context(), dParams)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+		return
+	}
+
+	summ := Summary{
+		Delegations: []DelegationSummary{},
+	}
+
+	for _, dlg := range res {
+		summ.Delegations = append(summ.Delegations, DelegationSummary{
+			Count:  dlg.Count,
+			Amount: dlg.Amount,
+			State:  dlg.State.String(),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	if err := enc.Encode(summ); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(newApiError(err, http.StatusInternalServerError))
+	}
+}
+
 // AttachToHandler attaches handlers to http server's mux
 func (c *Connector) AttachToHandler(mux *http.ServeMux) {
-	mux.HandleFunc("/health", c.HealthCheck)
 
 	// swagger:operation GET /events Event getContractEvents
 	//
@@ -883,6 +1102,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     required: false
 	//     description: node status
 	//     example: Active
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -970,6 +1201,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the inclusive ending of the time range for registration time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1068,6 +1311,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: true
 	//     description: the inclusive ending of the time range for block time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	//
 	// Responses:
@@ -1151,6 +1406,11 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     description: holder address
 	//     required: false
 	//   - in: query
+	//     name: state
+	//     type: string
+	//     description: list of states to filter in format '[type_1,type_2,type3]'
+	//     required: false
+	//   - in: query
 	//     name: timeline
 	//     type: boolean
 	//     required: false
@@ -1171,6 +1431,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the inclusive ending of the time range for delegation created time
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1248,6 +1520,18 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     description:  account address
 	//     required: false
+	//   - in: query
+	//     name: limit
+	//     type: int
+	//     required: false
+	//     description: limit of records returned
+	//     example: 1
+	//   - in: query
+	//     name: offset
+	//     type: int
+	//     required: false
+	//     description: offset of records returned
+	//     example: 1
 	//
 	// Responses:
 	//   default:
@@ -1302,6 +1586,10 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	mux.HandleFunc("/accounts", c.GetAccount)
 
 	mux.HandleFunc("/system_events/", c.GetSystemEvents)
+	mux.HandleFunc("/system_events", c.GetSystemEvents)
+
+	mux.HandleFunc("/summary/", c.GetSummary)
+	mux.HandleFunc("/summary", c.GetSummary)
 }
 
 func pathParams(path, key string) (map[string]string, error) {

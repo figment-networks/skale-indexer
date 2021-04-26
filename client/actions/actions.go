@@ -314,7 +314,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 	case "punisher":
 		switch ce.EventName {
-		case "slash":
+		case "Slash":
 			vIDI, ok := ce.Params["validatorId"]
 			if !ok {
 				return errors.New("structure is not a slash, it does not have validatorId")
@@ -345,7 +345,7 @@ func (m *Manager) AfterEventLog(ctx context.Context, c contract.ContractsContent
 
 			ce.BoundType = "validator"
 			ce.BoundID = append(ce.BoundID, *vID)
-		case "forgive":
+		case "Forgive":
 			wAddrI, ok := ce.Params["wallet"]
 			if !ok {
 				return errors.New("structure is not a forgive, it does not have wallet")

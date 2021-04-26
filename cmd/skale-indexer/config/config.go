@@ -49,6 +49,8 @@ type Config struct {
 
 	MaxHeightsPerRequest uint64        `json:"max_heights_per_request" envconfig:"MAX_HEIGHTS_PER_REQUEST" default:"100"`
 	ScrapeLatestTimeout  time.Duration `json:"scrape_latest_timeout" envconfig:"SCRAPE_LATEST_TIMEOUT" default:"30s"`
+
+	HealthCheckInterval time.Duration `json:"health_check_interval" envconfig:"HEALTH_CHECK_INTERVAL" default:"10s"`
 }
 
 // IdentityString returns the full app version string

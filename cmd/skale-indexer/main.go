@@ -26,6 +26,9 @@ import (
 	"github.com/figment-networks/skale-indexer/store"
 	"github.com/figment-networks/skale-indexer/store/postgresql"
 
+	"github.com/figment-networks/indexing-engine/health"
+	"github.com/figment-networks/indexing-engine/health/database/postgreshealth"
+
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
@@ -157,6 +160,12 @@ func main() {
 	}
 
 	mux.Handle("/metrics", metrics.Handler())
+
+	dbMonitor := postgreshealth.NewPostgresMonitorWithMetrics(db, logger.GetLogger())
+	monitor := &health.Monitor{}
+	monitor.AddProber(ctx, dbMonitor)
+	go monitor.RunChecks(ctx, cfg.HealthCheckInterval)
+	monitor.AttachHttp(mux)
 
 	s := &http.Server{
 		Addr:    cfg.Address,

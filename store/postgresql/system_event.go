@@ -93,7 +93,7 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 		q += " WHERE "
 	}
 	q += strings.Join(whereC, " AND ")
-	q += `ORDER BY height ASC`
+	q += `ORDER BY height ASC `
 
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

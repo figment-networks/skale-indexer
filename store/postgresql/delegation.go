@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/lib/pq"
 
 	"github.com/figment-networks/skale-indexer/scraper/structs"
 )
@@ -16,19 +18,9 @@ import (
 func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) error {
 
 	_, err := d.db.Exec(`INSERT INTO delegations (
-				"delegation_id",
-				"holder",
-				"validator_id",
-				"block_height",
-				"transaction_hash",
-				"amount",
-				"delegation_period",
-				"created",
-				"started",
-				"finished",
-				"info",
-				"state")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+				"delegation_id","holder","validator_id", "block_height","transaction_hash","amount",
+				"delegation_period","created","started","finished","info","state","until")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, (date_trunc('month', $14::timestamp ) + make_interval(MONTHS => 1+$13::INTEGER) - interval '1 day')::TIMESTAMP )
 		ON CONFLICT (delegation_id, transaction_hash)
 		DO UPDATE SET
 			holder = EXCLUDED.holder,
@@ -40,7 +32,8 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 			started = EXCLUDED.started,
 			finished = EXCLUDED.finished,
 			info = EXCLUDED.info,
-			state = EXCLUDED.state
+			state = EXCLUDED.state,
+			until = EXCLUDED.until
 		`,
 		dl.DelegationID.String(),
 		dl.Holder.Hash().Big().String(),
@@ -53,7 +46,9 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 		dl.Started.String(),
 		dl.Finished.String(),
 		dl.Info,
-		dl.State)
+		dl.State,
+		dl.DelegationPeriod.Uint64(),
+		dl.Created.Format("2006-01-02 15:04:05"))
 
 	return err
 }
@@ -84,11 +79,21 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
-	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
+
+	if !params.TimeAt.IsZero() {
+		whereC = append(whereC, ` $`+strconv.Itoa(i)+` BETWEEN created AND until`)
+		args = append(args, params.TimeAt)
+		i += 1
+	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
 		args = append(args, params.TimeTo)
 		i += 2
+	}
+	if len(params.State) > 0 {
+		whereC = append(whereC, "state @> $"+strconv.Itoa(i))
+		args = append(args, pq.Array(params.State))
+		i++
 	}
 
 	if len(whereC) > 0 {
@@ -97,6 +102,12 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 	q += strings.Join(whereC, " AND ")
 	q += `ORDER BY block_height DESC`
 
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
@@ -171,21 +182,37 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		args = append(args, common.HexToAddress(params.Holder).Hash().Big().String())
 		i++
 	}
-	if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
+
+	if len(params.State) > 0 {
+		whereC = append(whereC, " state @> $"+strconv.Itoa(i))
+		args = append(args, pq.Array(params.State))
+		i++
+	}
+
+	if !params.TimeAt.IsZero() {
+		whereC = append(whereC, ` $`+strconv.Itoa(i)+` BETWEEN created AND until`)
+		args = append(args, params.TimeAt)
+		i += 1
+	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
 		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
 		args = append(args, params.TimeFrom)
 		args = append(args, params.TimeTo)
 		i += 2
 	}
+
 	if len(whereC) > 0 {
 		q += " WHERE "
 	}
 	q += strings.Join(whereC, " AND ")
-	q += `ORDER BY delegation_id DESC, block_height DESC`
+	q += ` ORDER BY delegation_id DESC, block_height DESC`
 
-	if err != nil {
-		return nil, fmt.Errorf("query error: %w", err)
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
 	}
+
 	var rows *sql.Rows
 	rows, err = d.db.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -225,6 +252,70 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		dlg.DelegationPeriod = new(big.Int).SetUint64(dlgPeriod)
 		dlg.Started = new(big.Int).SetUint64(started)
 		dlg.Finished = new(big.Int).SetUint64(finished)
+		delegations = append(delegations, dlg)
+	}
+	return delegations, nil
+}
+
+func (d *Driver) GetTypesSummaryDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.DelegationSummary, err error) {
+	q := `SELECT DISTINCT ON (delegation_id) delegation_id, amount, state
+				FROM delegations `
+
+	var (
+		args   []interface{}
+		whereC []string
+		i      = 1
+	)
+
+	if params.ValidatorID != "" {
+		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
+		args = append(args, params.ValidatorID)
+		i++
+	}
+
+	if !params.TimeAt.IsZero() {
+		whereC = append(whereC, `$`+strconv.Itoa(i)+` BETWEEN created AND until`)
+		args = append(args, params.TimeAt)
+		i += 1
+	} else if !params.TimeFrom.IsZero() && !params.TimeTo.IsZero() {
+		whereC = append(whereC, ` created BETWEEN $`+strconv.Itoa(i)+` AND $`+strconv.Itoa(i+1))
+		args = append(args, params.TimeFrom)
+		args = append(args, params.TimeTo)
+		i += 2
+	}
+	if len(whereC) > 0 {
+		q += " WHERE "
+	}
+	q += strings.Join(whereC, " AND ")
+	q += ` ORDER BY delegation_id DESC, block_height DESC`
+
+	var rows *sql.Rows
+
+	rows, err = d.db.QueryContext(ctx, `SELECT d.state, SUM(d.amount) as amount, COUNT(d.delegation_id) as count FROM (`+q+`) AS d GROUP BY d.state;`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		amount string
+		count  string
+	)
+
+	for rows.Next() {
+		dlg := structs.DelegationSummary{}
+		if err := rows.Scan(&dlg.State, &amount, &count); err != nil {
+			return nil, err
+		}
+
+		h := new(big.Int)
+		h.SetString(count, 10)
+		dlg.Count = h
+
+		h2 := new(big.Int)
+		h2.SetString(amount, 10)
+		dlg.Amount = h2
+
 		delegations = append(delegations, dlg)
 	}
 	return delegations, nil
