@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strconv"
 	"strings"
@@ -116,6 +117,12 @@ func (d *Driver) GetValidators(ctx context.Context, params structs.ValidatorPara
 	if params.Authorized > 0 {
 		whereC = append(whereC, ` authorized = $`+strconv.Itoa(i))
 		args = append(args, params.Authorized == structs.StateTrue)
+		i++
+	}
+
+	if params.Address != "" {
+		whereC = append(whereC, ` validator_address =  $`+strconv.Itoa(i))
+		args = append(args, common.HexToAddress(params.Address).Hash().Big().String())
 		i++
 	}
 

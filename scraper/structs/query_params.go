@@ -63,6 +63,7 @@ type ValidatorParams struct {
 	Authorized     ThreeState
 	TimeFrom       time.Time
 	TimeTo         time.Time
+	Address        string
 
 	Limit  uint64
 	Offset uint64

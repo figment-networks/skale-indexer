@@ -309,6 +309,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			}
 			params.Authorized = uint8(auth)
 		}
+		params.Address = req.URL.Query().Get("address")
 
 		limit := req.URL.Query().Get("limit")
 		if limit != "" {
@@ -333,6 +334,9 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 			}
 			if t, ok := m["to"]; ok {
 				timeTo = t
+			}
+			if addr, ok := m["address"]; ok {
+				params.Address = addr
 			}
 		}
 		var errFrom, errTo error
@@ -366,6 +370,7 @@ func (c *Connector) GetValidator(w http.ResponseWriter, req *http.Request) {
 		TimeFrom:    params.TimeFrom,
 		TimeTo:      params.TimeTo,
 		Authorized:  structs.ThreeState(params.Authorized),
+		Address:     params.Address,
 		Offset:      params.Offset,
 		Limit:       params.Limit,
 	})
@@ -1201,6 +1206,11 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     type: string
 	//     required: false
 	//     description: the inclusive ending of the time range for registration time
+	//   - in: query
+	//     name: address
+	//     type: string
+	//     required: false
+	//     description: the latest validator address
 	//   - in: query
 	//     name: limit
 	//     type: int
