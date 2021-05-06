@@ -148,6 +148,10 @@ type ValidatorParams struct {
 	//
 	// example: 1
 	Authorized uint8 `json:"authorized"`
+	// Address - validator address
+	//
+	// format: hexadecimal
+	Address string `json:"address"`
 	// Limit - Limit of the records per page
 	//
 	// required: false
