@@ -1210,7 +1210,7 @@ func (c *Connector) AttachToHandler(mux *http.ServeMux) {
 	//     name: address
 	//     type: string
 	//     required: false
-	//     description: validator address
+	//     description: the latest validator address
 	//   - in: query
 	//     name: limit
 	//     type: int
