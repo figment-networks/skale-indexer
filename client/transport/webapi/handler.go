@@ -773,6 +773,7 @@ func (c *Connector) GetDelegation(w http.ResponseWriter, req *http.Request) {
 			TransactionHash: dlg.TransactionHash,
 			Holder:          dlg.Holder,
 			ValidatorID:     dlg.ValidatorID,
+			ValidatorName:   dlg.ValidatorName,
 			BlockHeight:     dlg.BlockHeight,
 			Amount:          dlg.Amount.String(),
 			Period:          dlg.DelegationPeriod,

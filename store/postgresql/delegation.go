@@ -55,8 +55,8 @@ func (d *Driver) SaveDelegation(ctx context.Context, dl structs.Delegation) erro
 
 // GetDelegationTimeline gets all delegation information over time
 func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	q := `SELECT id, delegation_id, holder, validator_id, block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state
-			FROM delegations `
+	q := `SELECT delegations.id, delegation_id, holder, delegations.validator_id, delegations.block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state, name
+			FROM delegations INNER JOIN validators ON delegations.validator_id = validators.validator_id `
 
 	var (
 		args   []interface{}
@@ -131,7 +131,7 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 			dlgPeriod uint64
 		)
 
-		if err := rows.Scan(&dlg.ID, &dlgID, &holder, &vldID, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
+		if err := rows.Scan(&dlg.ID, &dlgID, &holder, &vldID, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State, &dlg.ValidatorName); err != nil {
 			return nil, err
 		}
 
@@ -158,8 +158,8 @@ func (d *Driver) GetDelegationTimeline(ctx context.Context, params structs.Deleg
 func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
 	q := `SELECT
 			DISTINCT ON (delegation_id)
-				delegation_id, id, holder, validator_id, block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state
-			FROM delegations `
+				delegation_id, delegations.id, holder, delegations.validator_id, delegations.block_height, transaction_hash, amount, delegation_period, created, started, finished, info, state, name
+			FROM delegations INNER JOIN validators ON delegations.validator_id = validators.validator_id `
 
 	var (
 		args   []interface{}
@@ -233,7 +233,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 			dlgPeriod uint64
 		)
 
-		if err := rows.Scan(&dlgId, &dlg.ID, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State); err != nil {
+		if err := rows.Scan(&dlgId, &dlg.ID, &holder, &vldId, &dlg.BlockHeight, &th, &amount, &dlgPeriod, &dlg.Created, &started, &finished, &dlg.Info, &dlg.State, &dlg.ValidatorName); err != nil {
 			return nil, err
 		}
 

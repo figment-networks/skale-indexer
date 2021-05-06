@@ -85,6 +85,8 @@ type Delegation struct {
 	//
 	// package: math/big
 	ValidatorID *big.Int `json:"validator_id"`
+	// ValidatorName - validator name
+	ValidatorName string `json:"validator_name"`
 	// BlockHeight - Block number at ETH mainnet
 	BlockHeight uint64 `json:"block_height"`
 	// Amount - delegation amount SKL unit
