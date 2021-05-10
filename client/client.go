@@ -76,19 +76,44 @@ func (c *Client) GetValidators(ctx context.Context, params structs.ValidatorPara
 }
 
 func (c *Client) GetDelegations(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	d, err := c.storeEng.GetDelegations(ctx, params)
+	delegations, err = c.storeEng.GetDelegations(ctx, params)
 	if err != nil {
 		c.log.Error("[CLIENT] Error in GetDelegations", zap.Any("params", params), zap.Error(err))
+		return nil, err
 	}
-	return d, err
+
+	for i, dlg := range delegations {
+		v, err := c.storeEng.GetValidators(ctx, structs.ValidatorParams{
+			ValidatorID: dlg.ValidatorID.String(),
+		})
+		if err != nil || len(v) != 1 {
+			c.log.Error("[CLIENT] Error in GetDelegations for Validator Name", zap.Any("validatorID", dlg.ValidatorID), zap.Error(err))
+			return nil, err
+		}
+		delegations[i].ValidatorName = v[0].Name
+	}
+
+	return delegations, err
 }
 
 func (c *Client) GetDelegationTimeline(ctx context.Context, params structs.DelegationParams) (delegations []structs.Delegation, err error) {
-	d, err := c.storeEng.GetDelegationTimeline(ctx, params)
+	delegations, err = c.storeEng.GetDelegationTimeline(ctx, params)
 	if err != nil {
 		c.log.Error("[CLIENT] Error in GetDelegationTimeline", zap.Any("params", params), zap.Error(err))
+		return nil, err
 	}
-	return d, err
+
+	for i, dlg := range delegations {
+		v, err := c.storeEng.GetValidators(ctx, structs.ValidatorParams{
+			ValidatorID: dlg.ValidatorID.String(),
+		})
+		if err != nil || len(v) != 1 {
+			c.log.Error("[CLIENT] Error in GetDelegations for Validator Name", zap.Any("validatorID", dlg.ValidatorID), zap.Error(err))
+			return nil, err
+		}
+		delegations[i].ValidatorName = v[0].Name
+	}
+	return delegations, err
 }
 
 func (c *Client) GetValidatorStatistics(ctx context.Context, params structs.ValidatorStatisticsParams) (validatorStatistics []structs.ValidatorStatistics, err error) {
