@@ -4,6 +4,7 @@
 ### Added
 - Return `validator_name` in `/delegations`
 - Add query param `address` to `/validators`
+- New index `idx_val_addr` on validators table
 
 ### Changed
 - Various changes for hubble consistency
