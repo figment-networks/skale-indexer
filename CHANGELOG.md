@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.0.4] - 2021-04-10
+### Added
+- Return `validator_name` in `/delegations`
+- Add query param `address` to `/validators`
+
+### Changed
+- Various changes for hubble consistency
+### Fixed
 
 ## [0.0.2] - 2021-02-17
 
