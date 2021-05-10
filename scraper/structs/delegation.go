@@ -24,6 +24,9 @@ type Delegation struct {
 	Finished         *big.Int        `json:"finished"`
 	Info             string          `json:"info"`
 	State            DelegationState `json:"state"`
+
+	// JOIN
+	ValidatorName string `json:"validator_name"`
 }
 
 type DelegationState uint
