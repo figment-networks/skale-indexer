@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.0.6] - 2021-05-18
+### Fixed
+- bugfix ambiguous column for in `/delegations` with timeline
+
+
 ## [0.0.5] - 2021-05-18
 ### Fixed
 - bugfix ambiguous column for in `/delegations`
