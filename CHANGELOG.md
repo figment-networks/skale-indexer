@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.0.5] - 2021-05-18
+### Added
+- bugfix ambiguous column for in `/delegations`
+
 ## [0.0.4] - 2021-04-10
 ### Added
 - Return `validator_name` in `/delegations`
