@@ -173,7 +173,7 @@ func (d *Driver) GetDelegations(ctx context.Context, params structs.DelegationPa
 		i++
 	}
 	if params.ValidatorID != "" {
-		whereC = append(whereC, ` validator_id = $`+strconv.Itoa(i))
+		whereC = append(whereC, ` validators.validator_id = $`+strconv.Itoa(i))
 		args = append(args, params.ValidatorID)
 		i++
 	}
