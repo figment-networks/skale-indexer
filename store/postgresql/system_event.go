@@ -61,7 +61,7 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 
 	if params.Address != "" {
 		whereC = append(whereC, `( sender = $`+strconv.Itoa(i)+` OR recipient =  $`+strconv.Itoa(i)+` )`)
-		args = append(args, params.Address)
+		args = append(args, common.HexToAddress(params.Address).Hash().Big().String())
 		i++
 	}
 
