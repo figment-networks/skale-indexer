@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.0.8] - 2021-06-15
+### Fixed
+- bugfix invalid lookup for `/system_events?address=` due to no bigInt conversion
+
 ## [0.0.7] - 2021-05-18
 ### Added
 ### Changed
