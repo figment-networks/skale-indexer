@@ -814,7 +814,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		params.Kind = req.URL.Query().Get("kind")
 		after := req.URL.Query().Get("after")
 
-		limit :=req.URL.Query().Get("limit")
+		limit := req.URL.Query().Get("limit")
 		if limit != "" {
 			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -869,9 +869,10 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		Address:    params.Address,
 		SenderID:   params.SenderID,
 		ReceiverID: params.ReceiverID,
-		Limit: params.Limit,
-		Offset: params.Offset,
+		Limit:      params.Limit,
+		Offset:     params.Offset,
 	})
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(newApiError(errors.New("error during server query"), http.StatusInternalServerError))
