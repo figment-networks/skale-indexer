@@ -79,13 +79,13 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	}
 
 	if params.Kind != "" {
-		whereC = append(whereC, `kind = $`+strconv.Itoa(i))
+		whereC = append(whereC, ` kind = $`+strconv.Itoa(i))
 		args = append(args, params.Kind)
 		i++
 	}
 
 	if params.After > 0 {
-		whereC = append(whereC, `height > $`+strconv.Itoa(i))
+		whereC = append(whereC, ` height > $`+strconv.Itoa(i))
 		args = append(args, params.After)
 		i++
 	}
@@ -93,8 +93,16 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	if len(whereC) > 0 {
 		q += " WHERE "
 	}
+
 	q += strings.Join(whereC, " AND ")
-	q += `ORDER BY height ASC `
+	q += `ORDER BY height DESC `
+
+	if params.Limit > 0 {
+		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
+		if params.Offset > 0 {
+			q += " OFFSET " + strconv.FormatUint(uint64(params.Offset), 10)
+		}
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)

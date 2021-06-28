@@ -209,4 +209,6 @@ type SystemEventParams struct {
 	Address    string `json:"address"`
 	SenderID   uint64 `json:"sender_id"`
 	ReceiverID uint64 `json:"receiver_id"`
+	Limit      uint64 `json:"limit"`
+	Offset     uint64 `json:"offset"`
 }

@@ -87,4 +87,7 @@ type SystemEventParams struct {
 	Address    string
 	SenderID   uint64
 	ReceiverID uint64
+
+	Limit  uint64
+	Offset uint64
 }
