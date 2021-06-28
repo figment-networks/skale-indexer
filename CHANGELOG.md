@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.0.9] - 2021-06-28
+### Added
+- Adds `limit` and `offset` params to `/system_events`
+### Changed
+- Modifies the `ORDER BY` lookup for the System Events to return latest block first instead of the oldest
+
 ## [0.0.8] - 2021-06-15
 ### Fixed
 - bugfix invalid lookup for `/system_events?address=` due to no bigInt conversion
