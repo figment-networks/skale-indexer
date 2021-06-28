@@ -814,6 +814,21 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		params.Kind = req.URL.Query().Get("kind")
 		after := req.URL.Query().Get("after")
 
+		limit :=req.URL.Query().Get("limit")
+		if limit != "" {
+			if params.Limit, err = strconv.ParseUint(limit, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'limit' parameter"), http.StatusBadRequest))
+				return
+			}
+			offset := req.URL.Query().Get("offset")
+			if params.Offset, err = strconv.ParseUint(offset, 10, 64); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(newApiError(errors.New("error parsing 'offset' parameter"), http.StatusBadRequest))
+				return
+			}
+		}
+
 		if m != nil {
 			if ad, ok := m["address"]; ok {
 				params.Address = ad
@@ -854,6 +869,8 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		Address:    params.Address,
 		SenderID:   params.SenderID,
 		ReceiverID: params.ReceiverID,
+		Limit: params.Limit,
+		Offset: params.Offset,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -864,6 +881,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	sEvts := []SystemEvent{}
 	for _, evt := range res {
 		sevt := structs.SysEvtTypes[evt.Kind]
+
 		sEvts = append(sEvts, SystemEvent{
 			Height:      evt.Height,
 			Time:        evt.Time,
