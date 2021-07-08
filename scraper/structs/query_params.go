@@ -82,9 +82,11 @@ type ValidatorStatisticsParams struct {
 }
 
 type SystemEventParams struct {
+	Id         string
 	After      uint64
 	Kind       string
 	Address    string
+	Validator  string
 	SenderID   uint64
 	ReceiverID uint64
 

@@ -8,6 +8,7 @@ import (
 )
 
 type SystemEvent struct {
+	Id          string         `json:"id"`
 	Height      uint64         `json:"height"`
 	Time        time.Time      `json:"time"`
 	Kind        SysEvtType     `json:"kind"`

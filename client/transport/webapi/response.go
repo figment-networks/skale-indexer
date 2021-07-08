@@ -234,6 +234,7 @@ type Account struct {
 // SystemEvent event information for reporting some activities in chain
 // swagger:model
 type SystemEvent struct {
+	Id          string          `json:"id"`
 	Height      uint64          `json:"height"`
 	Time        time.Time       `json:"time"`
 	Kind        string          `json:"kind"`

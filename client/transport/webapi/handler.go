@@ -810,6 +810,8 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 	params := SystemEventParams{}
 	switch req.Method {
 	case http.MethodGet:
+		params.Id = req.URL.Query().Get("id")
+		params.Validator = req.URL.Query().Get("validator")
 		params.Address = req.URL.Query().Get("address")
 		params.Kind = req.URL.Query().Get("kind")
 		after := req.URL.Query().Get("after")
@@ -867,6 +869,8 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		After:      params.After,
 		Kind:       params.Kind,
 		Address:    params.Address,
+		Validator:  params.Validator,
+		Id:         params.Id,
 		SenderID:   params.SenderID,
 		ReceiverID: params.ReceiverID,
 		Limit:      params.Limit,
@@ -884,6 +888,7 @@ func (c *Connector) GetSystemEvents(w http.ResponseWriter, req *http.Request) {
 		sevt := structs.SysEvtTypes[evt.Kind]
 
 		sEvts = append(sEvts, SystemEvent{
+			Id:          evt.Id,
 			Height:      evt.Height,
 			Time:        evt.Time,
 			Kind:        sevt,
