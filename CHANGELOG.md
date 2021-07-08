@@ -2,6 +2,11 @@
 
 ## [0.0.10] - 2021-07-05
 
+### Added
+
+- Adds `validator` lookup for sender and recipient ID to return validator specific events
+- Adds `id` param lookup to allow individual events to be returned
+
 ### Changed
 
 - Modifies the `system_events` table to include `uuid` through migration
