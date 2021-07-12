@@ -66,15 +66,15 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 		i++
 	}
 
-	if params.Id != "" {
+	if params.ID != "" {
 		whereC = append(whereC, ` id =  $`+strconv.Itoa(i))
-		args = append(args, params.Id)
+		args = append(args, params.ID)
 		i++
 	}
 
-	if params.Validator != "" {
+	if params.ValidatorID != "" {
 		whereC = append(whereC, `( sender_id = $`+strconv.Itoa(i)+` OR recipient_id = $`+strconv.Itoa(i)+` )`)
-		args = append(args, params.Validator)
+		args = append(args, params.ValidatorID)
 		i++
 	}
 
@@ -145,7 +145,7 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	)
 	for rows.Next() {
 		e := structs.SystemEvent{}
-		if err = rows.Scan(&e.Id, &e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &change); err != nil {
+		if err = rows.Scan(&e.ID, &e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &change); err != nil {
 			return nil, err
 		}
 
