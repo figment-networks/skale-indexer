@@ -2,6 +2,8 @@
 
 ## Main
 
+## [0.0.10] - 2021-07-14
+
 ### Added
 
 - Adds `validator_id` param lookup to `/system_events` for sender and recipient ID to return validator specific events
