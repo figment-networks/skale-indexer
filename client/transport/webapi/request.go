@@ -204,11 +204,13 @@ type ValidatorStatisticsParams struct {
 
 // SystemEventParams a set of fields to be used for system events
 type SystemEventParams struct {
-	After      uint64 `json:"after"`
-	Kind       string `json:"kind"`
-	Address    string `json:"address"`
-	SenderID   uint64 `json:"sender_id"`
-	ReceiverID uint64 `json:"receiver_id"`
-	Limit      uint64 `json:"limit"`
-	Offset     uint64 `json:"offset"`
+	After       uint64 `json:"after"`
+	Kind        string `json:"kind"`
+	Address     string `json:"address"`
+	ValidatorID string `json:"validator_id"`
+	ID          string `json:"id"`
+	SenderID    uint64 `json:"sender_id"`
+	ReceiverID  uint64 `json:"receiver_id"`
+	Limit       uint64 `json:"limit"`
+	Offset      uint64 `json:"offset"`
 }

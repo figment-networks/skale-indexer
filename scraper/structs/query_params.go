@@ -82,11 +82,13 @@ type ValidatorStatisticsParams struct {
 }
 
 type SystemEventParams struct {
-	After      uint64
-	Kind       string
-	Address    string
-	SenderID   uint64
-	ReceiverID uint64
+	ID          string
+	After       uint64
+	Kind        string
+	Address     string
+	ValidatorID string
+	SenderID    uint64
+	ReceiverID  uint64
 
 	Limit  uint64
 	Offset uint64

@@ -52,7 +52,7 @@ func (d *Driver) SaveSystemEvent(ctx context.Context, se structs.SystemEvent) er
 // GetSystemEvents gets contract events
 func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEventParams) (systemEvents []structs.SystemEvent, err error) {
 
-	q := `SELECT height, kind, time, sender, sender_id, recipient, recipient_id, before, after, change FROM system_events `
+	q := `SELECT id, height, kind, time, sender, sender_id, recipient, recipient_id, before, after, change FROM system_events `
 
 	var (
 		args   []interface{}
@@ -63,6 +63,18 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	if params.Address != "" {
 		whereC = append(whereC, `( sender = $`+strconv.Itoa(i)+` OR recipient =  $`+strconv.Itoa(i)+` )`)
 		args = append(args, common.HexToAddress(params.Address).Hash().Big().String())
+		i++
+	}
+
+	if params.ID != "" {
+		whereC = append(whereC, ` id =  $`+strconv.Itoa(i))
+		args = append(args, params.ID)
+		i++
+	}
+
+	if params.ValidatorID != "" {
+		whereC = append(whereC, `( sender_id = $`+strconv.Itoa(i)+` OR recipient_id = $`+strconv.Itoa(i)+` )`)
+		args = append(args, params.ValidatorID)
 		i++
 	}
 
@@ -95,7 +107,7 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	}
 
 	q += strings.Join(whereC, " AND ")
-	q += `ORDER BY height DESC `
+	q += ` ORDER BY height DESC `
 
 	if params.Limit > 0 {
 		q += " LIMIT " + strconv.FormatUint(uint64(params.Limit), 10)
@@ -133,7 +145,7 @@ func (d *Driver) GetSystemEvents(ctx context.Context, params structs.SystemEvent
 	)
 	for rows.Next() {
 		e := structs.SystemEvent{}
-		if err = rows.Scan(&e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &change); err != nil {
+		if err = rows.Scan(&e.ID, &e.Height, &e.Kind, &e.Time, &sender, &senderID, &recipient, &recipientID, &beforeValue, &afterValue, &change); err != nil {
 			return nil, err
 		}
 
